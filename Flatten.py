@@ -17,12 +17,13 @@ class python_compiler:
     @staticmethod
     def treeFlatten(ast):
         python_compiler.treeFlatten_helper(ast, 0)
+        ast2 = Module(None, Stmt(flat_stmt.nodes))
         print('\nPython AST\n----------')
         print(ast)
         print('\n\nFlattened AST\n-------------')
-        print(flat_stmt.nodes)
+        print(ast2)
         print('\n')
-        return flat_stmt.nodes
+        return ast2
 
 
     @staticmethod
