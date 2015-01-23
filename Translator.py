@@ -18,7 +18,6 @@ class Translator:
 			elif isinstance(ast,Assign):
 				offset = -4*(len(memory)+1)
 				memory[ast.nodes[0].name] = offset
-				assign = MoveInstruction(RegisterOperand("eax"),MemoryOperand(RegisterOperand("ebp"),offset),"l")
 				subAST = translatePythonAST(ast.expr)
 				if len(subAST) == 1: 
 					print MoveInstruction(subAST[0],MemoryOperand(RegisterOperand("ebp"),offset),"l").printInstruction()
@@ -28,9 +27,16 @@ class Translator:
 						instructions += [MoveInstruction(RegisterOperand("eax"),MemoryOperand(RegisterOperand("ebp"),offset),"l")]
 						return instructions
 					elif isinstance(subAST[0],CallInstruction): return subAST + [MoveInstruction(RegisterOperand("eax"),MemoryOperand(RegisterOperand("ebp"),offset),"l")]
-					else: return [MoveInstruction(subAST[0],MemoryOperand(RegisterOperand("ebp"),offset),"l")]
+					else: 
+						assign = MoveInstruction(RegisterOperand("eax"),MemoryOperand(RegisterOperand("ebp"),offset),"l")
+						return [MoveInstruction(subAST[0],MemoryOperand(RegisterOperand("ebp"),offset),"l")]
 				else: return translatePythonAST(ast.expr) + [assign]
 			elif isinstance(ast,Name): return [MemoryOperand(RegisterOperand("ebp"),memory[ast.name])]
 			elif isinstance(ast,CallFunc): return [CallInstruction(FunctionCallOperand(ast.node.name))]
+			elif isinstance(ast,Printnl):
+				i = [PushInstruction(MemoryOperand(RegisterOperand("ebp"),memory[ast.nodes[0].name]),"l")]
+				i += [CallInstruction(FunctionCallOperand("print_int_nl"))]
+				i += [AddInstruction(ConstantOperand(4),RegisterOperand("esp"),"l")]
+				return i
 			return "Error: " + str(ast) + " currently not supported.\n"
 		return translatePythonAST(ast)
