@@ -11,13 +11,19 @@ class AssemblyProgram(Instruction):
 		self.functions = functions
 
 	def printInstruction(self):
-		section = ".section	__TEXT,__text,regular,pure_instructions\n"
 		globl = ".globl main\n"
 		align = ".align	4, 0x90\n"
 		body = ""
 		for f in self.functions:
 			body += f.printInstruction();
-		return section + globl + align + body
+		return globl + align + body
+
+	def __str__(self):
+		string = self.__class__.__name__ + "(["
+		for f in self.functions:
+			string += str(f) + ","
+		string += "])"
+		return string
 
 class AssemblyFunction(Instruction):
 	def __init__(self,name,instructions):
@@ -26,12 +32,19 @@ class AssemblyFunction(Instruction):
 
 	def printInstruction(self):
 		functionName = self.name+":\n"
-		functionSetup = PushInstruction("ebp").printInstruction() + MoveInstruction(RegisterOperand("esp"),RegisterOperand("ebp"),"l").printInstruction()
+		functionSetup = PushInstruction(RegisterOperand("ebp"),"l").printInstruction() + MoveInstruction(RegisterOperand("esp"),RegisterOperand("ebp"),"l").printInstruction()
 		functionCleanup = MoveInstruction(ConstantOperand(0),RegisterOperand("eax"),"l").printInstruction() + LeaveInstruction().printInstruction() + ReturnInstruction().printInstruction()
 		body = ""
 		for i in self.instructions:
 			body += i.printInstruction()
 		return functionName + functionSetup + body + functionCleanup
+
+	def __str__(self):
+		string = self.__class__.__name__ + "(" + str(self.name) + ",["
+		for i in self.instructions:
+			string += str(i) + ","
+		string += "])"
+		return string
 
 class Operand(object):
 	__metaclass__ = ABCMeta
@@ -43,12 +56,18 @@ class RegisterOperand(Operand):
 	def printInstruction(self):
 		return "%" + self.name
 
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.name) + ")"
+
 class ConstantOperand(Operand):
 	def __init__(self,constant):
 		self.constant = constant
 
 	def printInstruction(self):
 		return "$" + str(self.constant)
+
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.constant) + ")"
 
 class MemoryOperand(Operand):
 	def __init__(self,register,offset=0):
@@ -61,12 +80,19 @@ class MemoryOperand(Operand):
 
 		return o + "(" + self.register.printInstruction() + ")"
 
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.register) + "," + str(self.offset) + ")"
+
 class FunctionCallOperand(Operand):
 	def __init__(self,name):
 		self.name = name
 
 	def printInstruction(self):
 		return self.name
+
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.name) + ")"
+
 
 class UnaryInstruction(Instruction):
 	__metaclass__ = ABCMeta
@@ -78,16 +104,10 @@ class CallInstruction(UnaryInstruction):
 	def printInstruction(self):
 		return "call " + self.operand.printInstruction() + "\n"
 
-class PushInstruction(UnaryInstruction):
-	def __init__(self,operand,length=None):
-		UnaryInstruction.__init__(self,operand)
-		self.length = length
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.operand) + ")"
 
-	def printInstruction(self):
-		push = "push"
-		if self.length != None: push += self.length
-		push += " " + self.operand.printInstruction() + "\n"
-		return push
+
 
 class SpecifiedUnaryInstruction(UnaryInstruction):
 	__metaclass__ = ABCMeta
@@ -95,6 +115,16 @@ class SpecifiedUnaryInstruction(UnaryInstruction):
 	def __init__(self,operand,length):
 		UnaryInstruction.__init__(self,operand)
 		self.length = length
+
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.operand) + "," + str(self.length) + ")"
+
+class PushInstruction(SpecifiedUnaryInstruction):
+	def printInstruction(self):
+		push = "push"
+		if self.length != None: push += self.length
+		push += " " + self.operand.printInstruction() + "\n"
+		return push
 
 class NegativeInstruction(SpecifiedUnaryInstruction):
 	def printInstruction(self):
@@ -107,6 +137,9 @@ class BinaryInstruction(Instruction):
 		self.fromOperand = fromOperand
 		self.toOperand = toOperand
 
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.fromOperand) + "," + str(self.toOperand) + ")"
+
 class SpecifiedBinaryInstruction(BinaryInstruction):
 	__metaclass__ = ABCMeta
 
@@ -117,6 +150,9 @@ class SpecifiedBinaryInstruction(BinaryInstruction):
 
 	def printInstruction(self):
 		return self.instruction + self.length + " " + self.fromOperand.printInstruction() + ", " + self.toOperand.printInstruction() + "\n"
+
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.fromOperand) + "," + str(self.toOperand) + "," + str(self.length) + ")"
 
 class MoveInstruction(SpecifiedBinaryInstruction):
 	def __init__(self,fromOperand,toOperand,length):
@@ -136,6 +172,9 @@ class AddInstruction(SpecifiedBinaryInstruction):
 
 class NoOperandInstruction(Instruction):
 	__metaclass__ = ABCMeta
+
+	def __str__(self):
+		return self.__class__.__name__
 
 class LeaveInstruction(NoOperandInstruction):
 	def printInstruction(self):
