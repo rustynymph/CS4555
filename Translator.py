@@ -27,8 +27,10 @@ class Translator:
 						instructions += [MoveInstruction(subAST[0],RegisterOperand("eax"),"l")]
 						instructions += [MoveInstruction(RegisterOperand("eax"),MemoryOperand(RegisterOperand("ebp"),offset),"l")]
 						return instructions
+					elif isinstance(subAST[0],CallInstruction): return subAST + [MoveInstruction(RegisterOperand("eax"),MemoryOperand(RegisterOperand("ebp"),offset),"l")]
 					else: return [MoveInstruction(subAST[0],MemoryOperand(RegisterOperand("ebp"),offset),"l")]
-				return translatePythonAST(ast.expr) + [assign]
+				else: return translatePythonAST(ast.expr) + [assign]
 			elif isinstance(ast,Name): return [MemoryOperand(RegisterOperand("ebp"),memory[ast.name])]
+			elif isinstance(ast,CallFunc): return [CallInstruction(FunctionCallOperand(ast.node.name))]
 			return "Error: " + str(ast) + " currently not supported.\n"
 		return translatePythonAST(ast)

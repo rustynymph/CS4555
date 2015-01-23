@@ -10,7 +10,7 @@ from Optimizer import *
 from Parser import *
 from AssemblyAST import *
 
-ast = compiler.parse("x=5")
+ast = compiler.parse("input()")
 flat_ast = python_compiler.treeFlatten(ast)
 x86_ast = Translator.pythonASTToAssemblyAST(flat_ast)
 #print x86_ast
