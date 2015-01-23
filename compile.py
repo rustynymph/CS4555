@@ -10,12 +10,21 @@ from Optimizer import *
 from Parser import *
 from AssemblyAST import *
 
-ast = compiler.parse("input()")
-flat_ast = python_compiler.treeFlatten(ast)
-x86_ast = Translator.pythonASTToAssemblyAST(flat_ast)
-#print x86_ast
-print x86_ast
-print x86_ast.printInstruction()
+# ast = compiler.parse("print -5")
+# flat_ast = python_compiler.treeFlatten(ast)
+# x86_ast = Translator.pythonASTToAssemblyAST(flat_ast)
+# #print x86_ast
+# print x86_ast
+# print x86_ast.printInstruction()
+
+pythonFilename = sys.argv[1]
+pythonAST = Parser.parseFile(pythonFilename)
+flattenedAST = python_compiler.treeFlatten(pythonAST)
+x86AST = Translator.pythonASTToAssemblyAST(flattenedAST)
+
+x86Filename = sys.argv[1].split(".")[0] + ".s"
+x86File = open(x86Filename,"w")
+x86File.write(x86AST.printInstruction())
 
 '''
 filename = sys.argv[1]
