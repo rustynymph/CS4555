@@ -26,7 +26,7 @@ class Translator:
 					return x86AST + [MoveInstruction(RegisterOperand("eax"),assignInstruction,"l")]
 				return x86AST + [MoveInstruction(RegisterOperand("eax"),assignInstruction,"l")]
 			elif isinstance(ast,AssName):
-				memory[ast.name] = -4*(len(memory)+1)
+				if ast.name not in memory: memory[ast.name] = -4*(len(memory)+1)
 				return [getVariableInMemory(ast.name)]
 			elif isinstance(ast,Name): return [getVariableInMemory(ast.name)]
 			elif isinstance(ast,CallFunc): return [CallInstruction(FunctionCallOperand(ast.node.name))]
