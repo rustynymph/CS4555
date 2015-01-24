@@ -3,7 +3,12 @@
 ####Annie Kelly and Andrew Arnopoulos
 ---------------------------------
 
-This compiler works on a small subset of Python, P0. Programs that can be compiled include: variable assignments, addition, negation, taking input(), and printing.
+This compiler works on a small subset of Python, P0. Programs that can be compiled include: variable assignments, addition, negation, taking input(), and printing. Here is an example of a sample program:
+
+```
+a = 5 + input() +-6 + input()
+print a
+```
 
 ######To run:
 `python compile.py <filename.py>`
