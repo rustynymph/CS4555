@@ -36,9 +36,10 @@ class python_compiler:
 
         elif isinstance(ast,  Stmt):
             for node in ast.nodes:
-                tmp_num = python_compiler.treeFlatten_helper(node, tmp_num)
-                length = math.fabs(tmp_num - len(flat_stmt.nodes))
-                tmp_num += 1
+                length = len(flat_stmt.nodes)
+                tmp_num = length
+                python_compiler.treeFlatten_helper(node, tmp_num)
+                #tmp_num += 1
             return tmp_num
             
         elif isinstance(ast, Printnl):
