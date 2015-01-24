@@ -4,6 +4,7 @@ from compiler.ast import *
 import compiler
 import sys
 import string
+import math
 
 class flat_stmt(Stmt):
     #flat_stmt is a subclass of Stmt
@@ -36,6 +37,7 @@ class python_compiler:
         elif isinstance(ast,  Stmt):
             for node in ast.nodes:
                 tmp_num = python_compiler.treeFlatten_helper(node, tmp_num)
+                length = math.fabs(tmp_num - len(flat_stmt.nodes))
                 tmp_num += 1
             return tmp_num
             
