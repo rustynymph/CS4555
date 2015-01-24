@@ -15,7 +15,7 @@ class Translator:
 				x86 = []
 				for n in ast.nodes:
 					x86 += translatePythonAST(n)
-				return AssemblyFunction("main",x86)
+				return AssemblyFunction("main",x86,4*(len(memory)+1))
 			elif isinstance(ast,Discard): return translatePythonAST(ast.expr)
 			elif isinstance(ast,Const): return [ConstantOperand(ast.value)]
 			elif isinstance(ast,Assign):

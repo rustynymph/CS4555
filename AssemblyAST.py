@@ -26,13 +26,14 @@ class AssemblyProgram(Instruction):
 		return string
 
 class AssemblyFunction(Instruction):
-	def __init__(self,name,instructions):
+	def __init__(self,name,instructions,offset=0):
 		self.name = name
 		self.instructions = instructions
+		self.offset = offset
 
 	def printInstruction(self):
 		functionName = self.name+":\n"
-		functionSetup = PushInstruction(RegisterOperand("ebp"),"l").printInstruction() + MoveInstruction(RegisterOperand("esp"),RegisterOperand("ebp"),"l").printInstruction()
+		functionSetup = PushInstruction(RegisterOperand("ebp"),"l").printInstruction() + MoveInstruction(RegisterOperand("esp"),RegisterOperand("ebp"),"l").printInstruction() + SubtractInstruction(ConstantOperand(self.offset),RegisterOperand("esp"),"l").printInstruction()
 		functionCleanup = MoveInstruction(ConstantOperand(0),RegisterOperand("eax"),"l").printInstruction() + LeaveInstruction().printInstruction() + ReturnInstruction().printInstruction()
 		body = ""
 		for i in self.instructions:
