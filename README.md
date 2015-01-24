@@ -10,7 +10,7 @@ a = 5 + input() +-6 + input()
 print a
 ```
 
-######To run:
+######To compile a Python program to x86:
 `python compile.py <filename.py>`
 
 This will create a `<filename.s>` file
