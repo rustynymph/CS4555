@@ -1,6 +1,10 @@
-tokens = ('PRINT','INT','PLUS')
+tokens = ('PRINT','INT','PLUS','MINUS','EQUALS','INPUT')
 t_PRINT = r'print'
 t_PLUS = r'\+'
+t_MINUS = r'\-'
+t_EQUALS = r'\='
+t_INPUT = r'input()'
+
 def t_INT(t):
 	r'\d+'
 	try:
@@ -33,9 +37,25 @@ def p_print_statement(t):
 	'statement : PRINT expression'
 	t[0] = Printnl([t[2]],None)
 
-def p_plus_epression(t):
-	'expression : epression PLUS epression'
+def p_assign_expression(t):
+	'expression : expression EQUALS expression'
+	t[0] = Assign([AssName(t[1], 'OP_ASSIGN'), t[3]])
+
+def p_input_expression(t):
+	'expression : INPUT'
+	t[0] = CallFunc(t[1])
+
+def p_plus_expression(t):
+	'expression : expression PLUS expression'
 	t[0] = Add((t[1],t[3]))
+
+def p_minus_expression(t):
+	'expression : MINUS expression'
+	t[0] = UnarySub(t[2])
+
+def p_int_expression(t):
+	'expression : INT'
+	t[0] = Const(t[1])
 
 def p_error(t):
 	print "Syntax error at '%s'" % t.value
