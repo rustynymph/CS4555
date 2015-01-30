@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 from compiler.ast import *
-import compiler
 import sys
 import string
 from Flatten import *
