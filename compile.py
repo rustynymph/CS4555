@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-from compiler.ast import *
 import sys
 import string
 from Flatten import *
@@ -10,6 +9,7 @@ from Parser import *
 from AssemblyAST import *
 
 pythonFilename = sys.argv[1]
+print Parser.parse("print 5")
 pythonAST = Parser.parseFile(pythonFilename)
 pythonAST = Optimizer.reduce(pythonAST)
 pythonAST = Optimizer.negation(pythonAST)
