@@ -13,7 +13,7 @@ class Parser_hw2:
 	
 	def __init__(self):
 		reserved = {'print' : 'PRINT', 'input' : 'INPUT'}
-		tokens = ['INT','PLUS','MINUS','EQUALS','NAME','RIGHT_PARENTH','LEFT_PARENTH'] + list(reserved.values())
+		tokens = ('INT','PLUS','MINUS','EQUALS','NAME','RIGHT_PARENTH','LEFT_PARENTH') + tuple(reserved.values())
 
 		t_PLUS = r'\+'
 		t_MINUS = r'-'
@@ -33,6 +33,7 @@ class Parser_hw2:
 			except ValueError:
 				print "integer value too large", t.value
 				t.value = 0
+			return t
 
 		t_ignore = ' \t'
 
@@ -55,7 +56,6 @@ class Parser_hw2:
 
 		def p_program_module(t):
 			'program : module'
-			print t.stack
 			t[0] = Module(None, t[1])
 
 		def p_module_statement(t):
@@ -106,7 +106,6 @@ class Parser_hw2:
 
 		def p_empty_expression(t):
 			'expression : '
-			print t.stack
 			t[0] = None
 
 		def p_error(t):
@@ -114,12 +113,12 @@ class Parser_hw2:
 
 		self.parser = yacc.yacc(debug=0, write_tables=0)
 
-		def testLexer(self, to_lex):
-			self.lexer.input(to_lex)
-			while True:
-				tok = self.lexer.token()
-				if not tok: break
-				print tok
+	def testLexer(self, to_lex):
+		self.lexer.input(to_lex)
+		while True:
+			tok = self.lexer.token()
+			if not tok: break
+			
 
 	def parseFile(self, path):
 		file_to_parse = open(path, 'r')
