@@ -5,12 +5,13 @@ import string
 from Flatten import *
 from Translator import *
 from Optimizer import *
-from Parser import *
+#from Parser import *
+from Parser_hw2 import *
 from AssemblyAST import *
 
 pythonFilename = sys.argv[1]
-print Parser.parse("print 5")
-pythonAST = Parser.parseFile(pythonFilename)
+#print Parser_hw2.parse("print 5")
+pythonAST = Parser_hw2().parseFile(pythonFilename)
 pythonAST = Optimizer.reduce(pythonAST)
 pythonAST = Optimizer.negation(pythonAST)
 flattenedAST = python_compiler.treeFlatten(pythonAST)
