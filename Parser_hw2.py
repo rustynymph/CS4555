@@ -47,74 +47,70 @@ class Parser_hw2:
 		self.lexer = lex.lex()
 
 		precedence = (
-			('right','EQUALS'),
+			('left','EQUALS'),
 			('left','PLUS'),
-			('right','MINUS'),
+			('left','MINUS'),
 			('left','LEFT_PARENTH','RIGHT_PARENTH')
 		)
 
-		self.stmtList = Stmt([])
-
 		def p_program_module(t):
 			'program : module'
+			print t.stack
 			t[0] = Module(None, t[1])
 
-		def p_empty(t):
-			'empty :'
-			t[0] = Stmt([])
-
 		def p_module_statement(t):
-			'''module : statement
-					  | empty'''
-			t[0] = t[1]
+			'''module : statement module
+					  | statement'''
+			if len(t) == 3: t[0] = Stmt([t[1]] + t[2].nodes)
+			else: t[0] = Stmt([t[1]])
 
-		def p_statements_statement(t):
-			'''statement : statement simple_statement
-						 | simple_statement'''
-			if( len(t) == 2 ):
-				self.stmtList.nodes.append(t[1])
-			elif( len(t) == 3):
-				self.stmtList.nodes.append(t[2])
-			t[0]=self.stmtList
+		#Simple Statement Rules
 
 		def p_print_statement(t):
 			'statement : PRINT expression'
 			t[0] = Printnl([t[2]],None)
 
-		def p_expression_statement(t):
-			'simple_statement : expression'
-			t[0] = t[1]
-
-		def p_assign_expression(t):
-			'expression : expression EQUALS expression'
+		def p_equals_statement(t):
+			'statement : NAME EQUALS expression'
 			t[0] = Assign([AssName(t[1],'OP_ASSIGN')],t[3])
 
-		def p_plus_expression(t):
-			'expression : expression PLUS expression'
-			t[0] = Add((t[1],t[3]))
+		def p_expression_statement(t):
+			'statement : expression'
+			t[0] = t[1]
 
-		def p_minus_expression(t):
-			'expression : MINUS expression'
-			t[0] = UnarySub(t[2])
-
-		def p_int_expression(t):
-			'expression : INT'
-			t[0] = Const(t[1])
+		#Expression Rules
 
 		def p_name_expression(t):
 			'expression : NAME'
 			t[0] = Name(t[1])
 
-		def p_func_expression(t):
-			'expression : INPUT LEFT_PARENTH RIGHT_PARENTH'
-			t[0] = CallFunc(Name(t[1]),[],None,None)
+		def p_int_expression(t):
+			'expression : INT'
+			t[0] = Const(t[1])
+
+		def p_minus_expression(t):
+			'expression : MINUS expression'
+			t[0] = UnarySub(t[2])
+
+		def p_plus_expression(t):
+			'expression : expression PLUS expression'
+			t[0] = Add((t[1],t[3]))
 
 		def p_l_paren_expression_r_paren(t):
 			'expression : LEFT_PARENTH expression RIGHT_PARENTH'
 			t[0] = t[2]
 
+		def p_func_expression(t):
+			'expression : INPUT LEFT_PARENTH RIGHT_PARENTH'
+			t[0] = CallFunc(Name(t[1]),[],None,None)
+
+		def p_empty_expression(t):
+			'expression : '
+			print t.stack
+			t[0] = None
+
 		def p_error(t):
-			print "Syntax error at '%s'" % t.value
+			if t != None: print "Syntax error at '%s'" % t.value
 
 		self.parser = yacc.yacc(debug=0, write_tables=0)
 
