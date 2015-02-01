@@ -13,21 +13,34 @@ class Parser_hw2:
 	
 	def __init__(self):
 		reserved = {'print' : 'PRINT', 'input' : 'INPUT'}
-		tokens = ('INT','PLUS','MINUS','EQUALS','NAME','RIGHT_PARENTH','LEFT_PARENTH') + tuple(reserved.values())
+		tokens = ('INT','PLUS','MINUS','EQUALS','NAME','RIGHT_PARENTH','LEFT_PARENTH','COMMENT','MCOMMENT') + tuple(reserved.values())
 
 		t_PLUS = r'\+'
-		t_MINUS = r'-'
+		t_MINUS = r'\-'
 		t_EQUALS = r'='
 		t_RIGHT_PARENTH = r'\)'
 		t_LEFT_PARENTH = r'\('
+		
+		def t_COMMENT(t):
+			r'\#.*'
+			print "comment"
+			pass
+
+		def t_MCOMMENT(t):
+			r'\'\'\'(.|\n)*?\'\'\''
+			t.lineno += t.value.count('\n')
+			print "multi-comment"
+			pass
 
 		def t_NAME(t):
 			r'[a-zA-Z_][a-zA-Z_0-9]*'
-			t.type = reserved.get(t.value,'NAME') # Check for reserved words
+			t.type = reserved.get(t.value,'NAME')
+			print t
 			return t
 
 		def t_INT(t):
 			r'\d+'
+			print "int"
 			try:
 				t.value = int(t.value)
 			except ValueError:
@@ -48,10 +61,13 @@ class Parser_hw2:
 		self.lexer = lex.lex()
 
 		precedence = (
+			# ('left','LEFT_PARENTH','RIGHT_PARENTH'),
+			# ('left','INPUT'),
 			('left','EQUALS'),
 			('left','PLUS'),
-			('left','MINUS'),
-			('left','LEFT_PARENTH','RIGHT_PARENTH')
+			('right','MINUS'),
+			('left','COMMENT'),
+			('left','MCOMMENT')
 		)
 
 		def p_program_module(t):
@@ -62,9 +78,19 @@ class Parser_hw2:
 			'''module : statement module
 					  | statement'''
 			if len(t) == 3: t[0] = Stmt([t[1]] + t[2].nodes)
-			else: t[0] = Stmt([t[1]])
+			elif t[1] != None: t[0] = Stmt([t[1]])
+			else: t[0] = Stmt([])
 
 		#Simple Statement Rules
+
+		def p_comment_statement(t):
+			'statement : COMMENT'
+			print t.value
+			t[0] = None
+
+		def p_mcomment_statement(t):
+			'statement : MCOMMENT'
+			t[0] = None
 
 		def p_print_statement(t):
 			'statement : PRINT expression'
@@ -72,6 +98,7 @@ class Parser_hw2:
 
 		def p_equals_statement(t):
 			'statement : NAME EQUALS expression'
+			print t[1]
 			t[0] = Assign([AssName(t[1],'OP_ASSIGN')],t[3])
 
 		def p_expression_statement(t):
