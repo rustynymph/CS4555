@@ -8,10 +8,12 @@ from Optimizer import *
 #from Parser import *
 from Parser_hw2 import *
 from AssemblyAST import *
+import compiler
 
 pythonFilename = sys.argv[1]
 #print Parser_hw2.parse("print 5")
-pythonAST = Parser_hw2().parseFile(pythonFilename)
+# pythonAST = Parser_hw2().parseFile(pythonFilename)
+pythonAST = compiler.parseFile(pythonFilename)
 pythonAST = Optimizer.reduce(pythonAST)
 pythonAST = Optimizer.negation(pythonAST)
 flattenedAST = python_compiler.treeFlatten(pythonAST)
