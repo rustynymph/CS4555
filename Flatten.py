@@ -19,13 +19,7 @@ class python_compiler:
     def treeFlatten(ast):
         python_compiler.treeFlatten_helper(ast, 0)
         ast2 = Module(None, Stmt(flat_stmt.nodes))
-        print('\nPython AST\n----------')
-        print(ast)
-        print('\n\nFlattened AST\n-------------')
-        print(ast2)
-        print('\n')
         return ast2
-
 
     @staticmethod
     def treeFlatten_helper(ast, tmp_num):
@@ -54,6 +48,8 @@ class python_compiler:
 
         elif isinstance(ast, Assign):
             varName = "__"+ast.nodes[0].name
+            #print(ast.nodes[0].name)
+            #print(ast.expr)
             # right_val is the value that we are assigning our name to
             right_val = python_compiler.treeFlatten_helper(ast.expr, tmp_num)
             new_stmt = varName + ' = tmp' + str(right_val)

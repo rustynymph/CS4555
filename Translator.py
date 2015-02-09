@@ -1,11 +1,15 @@
 from compiler.ast import *
 from AssemblyAST import *
+from LivenessAnalysis import*
 
 class Translator:
 
 	@staticmethod
 	def pythonASTToAssemblyAST(ast):
 		memory = {}
+		la = LivenessAnalysis.livenessAnalysis(ast)
+		graph = LivenessAnalysis.createGraph(la)
+		LivenessAnalysis.colorGraph(graph)
 		def getVariableInMemory(name):
 			return MemoryOperand(RegisterOperand("ebp"),memory[name])
 		def translatePythonAST(ast):
@@ -48,5 +52,5 @@ class Translator:
 
 			raise "Error: " + str(ast) + " currently not supported.\n"
 		t = translatePythonAST(ast)
-		print memory
+		#print memory
 		return t
