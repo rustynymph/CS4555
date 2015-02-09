@@ -1,4 +1,5 @@
 from compiler.ast import *
+import copy
 
 class LivenessAnalysis:
 	
@@ -72,9 +73,16 @@ class LivenessAnalysis:
 		for key in reversed(satkeys):
 			colors = ['eax','ebx','ecx','edx','edi','esi']
 			l = satGraph[key]
+			print l
 			for elem in l:
 				interfere_vars = graph[elem]
-				
-				colored[elem] = 
-				
+				availColors = copy.copy(colors)
+				for x in interfere_vars:
+					if x in colored:
+						availColors.remove(colored[x])
+				if len(availColors) > 0:
+					colored[elem] = availColors[0]
+				else:
+					colored[elem] = 'eax'
+		return colored
 				
