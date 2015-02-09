@@ -1,6 +1,8 @@
 from compiler.ast import *
 import copy
 
+#woo graph coloring
+
 class LivenessAnalysis:
 	
 	#__colors = ['eax','ebx','ecx','edx','edi','esi']
