@@ -1,7 +1,6 @@
 from compiler.ast import *
 import copy
 
-#woo graph coloring
 
 class LivenessAnalysis:
 	
@@ -72,17 +71,20 @@ class LivenessAnalysis:
 		satkeys = [x for x in satGraph]
 		colored = {}
 		for key in reversed(satkeys):
-			colors = ['eax','ebx','ecx','edx','edi','esi']
+			colors = ["eax","ebx","ecx","edx","edi","esi"]
 			l = satGraph[key]
 			for elem in l:
-				interfere_vars = graph[elem]
+				interfere_vars = graph[elem] #list of interfering variables for elem
 				availColors = copy.copy(colors)
 				for x in interfere_vars:
 					if x in colored:
-						availColors.remove(colored[x])
+						if colored[x] in availColors:
+							availColors.remove(colored[x])
+						else:
+							continue
 				if len(availColors) > 0:
 					colored[elem] = availColors[0]
 				else:
-					colored[elem] = 'eax'
+					colored[elem] = "eax"
 		return colored
 				
