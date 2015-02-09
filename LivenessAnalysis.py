@@ -55,7 +55,6 @@ class LivenessAnalysis:
 				edges = [x for x in (variableSet - set((variable,)))]
 				if variable not in graph: graph[variable] = []
 				graph[variable] += edges
-		print graph
 		return graph
 
 	@staticmethod
@@ -73,7 +72,6 @@ class LivenessAnalysis:
 		for key in reversed(satkeys):
 			colors = ['eax','ebx','ecx','edx','edi','esi']
 			l = satGraph[key]
-			print l
 			for elem in l:
 				interfere_vars = graph[elem]
 				availColors = copy.copy(colors)
