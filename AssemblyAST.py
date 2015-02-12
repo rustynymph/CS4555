@@ -185,4 +185,21 @@ class ReturnInstruction(NoOperandInstruction):
 	def printInstruction(self):
 		return "ret\n"
 
-
+class ClusteredInstructions(Instruction):
+	def __init__(self, nodes):
+		self.nodes = nodes
+		
+	def __str__(self):
+		tmp = self.__class__ + "(["
+		for i in range (0,len(self.nodes)-2):
+			tmp += str(self.nodes[i]) + ","
+		tmp += str(self.nodes[len(self.nodes)-1]) + "])"
+		return tmp
+		
+	def printInstruction(self):
+		tmp = ""
+		for i in self.nodes:
+			tmp += i.printInstruction()
+		return tmp
+		
+			
