@@ -1,5 +1,6 @@
 from compiler.ast import *
 import copy
+import Queue
 
 
 class LivenessAnalysis:
@@ -7,6 +8,7 @@ class LivenessAnalysis:
 	#__colors = ['eax','ebx','ecx','edx','edi','esi']
 	__interference = {}
 	__liveVariables = {}
+	
 			
 	@staticmethod
 	def livenessAnalysis(IR):
@@ -60,6 +62,7 @@ class LivenessAnalysis:
 
 	@staticmethod
 	def colorGraph(graph):
+		queue = Queue.PriorityQueue()
 		def saturation(graph):
 			saturationGraph = {}
 			for element in graph:
@@ -71,8 +74,11 @@ class LivenessAnalysis:
 		satkeys = [x for x in satGraph]
 		colored = {}
 		for key in reversed(satkeys):
+			queue.put(2, key) #2 is the priority
+		while not(queue.empty()):
 			colors = ["eax","ebx","ecx","edx","edi","esi"]
-			l = satGraph[key]
+			item = queue.get()
+			l = satGraph[item]
 			for elem in l:
 				interfere_vars = graph[elem] #list of interfering variables for elem
 				availColors = copy.copy(colors)
@@ -86,5 +92,7 @@ class LivenessAnalysis:
 					colored[elem] = availColors[0]
 				else:
 					colored[elem] = "eax"
+		print colored
+		print("\n")
 		return colored
 				
