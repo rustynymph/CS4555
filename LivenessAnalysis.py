@@ -62,7 +62,7 @@ class LivenessAnalysis:
 
 	@staticmethod
 	def colorGraph(graph):
-		queue = Queue.PriorityQueue()
+		queue = Queue.Queue()
 		def saturation(graph):
 			saturationGraph = {}
 			for element in graph:
@@ -73,26 +73,29 @@ class LivenessAnalysis:
 		satGraph = saturation(graph)
 		satkeys = [x for x in satGraph]
 		colored = {}
+		
+		#if spill:
+		#	for item in spill:
+		#		queue.put(item)
+				
 		for key in reversed(satkeys):
-			queue.put(2, key) #2 is the priority
+			l = satGraph[key]
+			for elem in l:
+				queue.put(elem)
+				
 		while not(queue.empty()):
 			colors = ["eax","ebx","ecx","edx","edi","esi"]
 			item = queue.get()
-			l = satGraph[item]
-			for elem in l:
-				interfere_vars = graph[elem] #list of interfering variables for elem
-				availColors = copy.copy(colors)
-				for x in interfere_vars:
-					if x in colored:
-						if colored[x] in availColors:
-							availColors.remove(colored[x])
-						else:
-							continue
-				if len(availColors) > 0:
-					colored[elem] = availColors[0]
-				else:
-					colored[elem] = "eax"
-		print colored
-		print("\n")
+			interfere_vars = graph[item]
+			availColors = copy.copy(colors)
+			for x in interfere_vars:
+				if x in colored:
+					if colored[x] in availColors:
+						availColors.remove(colored[x])
+			if len(availColors) > 0:
+				colored[item] = availColors[0]
+			else:
+				colored[item] = "SPILL"		
+			
 		return colored
 				

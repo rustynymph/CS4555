@@ -11,9 +11,6 @@ class Translator:
 		la = LivenessAnalysis.livenessAnalysis(ast)
 		graph = LivenessAnalysis.createGraph(la)
 		coloredgraph = LivenessAnalysis.colorGraph(graph)
-		print("Colored graph")
-		print(coloredgraph)
-		print("\n")
 
 		def getVariableInMemory(name): #update this
 			# if name in coloredgraph:
