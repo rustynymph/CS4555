@@ -6,13 +6,25 @@ class Translator:
 
 	@staticmethod
 	def pythonASTToAssemblyAST(ast):
+		colors = ["eax","ebx","ecx","edx","edi","esi"]
 		memory = {}
 		la = LivenessAnalysis.livenessAnalysis(ast)
 		graph = LivenessAnalysis.createGraph(la)
-		LivenessAnalysis.colorGraph(graph)
-		def getVariableInMemory(name):
-			return MemoryOperand(RegisterOperand("ebp"),memory[name])
+		coloredgraph = LivenessAnalysis.colorGraph(graph)
+		print("Colored graph")
+		print(coloredgraph)
+		print("\n")
+
+		def getVariableInMemory(name): #update this
+			if name in coloredgraph:
+				if coloredgraph[name] not in colors:
+					return MemoryOperand(RegisterOperand("ebp"),coloredgraph[name])
+				else:
+					return RegisterOperand(coloredgraph[name])
+			#return MemoryOperand(RegisterOperand("ebp"),memory[name])
+			
 		def translatePythonAST(ast):
+			spill_vars = 0
 			if isinstance(ast,Module): return AssemblyProgram([translatePythonAST(ast.node)])
 			elif isinstance(ast,Stmt):
 				x86 = []
@@ -22,16 +34,26 @@ class Translator:
 			elif isinstance(ast,Discard): return translatePythonAST(ast.expr)
 			elif isinstance(ast,Const): return [ConstantOperand(ast.value)]
 			elif isinstance(ast,Assign):
-				assignInstruction = translatePythonAST(ast.nodes[0])[0]
+				#assignInstruction = translatePythonAST(ast.nodes[0])[0]
+				assignInstruction = translatePythonAST(ast.nodes[0])
+				print(assignInstruction)
 				x86AST = translatePythonAST(ast.expr)
 				if len(x86AST) == 1:
 					if isinstance(x86AST[0],Operand):
-						x86AST = [MoveInstruction(x86AST[0],RegisterOperand("eax"),"l")]
+						#print x86AST[0]
+						x86AST = [MoveInstruction(x86AST[0],RegisterOperand(assignInstruction),"l")]
+						return x86AST + [MoveInstruction(RegisterOperand("eax"),assignInstruction,"l")]
 					return x86AST + [MoveInstruction(RegisterOperand("eax"),assignInstruction,"l")]
-				return x86AST + [MoveInstruction(RegisterOperand("eax"),assignInstruction,"l")]
 			elif isinstance(ast,AssName):
-				if ast.name not in memory: memory[ast.name] = -4*(len(memory)+1)
-				return [getVariableInMemory(ast.name)]
+				#need to change this, assign to registers
+				if ast.name in coloredgraph:
+					register = coloredgraph[ast.name]
+					print(register)
+				#if ast.name not in memory: memory[ast.name] = -4*(len(memory)+1)
+
+				#return [getVariableInMemory(ast.name)]
+				return RegisterOperand(register)
+				
 			elif isinstance(ast,Name): return [getVariableInMemory(ast.name)]
 			elif isinstance(ast,CallFunc): return [CallInstruction(FunctionCallOperand(ast.node.name))]
 			elif isinstance(ast,Printnl):
@@ -51,6 +73,6 @@ class Translator:
 				return leftAST + rightAST
 
 			raise "Error: " + str(ast) + " currently not supported.\n"
+			print(x86)
 		t = translatePythonAST(ast)
-		#print memory
 		return t
