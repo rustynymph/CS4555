@@ -190,7 +190,7 @@ class ClusteredInstructions(Instruction):
 		self.nodes = nodes
 		
 	def __str__(self):
-		tmp = self.__class__ + "(["
+		tmp = self.__class__.__name__ + "(["
 		for i in range (0,len(self.nodes)-2):
 			tmp += str(self.nodes[i]) + ","
 		tmp += str(self.nodes[len(self.nodes)-1]) + "])"
