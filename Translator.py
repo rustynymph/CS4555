@@ -9,7 +9,6 @@ class Translator:
 		colors = ["eax","ebx","ecx","edx","edi","esi"]
 		memory = {}
 		la = LivenessAnalysis.livenessAnalysis(ast)
-		print la
 		graph = LivenessAnalysis.createGraph(la)
 		# print graph
 		coloredgraph = LivenessAnalysis.colorGraph(graph)
@@ -41,6 +40,19 @@ class Translator:
 
 				assignInstruction = translatePythonAST(ast.nodes[0],liveness)
 				x86AST = translatePythonAST(ast.expr,liveness)
+				
+				#since UnarySub requires 2 instructions I thought it would be easier to analyze it within assign
+				#so we could create the mov instruction at the same time as the neg instruction
+				if isinstance(x86AST,UnarySub):
+					if ast.nodes[0].name in coloredgraph and coloredgraph[ast.nodes[0].name] != "SPILL":
+						negate = x86AST.expr 
+						mov_instruction = MoveInstruction(negate,RegisterOperand(coloredgraph[ast.nodes[0].name]),"l")
+						neg_instruction = NegativeInstruction(RegisterOperand(coloredgraph[ast.nodes[0].name]),"l")
+						return ClusteredInstructions([mov_instruction] + [neg_instruction])
+					else: 
+						#we are spilling...
+						x86AST = MoveInstruction(x86AST,getVariableInMemory(ast.nodes[0].name),"l")
+				
 				if isinstance(x86AST,Operand):
 					if ast.nodes[0].name in coloredgraph and coloredgraph[ast.nodes[0].name] != "SPILL": 
 						x86AST = MoveInstruction(x86AST,RegisterOperand(coloredgraph[ast.nodes[0].name]),"l")
@@ -82,10 +94,16 @@ class Translator:
 				i += [AddInstruction(ConstantOperand(4),RegisterOperand("esp"),"l")]
 				return ClusteredInstructions(i)
 			
+			
 			elif isinstance(ast,UnarySub):
-				instruction = translatePythonAST(ast.expr,liveness)
+				neg_name = translatePythonAST(ast.expr,liveness)
 				# instruction = [MoveInstruction(instruction,RegisterOperand("eax"),"l")]
-				return ClusteredInstructions(instruction + [NegativeInstruction(RegisterOperand("eax"),"l")])
+				#return ClusteredInstructions(instruction + [NegativeInstruction(RegisterOperand("eax"),"l")])
+				if isinstance(neg_name,Operand):
+					x86AST = UnarySub(neg_name)
+
+				return x86AST
+				
 			
 			elif isinstance(ast,Add):
 				leftAST = translatePythonAST(ast.left,liveness)
@@ -95,6 +113,6 @@ class Translator:
 				return ClusteredInstructions(leftAST + rightAST)
 			
 			raise "Error: " + str(ast) + " currently not supported.\n"
-			
+		
 		t = translatePythonAST(ast,la)
 		return t
