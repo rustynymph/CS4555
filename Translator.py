@@ -9,8 +9,11 @@ class Translator:
 		colors = ["eax","ebx","ecx","edx","edi","esi"]
 		memory = {}
 		la = LivenessAnalysis.livenessAnalysis(ast)
+		print la
 		graph = LivenessAnalysis.createGraph(la)
+		# print graph
 		coloredgraph = LivenessAnalysis.colorGraph(graph)
+		# print coloredgraph
 
 		def getVariableInMemory(name): #update this
 			# if name in coloredgraph:
@@ -18,6 +21,7 @@ class Translator:
 			# 		return MemoryOperand(RegisterOperand("ebp"),coloredgraph[name])
 			# 	else:
 			# 		return RegisterOperand(coloredgraph[name])
+			if name not in memory: memory[name] = -4*(len(memory)+1)
 			return MemoryOperand(RegisterOperand("ebp"),memory[name])
 			
 		def translatePythonAST(ast,liveness=None):
@@ -38,21 +42,29 @@ class Translator:
 				assignInstruction = translatePythonAST(ast.nodes[0],liveness)
 				x86AST = translatePythonAST(ast.expr,liveness)
 				if isinstance(x86AST,Operand):
-					x86AST = MoveInstruction(x86AST,RegisterOperand("eax"),"l")
-				return ClusteredInstructions([x86AST] + [MoveInstruction(RegisterOperand("eax"),assignInstruction,"l")])
+					if ast.nodes[0].name in coloredgraph and coloredgraph[ast.nodes[0].name] != "SPILL": 
+						x86AST = MoveInstruction(x86AST,RegisterOperand(coloredgraph[ast.nodes[0].name]),"l")
+					else: 
+						x86AST = MoveInstruction(x86AST,getVariableInMemory(ast.nodes[0].name),"l")
+
+				return x86AST
+				# return ClusteredInstructions([x86AST] + [MoveInstruction(RegisterOperand("eax"),assignInstruction,"l")])
 
 
 			
 			elif isinstance(ast,AssName):				
 				
 				#need to change this, assign to registers
-				if ast.name not in memory: memory[ast.name] = -4*(len(memory)+1)
+				
 				if ast.name in coloredgraph:
 					register = coloredgraph[ast.name]
 					return RegisterOperand(register)
 				else: return getVariableInMemory(ast.name)
 				
-			elif isinstance(ast,Name): return getVariableInMemory(ast.name)
+			elif isinstance(ast,Name):
+				if ast.name in coloredgraph and coloredgraph[ast.name] != "SPILL": 
+					return RegisterOperand(coloredgraph[ast.name])
+				else: return getVariableInMemory(ast.name)
 			
 			elif isinstance(ast,CallFunc):
 				call = CallInstruction(FunctionCallOperand(ast.node.name))
@@ -72,7 +84,7 @@ class Translator:
 			
 			elif isinstance(ast,UnarySub):
 				instruction = translatePythonAST(ast.expr,liveness)
-				instruction = [MoveInstruction(instruction,RegisterOperand("eax"),"l")]
+				# instruction = [MoveInstruction(instruction,RegisterOperand("eax"),"l")]
 				return ClusteredInstructions(instruction + [NegativeInstruction(RegisterOperand("eax"),"l")])
 			
 			elif isinstance(ast,Add):
