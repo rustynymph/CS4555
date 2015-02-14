@@ -26,6 +26,10 @@ class LivenessAnalysis:
 				varRead = instructions.expr
 				if(isinstance(varRead,Name)):
 					liveVariables[j] = set((liveVariables[j+1] | set((varRead))) - remove)
+				elif(isinstance(varRead,UnarySub)):
+					if isinstance(varRead.expr,Name):
+						varRead = varRead.expr.name
+						liveVariables[j] = set((liveVariables[j+1] | set((varRead,))) - remove)
 				elif(isinstance(varRead,Add)):
 					leftnode = varRead.left
 					rightnode = varRead.right
@@ -47,11 +51,12 @@ class LivenessAnalysis:
 					varRead = instructions.nodes[0]
 					raise Exception("Error: Unrecognized node type")
 			j-=1
-		return liveVariables	
+		return [liveVariables[x] for x in liveVariables]	
 		
 	@staticmethod
 	def createGraph(liveVariables):
-		lv = [liveVariables[i] for i in liveVariables]
+		#lv = [liveVariables[i] for i in liveVariables]
+		lv = liveVariables
 		graph = {}
 		for variableSet in lv:
 			for variable in variableSet:

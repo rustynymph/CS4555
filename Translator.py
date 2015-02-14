@@ -2,8 +2,8 @@ from compiler.ast import *
 from AssemblyAST import *
 from LivenessAnalysis import*
 
-#EAX,ECX,EDX
-#EBX,EDI,ESI
+#eax, ecx, edx
+#ebx, edi, esi
 
 class Translator:
 
@@ -13,7 +13,8 @@ class Translator:
 		memory = {}
 		la = LivenessAnalysis.livenessAnalysis(ast)
 		graph = LivenessAnalysis.createGraph(la)
-
+		print ast
+		print la
 		coloredgraph = LivenessAnalysis.colorGraph(graph)
 
 		def getName(name):
@@ -31,7 +32,6 @@ class Translator:
 			return MemoryOperand(RegisterOperand("ebp"),memory[name])
 		
 		def assignFunction(ast,liveness):
-			print liveness
 			name = ast.nodes[0].name
 			read = ast.expr
 			if isinstance(read,UnarySub):
@@ -58,9 +58,33 @@ class Translator:
 			vals = translatePythonAST(ast,liveness)
 			leftval = vals[0]
 			rightval = vals[1]
-			mov_instruction = MoveInstruction(leftval,getName(name),"l")
-			add_instruction = AddInstruction(rightval,getName(name),"l")
-			return ClusteredInstructions([mov_instruction] + [add_instruction])
+			
+			remove_registers = [coloredgraph[x] for x in liveness[0]]
+			avail_registers = ["eax","ebx","ecx","edx","esi","edi"]
+			for element in remove_registers:
+				if element in avail_registers:
+					avail_registers.remove(element)
+			
+			print name
+			print coloredgraph
+			#if name in coloredgraph:
+			if name not in liveness[1]:
+				return ClusteredInstructions()
+			
+			new_name = coloredgraph[name]
+			
+			if not(new_name in avail_registers):
+				if len(avail_registers) > 1:
+					new_name = avail_registers[0]
+				#else: spillcode
+				
+			#elif coloredgraph[name] in avail_registers:
+			#	new_name = avail_registers[0]
+			
+			mov_instruction = MoveInstruction(leftval,RegisterOperand(new_name),"l")
+			add_instruction = AddInstruction(rightval,RegisterOperand(new_name),"l")
+			mov2_instruction = MoveInstruction(RegisterOperand(new_name),getName(name),"l")
+			return ClusteredInstructions([mov_instruction,add_instruction,mov2_instruction])
 					
 		def nameFunction(name,ast,liveness):
 			val = translatePythonAST(ast,liveness)
@@ -77,11 +101,10 @@ class Translator:
 			registers = []
 			
 			#liveness analysis is a LIST of SETS
-			for x in liveness:
+			for x in liveness[1]:
 				if isinstance(getName(x), RegisterOperand):
 					registers += [x]
 					
-			
 			#move contents of registers into memory locations
 			save = [MoveInstruction(getRegister(x),getVariableInMemory(x),"l") for x in registers]
 			
@@ -90,19 +113,45 @@ class Translator:
 			mov_instruction = MoveInstruction(RegisterOperand("eax"),getName(name),"l")
 			
 			#move the contents of our memory locations back into the registers
+			if name in registers:
+				registers.remove(name)
 			
 			load = [MoveInstruction(getVariableInMemory(x),getRegister(x),"l") for x in registers]
 			 
 			return ClusteredInstructions(save + [call, mov_instruction] + load)
 		
-		#def printFunction(name,ast,liveness):
+		def printFunction(ast,liveness):
+			
+			registers = []
+			
+			for x in liveness[1]:
+				if isinstance(getName(x), RegisterOperand):
+					registers += [x]
+					
+			save = [MoveInstruction(getRegister(x),getVariableInMemory(x),"l") for x in registers]
+			
+			operand = getName(ast.nodes[0].name)
+			#if ast.nodes[0].name in coloredgraph: operand = RegisterOperand(coloredgraph[ast.nodes[0].name])
+			
+			i = [PushInstruction(operand,"l")]
+			i += [CallInstruction(FunctionCallOperand("print_int_nl"))]
+			i += [AddInstruction(ConstantOperand(4),RegisterOperand("esp"),"l")]
+				
+			if name in registers:
+				registers.remove(name)
+			
+			load = [MoveInstruction(getVariableInMemory(x),getRegister(x),"l") for x in registers]
+			 
+			return ClusteredInstructions(save + i + load)
+
 				
 		def translatePythonAST(ast,liveness=None):
 			spill_vars = 0
 			if isinstance(ast,Module): return AssemblyProgram([translatePythonAST(ast.node,liveness)])
 			
 			elif isinstance(ast,Stmt):
-				x86 = [translatePythonAST(ast.nodes[i],liveness[i+1]) for i in range(0,len(ast.nodes))]
+				print liveness
+				x86 = [translatePythonAST(ast.nodes[i],liveness[i:i+2]) for i in range(0,len(ast.nodes))]
 				#else: x86 = [translatePythonAST(n) for n in ast.nodes]
 				return AssemblyFunction("main",x86,4*(len(memory)+1))
 				
@@ -110,36 +159,20 @@ class Translator:
 			
 			elif isinstance(ast,Const): return ConstantOperand(ast.value)
 			
-			elif isinstance(ast,Assign):
-
-				assignInstruction = translatePythonAST(ast.nodes[0],liveness)
-				x86AST = translatePythonAST(ast.expr,liveness)
-				
-				return assignFunction(ast,liveness)
+			elif isinstance(ast,Assign): return assignFunction(ast,liveness)
 							
-			elif isinstance(ast,AssName):				
-								
-				return getName(ast)
+			elif isinstance(ast,AssName): return getName(ast)
 				
-			elif isinstance(ast,Name):
-
-				return getName(ast.name)
-			
-			elif isinstance(ast,CallFunc):
-				call = CallInstruction(FunctionCallOperand(ast.node.name))
-				if isinstance(liveness,list):
-					saveToDisk = [MoveInstruction(coloredgraph[x],getVariableInMemory(x),"l") for x in liveness[0]]
-					saveToRegister = [MoveInstruction(getVariableInMemory(x),coloredgraph[x],"l") for x in liveness[1]]
-					return ClusteredInstructions(saveToDisk + [call] + saveToRegister)
-				else: return call
+			elif isinstance(ast,Name): return getName(ast.name)
 			
 			elif isinstance(ast,Printnl):
-				operand = getVariableInMemory(ast.nodes[0].name)
-				if ast.nodes[0].name in coloredgraph: operand = RegisterOperand(coloredgraph[ast.nodes[0].name])
-				i = [PushInstruction(operand,"l")]
-				i += [CallInstruction(FunctionCallOperand("print_int_nl"))]
-				i += [AddInstruction(ConstantOperand(4),RegisterOperand("esp"),"l")]
-				return ClusteredInstructions(i)
+				#operand = getVariableInMemory(ast.nodes[0].name)
+				#if ast.nodes[0].name in coloredgraph: operand = RegisterOperand(coloredgraph[ast.nodes[0].name])
+				#i = [PushInstruction(operand,"l")]
+				#i += [CallInstruction(FunctionCallOperand("print_int_nl"))]
+				#i += [AddInstruction(ConstantOperand(4),RegisterOperand("esp"),"l")]
+				#return ClusteredInstructions(i)
+				return printFunction(ast,liveness)
 			
 			elif isinstance(ast,UnarySub):
 				neg_name = translatePythonAST(ast.expr,liveness)
@@ -155,6 +188,5 @@ class Translator:
 			
 			raise "Error: " + str(ast) + " currently not supported.\n"
 		
-		print ast
 		t = translatePythonAST(ast,la)
 		return t

@@ -186,7 +186,7 @@ class ReturnInstruction(NoOperandInstruction):
 		return "ret\n"
 
 class ClusteredInstructions(Instruction):
-	def __init__(self, nodes):
+	def __init__(self, nodes=[]):
 		self.nodes = nodes
 		
 	def __str__(self):
