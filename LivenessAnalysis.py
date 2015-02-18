@@ -10,7 +10,9 @@ class LivenessAnalysis:
 	
 	@staticmethod
 	def livenessAnalysis(IR):
+		print IR
 		ir = IR.node.nodes
+		#print ir
 		interference = {}
 		liveVariables = {}
 		numInstructions = len(ir)
@@ -21,14 +23,13 @@ class LivenessAnalysis:
 			if(isinstance(instructions,Assign)):
 				varWritten = instructions.nodes[0].name
 				remove = set((varWritten,))
-				print remove
 				varRead = instructions.expr
 				if(isinstance(varRead,Name)):
 					liveVariables[j] = set((liveVariables[j+1] | set((varRead))) - remove)
 				elif(isinstance(varRead,UnarySub)):
 					if isinstance(varRead.expr,Name):
 						varRead = varRead.expr.name
-						liveVariables[j] = set((liveVariables[j+1] | set((varRead))) - remove)
+						liveVariables[j] = set((liveVariables[j+1] | set((varRead,))) - remove)
 					elif isinstance(varRead.expr,Const):
 						liveVariables[j] = set(liveVariables[j+1] - remove)
 				elif(isinstance(varRead,Add)):
@@ -52,7 +53,7 @@ class LivenessAnalysis:
 					varRead = instructions.nodes[0]
 					raise Exception("Error: Unrecognized node type")
 			j-=1
-		print liveVariables
+		#print liveVariables
 		return [liveVariables[x] for x in liveVariables]	
 		
 	@staticmethod
@@ -103,6 +104,6 @@ class LivenessAnalysis:
 				colored[item] = availColors[0]
 			else:
 				colored[item] = "SPILL"		
-			
+		print colored
 		return colored
 				
