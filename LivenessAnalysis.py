@@ -1,13 +1,13 @@
 from compiler.ast import *
 import copy
+import Queue
 
 
 class LivenessAnalysis:
 	
-	#__colors = ['eax','ebx','ecx','edx','edi','esi']
 	__interference = {}
 	__liveVariables = {}
-			
+	
 	@staticmethod
 	def livenessAnalysis(IR):
 		ir = IR.node.nodes
@@ -21,9 +21,16 @@ class LivenessAnalysis:
 			if(isinstance(instructions,Assign)):
 				varWritten = instructions.nodes[0].name
 				remove = set((varWritten,))
+				print remove
 				varRead = instructions.expr
 				if(isinstance(varRead,Name)):
 					liveVariables[j] = set((liveVariables[j+1] | set((varRead))) - remove)
+				elif(isinstance(varRead,UnarySub)):
+					if isinstance(varRead.expr,Name):
+						varRead = varRead.expr.name
+						liveVariables[j] = set((liveVariables[j+1] | set((varRead))) - remove)
+					elif isinstance(varRead.expr,Const):
+						liveVariables[j] = set(liveVariables[j+1] - remove)
 				elif(isinstance(varRead,Add)):
 					leftnode = varRead.left
 					rightnode = varRead.right
@@ -45,11 +52,13 @@ class LivenessAnalysis:
 					varRead = instructions.nodes[0]
 					raise Exception("Error: Unrecognized node type")
 			j-=1
-		return liveVariables	
+		print liveVariables
+		return [liveVariables[x] for x in liveVariables]	
 		
 	@staticmethod
 	def createGraph(liveVariables):
-		lv = [liveVariables[i] for i in liveVariables]
+		#lv = [liveVariables[i] for i in liveVariables]
+		lv = liveVariables
 		graph = {}
 		for variableSet in lv:
 			for variable in variableSet:
@@ -60,6 +69,7 @@ class LivenessAnalysis:
 
 	@staticmethod
 	def colorGraph(graph):
+		queue = Queue.Queue()
 		def saturation(graph):
 			saturationGraph = {}
 			for element in graph:
@@ -70,21 +80,29 @@ class LivenessAnalysis:
 		satGraph = saturation(graph)
 		satkeys = [x for x in satGraph]
 		colored = {}
+		
+		#if spill:
+		#	for item in spill:
+		#		queue.put(item)
+				
 		for key in reversed(satkeys):
-			colors = ["eax","ebx","ecx","edx","edi","esi"]
 			l = satGraph[key]
 			for elem in l:
-				interfere_vars = graph[elem] #list of interfering variables for elem
-				availColors = copy.copy(colors)
-				for x in interfere_vars:
-					if x in colored:
-						if colored[x] in availColors:
-							availColors.remove(colored[x])
-						else:
-							continue
-				if len(availColors) > 0:
-					colored[elem] = availColors[0]
-				else:
-					colored[elem] = "eax"
+				queue.put(elem)
+				
+		while not(queue.empty()):
+			colors = ["eax","ebx","ecx","edx","edi","esi"]
+			item = queue.get()
+			interfere_vars = graph[item]
+			availColors = copy.copy(colors)
+			for x in interfere_vars:
+				if x in colored:
+					if colored[x] in availColors:
+						availColors.remove(colored[x])
+			if len(availColors) > 0:
+				colored[item] = availColors[0]
+			else:
+				colored[item] = "SPILL"		
+			
 		return colored
 				
