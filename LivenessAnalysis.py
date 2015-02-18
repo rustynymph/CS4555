@@ -10,7 +10,7 @@ class LivenessAnalysis:
 	
 	@staticmethod
 	def livenessAnalysis(IR):
-		print IR
+		
 		ir = IR.node.nodes
 		#print ir
 		interference = {}
@@ -105,5 +105,6 @@ class LivenessAnalysis:
 			else:
 				colored[item] = "SPILL"		
 		print colored
+		print("\n")
 		return colored
 				

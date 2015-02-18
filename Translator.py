@@ -84,6 +84,24 @@ class Translator:
 					
 		def nameFunction(name,ast,liveness):
 			val = translatePythonAST(ast,liveness)
+			if isinstance(val,MemoryOperand) and isinstance(getName(name),MemoryOperand):
+				avail_registers = ["eax","ebx","ecx","edx","edi","esi"]
+				for x in liveness[0]:
+					if coloredgraph[x] in avail_registers:
+						avail_registers.remove(coloredgraph[x])
+
+				register = "ebx"
+				for x in liveness[0]:
+					for x in coloredgraph:
+						if coloredgraph[x] == "ebx":
+							save_name = x
+								 
+				save_instruction = MoveInstruction(RegisterOperand("ebx"),getVariableInMemory(x),"l")
+				mem_mov1 = MoveInstruction(val,RegisterOperand("ebx"),"l")
+				mem_mov2 = MoveInstruction(RegisterOperand("ebx"),getName(name),"l")
+				load_instruction = MoveInstruction(getVariableInMemory(x),RegisterOperand("ebx"),"l")
+				return ClusteredInstructions([save_instruction,mem_mov1,mem_mov2,load_instruction])
+			
 			mov_instruction = MoveInstruction(val,getName(name),"l")
 			return ClusteredInstructions([mov_instruction])
 			
@@ -162,7 +180,6 @@ class Translator:
 			elif isinstance(ast,Stmt):
 				x86 = [translatePythonAST(ast.nodes[i],liveness[i:i+2]) for i in range(0,len(ast.nodes))]
 				#else: x86 = [translatePythonAST(n) for n in ast.nodes]
-				print x86[0]
 				x86 = removeTrivialMoves(x86)
 				return AssemblyFunction("main",x86,4*(len(memory)+1))
 				
@@ -199,5 +216,6 @@ class Translator:
 			
 			raise "Error: " + str(ast) + " currently not supported.\n"
 		
+
 		t = translatePythonAST(ast,la)
 		return t
