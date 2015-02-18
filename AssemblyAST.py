@@ -135,6 +135,7 @@ class BinaryInstruction(Instruction):
 	__metaclass__ = ABCMeta
 
 	def __init__(self,fromOperand,toOperand):
+		if isinstance(fromOperand,MemoryOperand) and isinstance(toOperand,MemoryOperand) raise Exception(self.__class__.__name__ + "cannot have operation on more than one memory location.")
 		self.fromOperand = fromOperand
 		self.toOperand = toOperand
 
