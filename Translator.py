@@ -13,8 +13,6 @@ class Translator:
 		memory = {}
 		la = LivenessAnalysis.livenessAnalysis(ast)
 		graph = LivenessAnalysis.createGraph(la)
-		print ast
-		print la
 		coloredgraph = LivenessAnalysis.colorGraph(graph)
 
 		def getName(name):
@@ -65,8 +63,6 @@ class Translator:
 				if element in avail_registers:
 					avail_registers.remove(element)
 			
-			print name
-			print coloredgraph
 			#if name in coloredgraph:
 			if name not in liveness[1]:
 				return ClusteredInstructions()
@@ -150,7 +146,6 @@ class Translator:
 			if isinstance(ast,Module): return AssemblyProgram([translatePythonAST(ast.node,liveness)])
 			
 			elif isinstance(ast,Stmt):
-				print liveness
 				x86 = [translatePythonAST(ast.nodes[i],liveness[i:i+2]) for i in range(0,len(ast.nodes))]
 				#else: x86 = [translatePythonAST(n) for n in ast.nodes]
 				return AssemblyFunction("main",x86,4*(len(memory)+1))

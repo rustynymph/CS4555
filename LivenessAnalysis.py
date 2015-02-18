@@ -5,11 +5,9 @@ import Queue
 
 class LivenessAnalysis:
 	
-	#__colors = ['eax','ebx','ecx','edx','edi','esi']
 	__interference = {}
 	__liveVariables = {}
 	
-			
 	@staticmethod
 	def livenessAnalysis(IR):
 		ir = IR.node.nodes
@@ -23,13 +21,16 @@ class LivenessAnalysis:
 			if(isinstance(instructions,Assign)):
 				varWritten = instructions.nodes[0].name
 				remove = set((varWritten,))
+				print remove
 				varRead = instructions.expr
 				if(isinstance(varRead,Name)):
 					liveVariables[j] = set((liveVariables[j+1] | set((varRead))) - remove)
 				elif(isinstance(varRead,UnarySub)):
 					if isinstance(varRead.expr,Name):
 						varRead = varRead.expr.name
-						liveVariables[j] = set((liveVariables[j+1] | set((varRead,))) - remove)
+						liveVariables[j] = set((liveVariables[j+1] | set((varRead))) - remove)
+					elif isinstance(varRead.expr,Const):
+						liveVariables[j] = set(liveVariables[j+1] - remove)
 				elif(isinstance(varRead,Add)):
 					leftnode = varRead.left
 					rightnode = varRead.right
@@ -51,6 +52,7 @@ class LivenessAnalysis:
 					varRead = instructions.nodes[0]
 					raise Exception("Error: Unrecognized node type")
 			j-=1
+		print liveVariables
 		return [liveVariables[x] for x in liveVariables]	
 		
 	@staticmethod
