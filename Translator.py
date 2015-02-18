@@ -140,6 +140,20 @@ class Translator:
 			 
 			return ClusteredInstructions(save + i + load)
 
+
+		def removeTrivialMoves(assemblyInstructions):
+
+			for i in assemblyInstructions:
+				if isinstance(i,ClusteredInstructions):
+					for j in i.nodes:
+						if isinstance(j,MoveInstruction):
+							toOp = j.toOperand
+							fromOp = j.fromOperand
+							if str(toOp) == str(fromOp):
+								i.nodes.remove(j)
+
+			return assemblyInstructions
+					
 				
 		def translatePythonAST(ast,liveness=None):
 			spill_vars = 0
@@ -148,6 +162,8 @@ class Translator:
 			elif isinstance(ast,Stmt):
 				x86 = [translatePythonAST(ast.nodes[i],liveness[i:i+2]) for i in range(0,len(ast.nodes))]
 				#else: x86 = [translatePythonAST(n) for n in ast.nodes]
+				print x86[0]
+				x86 = removeTrivialMoves(x86)
 				return AssemblyFunction("main",x86,4*(len(memory)+1))
 				
 			elif isinstance(ast,Discard): return translatePythonAST(ast.expr,liveness)
