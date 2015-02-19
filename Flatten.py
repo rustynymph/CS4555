@@ -48,9 +48,6 @@ class python_compiler:
 
         elif isinstance(ast, Assign):
             varName = "__"+ast.nodes[0].name
-            #print(ast.nodes[0].name)
-            #print(ast.expr)
-            # right_val is the value that we are assigning our name to
             right_val = python_compiler.treeFlatten_helper(ast.expr, tmp_num)
             new_stmt = varName + ' = tmp' + str(right_val)
             flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])

@@ -2,9 +2,6 @@ from compiler.ast import *
 from AssemblyAST import *
 from LivenessAnalysis import*
 
-#eax, ecx, edx
-#ebx, edi, esi
-
 class Translator:
 
 	@staticmethod
@@ -156,6 +153,15 @@ class Translator:
 		def nameFunction(name,ast,liveness,current_instruction):
 			i = current_instruction
 			val = translatePythonAST(ast,liveness,i)
+			print("=======")
+			print val
+			print getName(name)
+			print liveness
+			for x in liveness[0]:
+				print coloredgraph[x]
+			for x in liveness[1]:
+				print coloredgraph[x]
+			print("=======")
 			if isinstance(val,MemoryOperand) and isinstance(getName(name),MemoryOperand): return spillName(name,val,liveness,i)			
 			mov_instruction = MoveInstruction(val,getName(name),"l")
 			return ClusteredInstructions([mov_instruction])
@@ -267,6 +273,6 @@ class Translator:
 				return x86AST
 			
 			raise "Error: " + str(ast) + " currently not supported.\n"
-		
+		print coloredgraph
 		t = translatePythonAST(ast,la,0)
 		return t

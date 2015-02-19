@@ -12,7 +12,7 @@ class LivenessAnalysis:
 	def livenessAnalysis(IR):
 		
 		ir = IR.node.nodes
-		#print ir
+
 		interference = {}
 		liveVariables = {}
 		numInstructions = len(ir)
@@ -25,22 +25,22 @@ class LivenessAnalysis:
 				remove = set((varWritten,))
 				varRead = instructions.expr
 				if(isinstance(varRead,Name)):
-					liveVariables[j] = set((liveVariables[j+1] | set((varRead))) - remove)
+					liveVariables[j] = set((liveVariables[j+1] - remove) | set((varRead)))
 				elif(isinstance(varRead,UnarySub)):
 					if isinstance(varRead.expr,Name):
 						varRead = varRead.expr.name
-						liveVariables[j] = set((liveVariables[j+1] | set((varRead,))) - remove)
+						liveVariables[j] = set((liveVariables[j+1] - remove) | set((varRead,)))
 					elif isinstance(varRead.expr,Const):
 						liveVariables[j] = set(liveVariables[j+1] - remove)
 				elif(isinstance(varRead,Add)):
 					leftnode = varRead.left
 					rightnode = varRead.right
 					if(isinstance(leftnode,Name) and isinstance(rightnode,Name)):
-						liveVariables[j] = set((liveVariables[j+1] | set((leftnode)) | set((rightnode))) - remove)
+						liveVariables[j] = set((liveVariables[j+1] - remove) | set((leftnode)) | set((rightnode)))
 					elif(isinstance(leftnode,Name) and not(isinstance(rightnode,Name))):
-						liveVariables[j] = set((liveVariables[j+1] | set((leftnode))) - remove)
+						liveVariables[j] = set((liveVariables[j+1] - remove) | set((leftnode)))
 					elif(not(isinstance(leftnode,Name)) and isinstance(rightnode,Name)):
-						liveVariables[j] = set((liveVariables[j+1] | set((rightnode))) - remove)
+						liveVariables[j] = set((liveVariables[j+1] - remove) | set((rightnode)))
 					else:
 						liveVariables[j] = set((liveVariables[j+1]) - remove)
 				else:
@@ -53,12 +53,11 @@ class LivenessAnalysis:
 					varRead = instructions.nodes[0]
 					raise Exception("Error: Unrecognized node type")
 			j-=1
-		#print liveVariables
+
 		return [liveVariables[x] for x in liveVariables]	
 		
 	@staticmethod
 	def createGraph(liveVariables):
-		#lv = [liveVariables[i] for i in liveVariables]
 		lv = liveVariables
 		graph = {}
 		for variableSet in lv:
@@ -81,11 +80,7 @@ class LivenessAnalysis:
 		satGraph = saturation(graph)
 		satkeys = [x for x in satGraph]
 		colored = {}
-		
-		#if spill:
-		#	for item in spill:
-		#		queue.put(item)
-				
+						
 		for key in reversed(satkeys):
 			l = satGraph[key]
 			for elem in l:
