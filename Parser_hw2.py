@@ -1,7 +1,5 @@
 import compiler
 from compiler.ast import *
-import ply.lex as lex
-import ply.yacc as yacc
 
 debug = False
 
@@ -150,7 +148,7 @@ class Parser_hw2:
 	def parseFile(self, path):
 		file_to_parse = open(path, 'r')
 		text_to_parse = file_to_parse.read()
-		return self.parser.parse(text_to_parse)
+		return compiler.parse(text_to_parse)
 
 	def parse(self, to_parse):
-		return self.parser.parse(to_parse)
+		return compiler.parse(to_parse)
