@@ -104,7 +104,6 @@ class LivenessAnalysis:
 				colored[item] = availColors[0]
 			else:
 				colored[item] = "SPILL"		
-		print colored
-		print("\n")
+
 		return colored
 				

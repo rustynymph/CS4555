@@ -105,8 +105,10 @@ class Translator:
 
 			leftval = vals[0]
 			rightval = vals[1]
+							
 			
 			remove_registers = [coloredgraph[x] for x in liveness[0]]
+			#+ [coloredgraph[x] for x in liveness[1]]
 
 			avail_registers = ["eax","ebx","ecx","edx","esi","edi"]
 			for element in remove_registers:
@@ -125,14 +127,25 @@ class Translator:
 					#new_name = "ebx"
 					for x in liveness[0]:
 						for x in coloredgraph:
-							if coloredgraph[x] == "ebx":
-								save_name = x
+							if isinstance(rightval,RegisterOperand):
+								if rightval.name == "ebx":
+									reg = RegisterOperand("edi")
+									if coloredgraph[x] == "edi":
+										save_name = x
+								else:
+									reg = RegisterOperand("ebx")
+									if coloredgraph[x] == "ebx":
+										save_name = x
+							else:
+								reg = RegisterOperand("ebx")
+								if coloredgraph[x] == "ebx":
+									save_name = x
 					coloredgraph[name] = "SPILL"
-					save_instruction = MoveInstruction(RegisterOperand("ebx"),getVariableInMemory(save_name),"l")
-					mem_mov = MoveInstruction(leftval,RegisterOperand("ebx"),"l")
-					add_instruction = AddInstruction(rightval,RegisterOperand("ebx"),"l")
-					mem_mov2 = MoveInstruction(RegisterOperand("ebx"),getVariableInMemory(name),"l")
-					load_instruction = MoveInstruction(getVariableInMemory(save_name),RegisterOperand("ebx"),"l")
+					save_instruction = MoveInstruction(reg,getVariableInMemory(save_name),"l")
+					mem_mov = MoveInstruction(leftval,reg,"l")
+					add_instruction = AddInstruction(rightval,reg,"l")
+					mem_mov2 = MoveInstruction(reg,getVariableInMemory(name),"l")
+					load_instruction = MoveInstruction(getVariableInMemory(save_name),reg,"l")
 					return ClusteredInstructions([save_instruction,mem_mov,add_instruction,mem_mov2,load_instruction])
 							
 			mov_instruction = MoveInstruction(leftval,RegisterOperand(new_name),"l")
@@ -190,16 +203,16 @@ class Translator:
 			
 			operand = getName(ast.nodes[0].name)
 			
-			i = [PushInstruction(operand,"l")]
-			i += [CallInstruction(FunctionCallOperand("print_int_nl"))]
-			i += [AddInstruction(ConstantOperand(4),RegisterOperand("esp"),"l")]
+			instruction = [PushInstruction(operand,"l")]
+			instruction += [CallInstruction(FunctionCallOperand("print_int_nl"))]
+			instruction += [AddInstruction(ConstantOperand(4),RegisterOperand("esp"),"l")]
 				
 			if name in registers:
 				registers.remove(name)
 			
 			load = [MoveInstruction(getVariableInMemory(x),getRegister(x),"l") for x in registers]
 			 
-			return ClusteredInstructions(save + i + load)
+			return ClusteredInstructions(save + instruction + load)
 
 
 		def removeTrivialMoves(assemblyInstructions):
@@ -255,6 +268,5 @@ class Translator:
 			
 			raise "Error: " + str(ast) + " currently not supported.\n"
 		
-
 		t = translatePythonAST(ast,la,0)
 		return t
