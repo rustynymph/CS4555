@@ -28,6 +28,15 @@ class Translator:
 			if name not in memory: memory[name] = -4*(len(memory)+1)
 			return MemoryOperand(RegisterOperand("ebp"),memory[name])
 		
+		def saveNameAdd(name,leftval,rightval,reg,save_name):
+			coloredgraph[name] = "SPILL"
+			save_instruction = MoveInstruction(reg,getVariableInMemory(save_name),"l")
+			mem_mov = MoveInstruction(leftval,reg,"l")
+			add_instruction = AddInstruction(rightval,reg,"l")
+			mem_mov2 = MoveInstruction(reg,getVariableInMemory(name),"l")
+			load_instruction = MoveInstruction(getVariableInMemory(save_name),reg,"l")
+			return ClusteredInstructions([save_instruction,mem_mov,add_instruction,mem_mov2,load_instruction])
+		
 		def spillName(name,val,liveness,current_instruction):
 			for x in liveness[0]:
 				for x in coloredgraph:
@@ -80,8 +89,6 @@ class Translator:
 				return nameFunction(name,read,liveness,current_instruction)
 			elif isinstance(read,Const):
 				return constFunction(name,read,liveness,current_instruction)
-			elif isinstance(read,ConstantOperand):
-				return constFunction(name,read,liveness,current_instruction)
 			elif isinstance(read,CallFunc):
 				return callfuncFunction(name,read,liveness,current_instruction)
 			
@@ -97,6 +104,7 @@ class Translator:
 			return ClusteredInstructions([mov_instruction] + [neg_instruction])
 			 
 		def addFunction(name,ast,liveness,current_instruction):
+
 			i = current_instruction
 			vals = translatePythonAST(ast,liveness,i)
 						
@@ -105,7 +113,9 @@ class Translator:
 			leftval = vals[0]
 			rightval = vals[1]
 							
+			
 			remove_registers = [coloredgraph[x] for x in liveness[0]]
+			#+ [coloredgraph[x] for x in liveness[1]]
 
 			avail_registers = ["eax","ebx","ecx","edx","esi","edi"]
 			for element in remove_registers:
@@ -120,56 +130,80 @@ class Translator:
 			if new_name not in avail_registers:
 				if len(avail_registers) > 1:
 					new_name = avail_registers[0]
+					reg = RegisterOperand(new_name)
 				else:
-					colors = ["ebx","edi","esi","eax","ecx","edx"]
-					if isinstance(rightval,RegisterOperand):
-						reg1 = rightval.name
-						if reg1 in colors:
-							colors.remove(reg1)
-					if isinstance(leftval,RegisterOperand):
-						reg2 = leftval.name
-						if reg2 in colors:
-							colors.remove(reg2)
-					new_reg = colors[0]
-					reg = RegisterOperand(new_reg)
+					if isinstance(rightval,RegisterOperand) and not(isinstance(leftval,RegisterOperand)):
+						if rightval.name == "ebx":
+							reg = RegisterOperand("edi")
+							for x in liveness[0]:
+								for x in coloredgraph:
+									if coloredgraph[x] == "edi":
+										save_name = x
+										return saveNameAdd(name,leftval,rightval,reg,save_name)
+						else:
+							reg = RegisterOperand("ebx")
+							for x in liveness[0]:
+								for x in coloredgraph:							
+									if coloredgraph[x] == "ebx":
+										save_name = x
+										return saveNameAdd(name,leftval,rightval,reg,save_name)
+					elif isinstance(leftval,RegisterOperand) and not(isinstance(rightval,RegisterOperand)):
+						if leftval.name == "ebx":
+							reg = RegisterOperand("edi")
+							for x in liveness[0]:
+								for x in coloredgraph:							
+									if coloredgraph[x] == "edi":
+										save_name = x
+										return saveNameAdd(name,leftval,rightval,reg,save_name)
+						else:
+							reg = RegisterOperand("ebx")
+							for x in liveness[0]:
+								for x in coloredgraph:							
+									if coloredgraph[x] == "ebx":
+										save_name = x
+										return saveNameAdd(name,leftval,rightval,reg,save_name)
+										
+					elif isinstance(leftval,RegisterOperand) and isinstance(rightval,RegisterOperand):
+						callers = ["ebx","edi","esi"]
+						color1 = leftval.name
+						color2 = rightval.name
+						if color1 in callers:
+							callers.remove(color1)
+						if color2 in callers:
+							callers.remove(color2)
+						new_color = callers[0]
+						reg = RegisterOperand(new_color)
+						for x in liveness[0]:
+							for x in coloredgraph:	
+								if coloredgraph[x] == new_color:
+									save_name = x
+									return saveNameAdd(name,leftval,rightval,reg,save_name)
+					else: return spillAdd(name,vals,liveness,i)
 						
-					for x in liveness[0]:
-						for x in coloredgraph:
-							if coloredgraph[x] == new_reg:
-								save_name = x
-								
-								coloredgraph[name] = "SPILL"
-								save_instruction = MoveInstruction(reg,getVariableInMemory(save_name),"l")
-								mem_mov = MoveInstruction(leftval,reg,"l")
-								add_instruction = AddInstruction(rightval,reg,"l")
-								mem_mov2 = MoveInstruction(reg,getVariableInMemory(name),"l")
-								load_instruction = MoveInstruction(getVariableInMemory(save_name),reg,"l")
-								return ClusteredInstructions([save_instruction,mem_mov,add_instruction,mem_mov2,load_instruction])
-							
-					coloredgraph[name] = "SPILL"
-					mem_mov = MoveInstruction(leftval,reg,"l")
-					add_instruction = AddInstruction(rightval,reg,"l")
-					mem_mov2 = MoveInstruction(reg,getVariableInMemory(name),"l")
-					return ClusteredInstructions([mem_mov,add_instruction,mem_mov2])
+				coloredgraph[name] = "SPILL"
+				#save_instruction = MoveInstruction(reg,getVariableInMemory(save_name),"l")
+				mem_mov = MoveInstruction(leftval,reg,"l")
+				add_instruction = AddInstruction(rightval,reg,"l")
+				mem_mov2 = MoveInstruction(reg,getVariableInMemory(name),"l")
+				#load_instruction = MoveInstruction(getVariableInMemory(save_name),reg,"l")
+				return ClusteredInstructions([mem_mov,add_instruction,mem_mov2])
 							
 			mov_instruction = MoveInstruction(leftval,RegisterOperand(new_name),"l")
 			add_instruction = AddInstruction(rightval,RegisterOperand(new_name),"l")
 			mov2_instruction = MoveInstruction(RegisterOperand(new_name),getName(name),"l")
-			return ClusteredInstructions([mov_instruction,add_instruction,mov2_instruction])			
+			return ClusteredInstructions([mov_instruction,add_instruction,mov2_instruction])
+	
 					
 		def nameFunction(name,ast,liveness,current_instruction):
 			i = current_instruction
 			val = translatePythonAST(ast,liveness,i)
-			#print val
-			if isinstance(val,MemoryOperand) and isinstance(getName(name),MemoryOperand): return spillName(name,val,liveness,i)		
+			if isinstance(val,MemoryOperand) and isinstance(getName(name),MemoryOperand): return spillName(name,val,liveness,i)			
 			mov_instruction = MoveInstruction(val,getName(name),"l")
 			return ClusteredInstructions([mov_instruction])
 			
 		def constFunction(name,ast,liveness,current_instruction):
 			i = current_instruction
 			val = translatePythonAST(ast,liveness,i)
-			#print memory
-			#print("hi")	
 			mov_instruction = MoveInstruction(val,getName(name),"l")
 			return ClusteredInstructions([mov_instruction])
 			
@@ -179,9 +213,7 @@ class Translator:
 			registers = []
 			
 			#liveness analysis is a LIST of SETS
-			
-			#changed 1 to 0
-			for x in liveness[0]:
+			for x in liveness[1]:
 				if isinstance(getName(x), RegisterOperand):
 					registers += [x]
 					

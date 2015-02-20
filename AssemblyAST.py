@@ -202,5 +202,4 @@ class ClusteredInstructions(Instruction):
 		for i in self.nodes:
 			tmp += i.printInstruction()
 		return tmp
-		
 			

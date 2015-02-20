@@ -11,15 +11,14 @@ from AssemblyAST import *
 import compiler
 
 pythonFilename = sys.argv[1]
-#print Parser_hw2.parse("print 5")
-# pythonAST = Parser_hw2().parseFile(pythonFilename)
 
 #file_to_parse = open(pythonFilename, 'r')
 #text_to_parse = file_to_parse.read()
 #raise Exception(text_to_parse)
 
-
 pythonAST = compiler.parseFile(pythonFilename)
+print pythonAST
+print("\n")
 pythonAST = Optimizer.reduce(pythonAST)
 pythonAST = Optimizer.negation(pythonAST)
 flattenedAST = python_compiler.treeFlatten(pythonAST)

@@ -47,11 +47,16 @@ class python_compiler:
             return tmp_num
 
         elif isinstance(ast, Assign):
-            varName = "__"+ast.nodes[0].name
-            right_val = python_compiler.treeFlatten_helper(ast.expr, tmp_num)
-            new_stmt = varName + ' = tmp' + str(right_val)
-            flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
-            return right_val
+			if isinstance(ast.expr,Name):
+				if ast.nodes[0].name == ast.expr.name:
+					return tmp_num
+					
+			varName = "__"+ast.nodes[0].name
+			right_val = python_compiler.treeFlatten_helper(ast.expr, tmp_num)
+
+			new_stmt = varName + ' = tmp' + str(right_val)
+			flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
+			return right_val
 
         elif isinstance(ast, Add):
             # recurse down BOTH sides of tree

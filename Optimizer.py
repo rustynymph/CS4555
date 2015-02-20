@@ -50,3 +50,4 @@ class Optimizer:
 		elif isinstance(ast,CallFunc): return CallFunc(ast.node,[Optimizer.negation(n) for n in ast.args]);
 		elif isinstance(ast,Const) or isinstance(ast,AssName) or isinstance(ast,Name): return ast;
 		else: raise Exception("AST reduction does not work on " + str(ast) + "node.");
+		
