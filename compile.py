@@ -5,7 +5,6 @@ import string
 from Flatten import *
 from Translator import *
 from Optimizer import *
-#from Parser import *
 from Parser_hw2 import *
 from AssemblyAST import *
 import compiler

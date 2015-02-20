@@ -13,7 +13,7 @@ class Translator:
 		coloredgraph = LivenessAnalysis.colorGraph(graph)
 
 		def getName(name):
-			if name in coloredgraph and coloredgraph[name] != "SPILL": 
+			if name in coloredgraph and coloredgraph[name] != "SPILL":
 				new_name = getRegister(name)
 			elif name in coloredgraph and coloredgraph[name] == "SPILL":
 				new_name = getVariableInMemory(name)
@@ -37,11 +37,16 @@ class Translator:
 			load_instruction = MoveInstruction(getVariableInMemory(save_name),reg,"l")
 			return ClusteredInstructions([save_instruction,mem_mov,add_instruction,mem_mov2,load_instruction])
 		
-		def spillName(name,val,liveness,current_instruction):
-			for x in liveness[0]:
+		def checkName(register,liveindex):
+			for x in liveness[liveindex]:
 				for x in coloredgraph:
-					if coloredgraph[x] == "ebx":
+					if coloredgraph[x] == register:
 						save_name = x
+						return save_name
+		
+		def spillName(name,val,liveness,current_instruction):
+
+			save_name = checkName("ebx",0)
 								 
 			save_instruction = MoveInstruction(RegisterOperand("ebx"),getVariableInMemory(save_name),"l")
 			mem_mov1 = MoveInstruction(val,RegisterOperand("ebx"),"l")
@@ -50,10 +55,8 @@ class Translator:
 			return ClusteredInstructions([save_instruction,mem_mov1,mem_mov2,load_instruction])
 		
 		def spillUnary(name,val,liveness,current_instruction):
-			for x in liveness[0]:
-				for x in coloredgraph:
-					if coloredgraph[x] == "ebx":
-						save_name = x
+
+			save_name = checkName("ebx",0)
 			
 			save_instruction = MoveInstruction(RegisterOperand("ebx"),getVariableInMemory(save_name),"l")
 			mem_mov1 = MoveInstruction(val,RegisterOperand("ebx"),"l")
@@ -66,11 +69,8 @@ class Translator:
 			leftval = val[0]
 			rightval = val[1]
 			
-			for x in liveness[0]:
-				for x in coloredgraph:
-					if coloredgraph[x] == "ebx":
-						save_name = x
-						
+			save_name = checkName("ebx",0)
+									
 			save_instruction = MoveInstruction(RegisterOperand("ebx"),getVariableInMemory(save_name),"l")
 			mem_mov = MoveInstruction(leftval,RegisterOperand("ebx"),"l")
 			add_instruction = AddInstruction(rightval,RegisterOperand("ebx"),"l")
@@ -113,9 +113,7 @@ class Translator:
 			leftval = vals[0]
 			rightval = vals[1]
 							
-			
 			remove_registers = [coloredgraph[x] for x in liveness[0]]
-			#+ [coloredgraph[x] for x in liveness[1]]
 
 			avail_registers = ["eax","ebx","ecx","edx","esi","edi"]
 			for element in remove_registers:
@@ -181,11 +179,9 @@ class Translator:
 					else: return spillAdd(name,vals,liveness,i)
 						
 				coloredgraph[name] = "SPILL"
-				#save_instruction = MoveInstruction(reg,getVariableInMemory(save_name),"l")
 				mem_mov = MoveInstruction(leftval,reg,"l")
 				add_instruction = AddInstruction(rightval,reg,"l")
 				mem_mov2 = MoveInstruction(reg,getVariableInMemory(name),"l")
-				#load_instruction = MoveInstruction(getVariableInMemory(save_name),reg,"l")
 				return ClusteredInstructions([mem_mov,add_instruction,mem_mov2])
 							
 			mov_instruction = MoveInstruction(leftval,RegisterOperand(new_name),"l")
@@ -208,23 +204,18 @@ class Translator:
 			return ClusteredInstructions([mov_instruction])
 			
 		def callfuncFunction(name,ast,liveness,current_instruction):
-			#eax,ecx,edx are caller save registers
 			i = current_instruction
 			registers = []
 			
-			#liveness analysis is a LIST of SETS
 			for x in liveness[1]:
 				if isinstance(getName(x), RegisterOperand):
 					registers += [x]
 					
-			#move contents of registers into memory locations
 			save = [MoveInstruction(getRegister(x),getVariableInMemory(x),"l") for x in registers]
-			
-			#move the contents of eax after functioncall into memory location or register
+
 			call = CallInstruction(FunctionCallOperand(ast.node.name))
 			mov_instruction = MoveInstruction(RegisterOperand("eax"),getName(name),"l")
 			
-			#move the contents of our memory locations back into the registers
 			if name in registers:
 				registers.remove(name)
 			
