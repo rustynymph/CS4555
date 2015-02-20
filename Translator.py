@@ -80,6 +80,8 @@ class Translator:
 				return nameFunction(name,read,liveness,current_instruction)
 			elif isinstance(read,Const):
 				return constFunction(name,read,liveness,current_instruction)
+			elif isinstance(read,ConstantOperand):
+				return constFunction(name,read,liveness,current_instruction)
 			elif isinstance(read,CallFunc):
 				return callfuncFunction(name,read,liveness,current_instruction)
 			
@@ -103,9 +105,7 @@ class Translator:
 			leftval = vals[0]
 			rightval = vals[1]
 							
-			
 			remove_registers = [coloredgraph[x] for x in liveness[0]]
-			#+ [coloredgraph[x] for x in liveness[1]]
 
 			avail_registers = ["eax","ebx","ecx","edx","esi","edi"]
 			for element in remove_registers:
@@ -121,7 +121,7 @@ class Translator:
 				if len(avail_registers) > 1:
 					new_name = avail_registers[0]
 				else:
-					colors = ["ebx","edi","esi"]
+					colors = ["ebx","edi","esi","eax","ecx","edx"]
 					if isinstance(rightval,RegisterOperand):
 						reg1 = rightval.name
 						if reg1 in colors:
@@ -138,13 +138,19 @@ class Translator:
 							if coloredgraph[x] == new_reg:
 								save_name = x
 								
+								coloredgraph[name] = "SPILL"
+								save_instruction = MoveInstruction(reg,getVariableInMemory(save_name),"l")
+								mem_mov = MoveInstruction(leftval,reg,"l")
+								add_instruction = AddInstruction(rightval,reg,"l")
+								mem_mov2 = MoveInstruction(reg,getVariableInMemory(name),"l")
+								load_instruction = MoveInstruction(getVariableInMemory(save_name),reg,"l")
+								return ClusteredInstructions([save_instruction,mem_mov,add_instruction,mem_mov2,load_instruction])
+							
 					coloredgraph[name] = "SPILL"
-					save_instruction = MoveInstruction(reg,getVariableInMemory(save_name),"l")
 					mem_mov = MoveInstruction(leftval,reg,"l")
 					add_instruction = AddInstruction(rightval,reg,"l")
 					mem_mov2 = MoveInstruction(reg,getVariableInMemory(name),"l")
-					load_instruction = MoveInstruction(getVariableInMemory(save_name),reg,"l")
-					return ClusteredInstructions([save_instruction,mem_mov,add_instruction,mem_mov2,load_instruction])
+					return ClusteredInstructions([mem_mov,add_instruction,mem_mov2])
 							
 			mov_instruction = MoveInstruction(leftval,RegisterOperand(new_name),"l")
 			add_instruction = AddInstruction(rightval,RegisterOperand(new_name),"l")
@@ -154,13 +160,16 @@ class Translator:
 		def nameFunction(name,ast,liveness,current_instruction):
 			i = current_instruction
 			val = translatePythonAST(ast,liveness,i)
-			if isinstance(val,MemoryOperand) and isinstance(getName(name),MemoryOperand): return spillName(name,val,liveness,i)			
+			#print val
+			if isinstance(val,MemoryOperand) and isinstance(getName(name),MemoryOperand): return spillName(name,val,liveness,i)		
 			mov_instruction = MoveInstruction(val,getName(name),"l")
 			return ClusteredInstructions([mov_instruction])
 			
 		def constFunction(name,ast,liveness,current_instruction):
 			i = current_instruction
 			val = translatePythonAST(ast,liveness,i)
+			#print memory
+			#print("hi")	
 			mov_instruction = MoveInstruction(val,getName(name),"l")
 			return ClusteredInstructions([mov_instruction])
 			
@@ -170,7 +179,9 @@ class Translator:
 			registers = []
 			
 			#liveness analysis is a LIST of SETS
-			for x in liveness[1]:
+			
+			#changed 1 to 0
+			for x in liveness[0]:
 				if isinstance(getName(x), RegisterOperand):
 					registers += [x]
 					
@@ -265,6 +276,6 @@ class Translator:
 				return x86AST
 			
 			raise "Error: " + str(ast) + " currently not supported.\n"
-		print coloredgraph
+		print ast
 		t = translatePythonAST(ast,la,0)
 		return t
