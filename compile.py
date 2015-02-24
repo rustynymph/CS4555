@@ -19,6 +19,7 @@ pythonAST = compiler.parseFile(pythonFilename)
 pythonAST = Optimizer.reduce(pythonAST)
 pythonAST = Optimizer.negation(pythonAST)
 flattenedAST = python_compiler.treeFlatten(pythonAST)
+print("FLAT")
 print flattenedAST
 print("\n")
 x86AST = Translator.pythonASTToAssemblyAST(flattenedAST)

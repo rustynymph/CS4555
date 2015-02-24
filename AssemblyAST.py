@@ -202,3 +202,24 @@ class ClusteredInstructions(Instruction):
 			tmp += i.printInstruction()
 		return tmp
 			
+class GetTag(Instruction):
+	def __init__(self,arg):
+		self.arg = arg
+		
+class InjectFrom(Instruction):
+	def __init__(self,typ,arg):
+		self.typ = typ
+		self.arg = arg
+	
+class ProjectTo(Instruction):
+	def __init__(self,typ,arg):
+		self.typ = typ
+		self.arg = arg
+	
+class Let(Instruction):
+	def __init__(self,var,rhs,body):
+		self.var = var
+		self.rhs = rhs
+		self.body = body
+		
+	

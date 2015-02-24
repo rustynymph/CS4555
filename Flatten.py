@@ -21,7 +21,7 @@ class python_compiler:
 		return ast2
 
 	@staticmethod
-	def treeFlatten_helper(ast, tmp_num):
+	def treeFlatten_helper(ast, tmp_num,append=True):
         
 		if isinstance(ast, Module):
 			python_compiler.treeFlatten_helper(ast.node, tmp_num)
@@ -84,8 +84,12 @@ class python_compiler:
 
 		elif isinstance(ast, Const):
 			new_stmt = 'tmp' + str(tmp_num) + ' = ' + str(ast.value)
-			flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
-			return tmp_num
+			if append == True:
+				flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
+				return tmp_num
+			else:
+				new_stmt = compiler.parse(new_stmt).node.nodes[0]
+				return (tmp_num,new_stmt)
 
 		elif isinstance(ast,Compare):
 			length = len(ast.ops)
@@ -99,42 +103,18 @@ class python_compiler:
 			return new_val + 1
 
 		elif isinstance(ast,Or):
-			length = len(ast.nodes)
-			new_stmt = ''
-			if length>2:
-				for x in range (0,length-1):
-					new_val = python_compiler.treeFlatten_helper(ast.nodes[x],tmp_num)
-					tmp_num=new_val+1
-					new_stmt += 'tmp'+str(new_val) + ' or '
-				new_val = python_compiler.treeFlatten_helper(ast.nodes[length-1],tmp_num)
-				new_stmt += 'tmp'+str(new_val)
-				flat_stmt.nodes.append(compiler.parse(new_stmt))
-				return new_val+1
-			else:			
-				left = python_compiler.treeFlatten_helper(ast.nodes[0],tmp_num)
-				right = python_compiler.treeFlatten_helper(ast.nodes[1],left+1)
-				new_stmt = 'tmp'+str(left) + ' or ' + 'tmp'+str(right) 
-				flat_stmt.nodes.append(compiler.parse(new_stmt))
-				return right + 1
+			left = python_compiler.treeFlatten_helper(ast.nodes[0],tmp_num)
+			right = python_compiler.treeFlatten_helper(ast.nodes[1],left+1)
+			new_stmt = 'tmp'+str(right+1) + ' = ' + 'tmp'+str(left) + ' or ' + 'tmp'+str(right) 
+			flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
+			return right + 1
 		
 		elif isinstance(ast,And):
-			length = len(ast.nodes)
-			new_stmt = ''
-			if length>2:
-				for x in range (0,length-1):
-					new_val = python_compiler.treeFlatten_helper(ast.nodes[x],tmp_num)
-					tmp_num=new_val+1
-					new_stmt += 'tmp'+str(new_val) + ' and '
-				new_val = python_compiler.treeFlatten_helper(ast.nodes[length-1],tmp_num)
-				new_stmt += 'tmp'+str(new_val)
-				flat_stmt.nodes.append(compiler.parse(new_stmt))
-				return new_val+1
-			else:			
-				left = python_compiler.treeFlatten_helper(ast.nodes[0],tmp_num)
-				right = python_compiler.treeFlatten_helper(ast.nodes[1],left+1)
-				new_stmt = 'tmp'+str(left) + ' and ' + 'tmp'+str(right) 
-				flat_stmt.nodes.append(compiler.parse(new_stmt))
-				return right + 1
+			left = python_compiler.treeFlatten_helper(ast.nodes[0],tmp_num)
+			right = python_compiler.treeFlatten_helper(ast.nodes[1],left+1)
+			new_stmt = 'tmp'+str(right+1) + ' = ' + 'tmp'+str(left) + ' and ' + 'tmp'+str(right) 
+			flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
+			return right + 1
 
 		elif isinstance(ast,Not):
 			not_var = python_compiler.treeFlatten_helper(ast.expr, tmp_num)
@@ -154,8 +134,12 @@ class python_compiler:
 				str_nodes = str(ast.nodes[0].value)
 
 			new_stmt = 'tmp'+str(tmp_num) + ' = ' + '[' + str(str_nodes) + ']'
-			flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
-			return tmp_num
+			if (append==True):
+				flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
+				return tmp_num
+			else:
+				new_stmt = compiler.parse(new_stmt).node.nodes[0]
+				return (tmp_num,new_stmt)
 			
 		elif isinstance(ast,Dict):
 			values = []
@@ -174,46 +158,49 @@ class python_compiler:
 					new_stmt += str(ast.items[length-1][0].value) + ':' + 'tmp'+str(new_val) + '}'
 				if isinstance(ast.items[length-1][0], Name):
 					new_stmt += str(ast.items[length-1][0].name) + ':' + 'tmp'+str(new_val) + '}'
-				flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0].expr)
-				return new_val+1
+				if(append==True):
+					flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
+					return new_val+1
+				else:
+					new_stmt = compiler.parse(new_stmt).node.nodes[0].expr
+					return (new_val+1,new_stmt)
 			else:
 				new_val = python_compiler.treeFlatten_helper(ast.items[length-1][1],tmp_num)
 				if isinstance(ast.items[length-1][0],Const):
 					new_stmt += str(ast.items[length-1][0].value) + ':' + 'tmp'+str(new_val) + '}'
 				if isinstance(ast.items[length-1][0],Name):
 					new_stmt += str(ast.items[length-1][0].name) + ':' + 'tmp'+str(new_val) + '}'
-				flat_stmt.nodes.append(compiler.parse(new_stmt).expr)
-				return new_val+1
+				if(append==True):
+					flat_stmt.nodes.append(compiler.parse(new_stmt))
+					return new_val+1
+				else:
+					new_stmt = compiler.parse(new_stmt).expr
+					return (new_val+1,new_stmt)
 			
 		elif isinstance(ast,Subscript):
-			list_val = python_compiler.treeFlatten_helper(ast.expr)
-			new_list = 'tmp'+str(list_val)
-			length = len(ast.subs)
-			if length>1:
-				sub = Subscript(new_list, ast.subs[0])
-				for x in range(1,length):
-					new_sub = Subscript(sub,ast.subs[x])
-					sub = new_sub
-				flat_stmt.nodes.append(Assign([AssName(new_tmp, 'OP_ASSIGN')], new_sub))
+			new_tmp = 'tmp'+str(tmp_num)
+			if(append==True):
+				flat_stmt.nodes.append(Assign([AssName(new_tmp, 'OP_ASSIGN')], Subscript(ast.expr, ast.flags, [ast.subs[0]])))
+				return tmp_num+1
 			else:
-				flat_stmt.nodes.append(Assign([AssName(new_tmp, 'OP_ASSIGN')], Subscript(new_list, 'OP_APPLY', [ast.subs[0]])))
-			return list_val+1
+				new_stmt = Assign([AssName(new_tmp, 'OP_ASSIGN')], Subscript(ast.expr, ast.flags, [ast.subs[0]]))
+				return (tmp_num+1,new_stmt)
 			
 		elif isinstance(ast,IfExp):
-			test_var = python_compiler.treeFlatten_helper(ast.test, tmp_num)
-			new_var = test_var + 1
-			then_var = python_compiler.treeFlatten_helper(ast.then, new_var + 1)
-			else_var = python_compiler.treeFlatten_helper(ast.else_, then_var + 1)
+			#yes this does work for cases like 4 if (2 if 3 else 1) else 0 :-)
+			test_var = python_compiler.treeFlatten_helper(ast.test, tmp_num,True)
+			tuple_then = python_compiler.treeFlatten_helper(ast.then,test_var+1,False) 
+			then_var = tuple_then[1]
+			tuple_else = python_compiler.treeFlatten_helper(ast.else_,test_var+1,False) 
+			else_var = tuple_else[1]
+			else_tmp_num = tuple_else[0]
 			
-			new_tmp = 'tmp'+str(new_var)
 			test_tmp = 'tmp'+str(test_var)
-			then_tmp = 'tmp'+str(then_var)
-			else_tmp = 'tmp'+str(else_var)
 			
-			new_stmt = IfExp(Name(test_tmp),Assign([AssName(new_tmp, 'OP_ASSIGN')], then_tmp), Assign([AssName(new_tmp, 'OP_ASSIGN')], else_tmp))
+			new_stmt = IfExp(Name(test_tmp),then_var,else_var)
 			
 			flat_stmt.nodes.append(new_stmt)
-			return else_var
+			return else_tmp_num
             
 		else:
 			raise Exception("Error: Unrecognized node type")

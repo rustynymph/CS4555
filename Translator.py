@@ -9,7 +9,6 @@ class Translator:
 		colors = ["eax","ebx","ecx","edx","edi","esi"]
 		memory = {}
 		la = LivenessAnalysis.livenessAnalysis(ast)
-		print la
 		graph = LivenessAnalysis.createGraph(la)
 		coloredgraph = LivenessAnalysis.colorGraph(graph)
 
