@@ -91,8 +91,48 @@ class Translator:
 				return constFunction(name,read,liveness)
 			elif isinstance(read,CallFunc):
 				return callfuncFunction(name,read,liveness)
+			elif isinstance(read,List):
+				return listFunction(name,read,liveness)
+			elif isinstance(read,Dict):
+				return dictFunction(name,read,liveness)
+			elif isinstance(read,Not):
+				return notFunction(name,read,liveness)
+			elif isinstance(read,Compare):
+				return compareFunction(name,read,liveness)
+			elif isinstance(read,Or):
+				return orFunction(name,read,liveness)
+			elif isinstance(read,And):
+				return andFunction(name,read,liveness)
+			elif isinstance(read,IfExp):
+				return ifExpFunction(name,read,liveness)
+			elif isinstance(read,Subscript):
+				return subscriptFunction(name,read,liveness)
 			else:
 				raise "Error: " + str(ast) + " currently not supported.\n"
+		
+		def notFunction(name,ast,liveness):
+			print("wow")
+		
+		def compareFunction(name,ast,liveness):
+			print("p1")
+			
+		def orFunction(name,ast,liveness):
+			print("has")
+			
+		def andFunction(name,ast,liveness):
+			print("a")
+		
+		def ifExpFunction(name,ast,liveness):
+			print("lotta")
+			
+		def subscriptFunction(name,ast,liveness):
+			print("sheeeet")
+			
+		def listFunction(name,ast,liveness):
+			print("hail satan")
+			
+		def dictFunction(name,ast,liveness):
+			print("poop")
 				
 		def unaryFunction(name,ast,liveness):
 			val = translatePythonAST(ast.expr,liveness)
