@@ -16,11 +16,11 @@ pythonFilename = sys.argv[1]
 #raise Exception(text_to_parse)
 
 pythonAST = compiler.parseFile(pythonFilename)
-print pythonAST
-print("\n")
 pythonAST = Optimizer.reduce(pythonAST)
 pythonAST = Optimizer.negation(pythonAST)
 flattenedAST = python_compiler.treeFlatten(pythonAST)
+print flattenedAST
+print("\n")
 x86AST = Translator.pythonASTToAssemblyAST(flattenedAST)
 
 x86Filename = sys.argv[1].rsplit(".",1)[0] + ".s"

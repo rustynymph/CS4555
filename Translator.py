@@ -37,7 +37,7 @@ class Translator:
 			load_instruction = MoveInstruction(getVariableInMemory(save_name),reg,"l")
 			return ClusteredInstructions([save_instruction,mem_mov,add_instruction,mem_mov2,load_instruction])
 		
-		def checkName(register,liveindex):
+		def checkName(register,liveindex,liveness):
 			for x in liveness[liveindex]:
 				for x in coloredgraph:
 					if coloredgraph[x] == register:
@@ -46,7 +46,7 @@ class Translator:
 		
 		def spillName(name,val,liveness):
 
-			save_name = checkName("ebx",0)
+			save_name = checkName("ebx",0,liveness)
 								 
 			save_instruction = MoveInstruction(RegisterOperand("ebx"),getVariableInMemory(save_name),"l")
 			mem_mov1 = MoveInstruction(val,RegisterOperand("ebx"),"l")
@@ -56,7 +56,7 @@ class Translator:
 		
 		def spillUnary(name,val,liveness):
 
-			save_name = checkName("ebx",0)
+			save_name = checkName("ebx",0,liveness)
 			
 			save_instruction = MoveInstruction(RegisterOperand("ebx"),getVariableInMemory(save_name),"l")
 			mem_mov1 = MoveInstruction(val,RegisterOperand("ebx"),"l")
@@ -69,7 +69,7 @@ class Translator:
 			leftval = val[0]
 			rightval = val[1]
 			
-			save_name = checkName("ebx",0)
+			save_name = checkName("ebx",0,liveness)
 									
 			save_instruction = MoveInstruction(RegisterOperand("ebx"),getVariableInMemory(save_name),"l")
 			mem_mov = MoveInstruction(leftval,RegisterOperand("ebx"),"l")
@@ -116,64 +116,57 @@ class Translator:
 			for element in remove_registers:
 				if element in avail_registers:
 					avail_registers.remove(element)
-			
-			if name not in liveness[1]:
-				return ClusteredInstructions()
-			
+						
 			new_name = coloredgraph[name]
 			
 			if new_name not in avail_registers:
-				if len(avail_registers) > 1:
-					new_name = avail_registers[0]
-					reg = RegisterOperand(new_name)
-				else:
-					if isinstance(rightval,RegisterOperand) and not(isinstance(leftval,RegisterOperand)):
-						if rightval.name == "ebx":
-							reg = RegisterOperand("edi")
-							for x in liveness[0]:
-								for x in coloredgraph:
-									if coloredgraph[x] == "edi":
-										save_name = x
-										return saveNameAdd(name,leftval,rightval,reg,save_name)
-						else:
-							reg = RegisterOperand("ebx")
-							for x in liveness[0]:
-								for x in coloredgraph:							
-									if coloredgraph[x] == "ebx":
-										save_name = x
-										return saveNameAdd(name,leftval,rightval,reg,save_name)
-					elif isinstance(leftval,RegisterOperand) and not(isinstance(rightval,RegisterOperand)):
-						if leftval.name == "ebx":
-							reg = RegisterOperand("edi")
-							for x in liveness[0]:
-								for x in coloredgraph:							
-									if coloredgraph[x] == "edi":
-										save_name = x
-										return saveNameAdd(name,leftval,rightval,reg,save_name)
-						else:
-							reg = RegisterOperand("ebx")
-							for x in liveness[0]:
-								for x in coloredgraph:							
-									if coloredgraph[x] == "ebx":
-										save_name = x
-										return saveNameAdd(name,leftval,rightval,reg,save_name)
-										
-					elif isinstance(leftval,RegisterOperand) and isinstance(rightval,RegisterOperand):
-						callers = ["ebx","edi","esi"]
-						color1 = leftval.name
-						color2 = rightval.name
-						if color1 in callers:
-							callers.remove(color1)
-						if color2 in callers:
-							callers.remove(color2)
-						new_color = callers[0]
-						reg = RegisterOperand(new_color)
-						for x in liveness[0]:
-							for x in coloredgraph:	
-								if coloredgraph[x] == new_color:
+				if isinstance(rightval,RegisterOperand) and not(isinstance(leftval,RegisterOperand)):
+					if rightval.name == "ebx":
+						reg = RegisterOperand("edi")
+						for x in liveness[1]:
+							for x in coloredgraph:
+								if coloredgraph[x] == "edi":
 									save_name = x
 									return saveNameAdd(name,leftval,rightval,reg,save_name)
-					else: return spillAdd(name,vals,liveness)
+					else:
+						reg = RegisterOperand("ebx")
+						for x in liveness[1]:
+							for x in coloredgraph:							
+								if coloredgraph[x] == "ebx":
+									save_name = x
+									return saveNameAdd(name,leftval,rightval,reg,save_name)
+				elif isinstance(leftval,RegisterOperand) and not(isinstance(rightval,RegisterOperand)):
+					if leftval.name == "ebx":
+						reg = RegisterOperand("edi")
+						for x in liveness[1]:
+							for x in coloredgraph:							
+								if coloredgraph[x] == "edi":
+									save_name = x
+									return saveNameAdd(name,leftval,rightval,reg,save_name)
+					else:
+						reg = RegisterOperand("ebx")
+						for x in liveness[1]:
+							for x in coloredgraph:							
+								if coloredgraph[x] == "ebx":
+									save_name = x
+									return saveNameAdd(name,leftval,rightval,reg,save_name)
+									
+				elif isinstance(leftval,RegisterOperand) and isinstance(rightval,RegisterOperand):
+					callers = ["ebx","edi","esi"]
+					color1 = leftval.name
+					color2 = rightval.name
+					if color1 in callers:
+						callers.remove(color1)
+					if color2 in callers:
+						callers.remove(color2)
+					new_color = callers[0]
+					reg = RegisterOperand(new_color)
+					for x in liveness[1]:
+						for x in coloredgraph:	
+							if coloredgraph[x] == new_color:
+								save_name = x
+								return saveNameAdd(name,leftval,rightval,reg,save_name)
+				else: return spillAdd(name,vals,liveness)
 						
 				coloredgraph[name] = "SPILL"
 				mem_mov = MoveInstruction(leftval,reg,"l")
@@ -292,6 +285,5 @@ class Translator:
 				return x86AST
 			
 			raise "Error: " + str(ast) + " currently not supported.\n"
-		print ast
 		t = translatePythonAST(ast,la)
 		return t
