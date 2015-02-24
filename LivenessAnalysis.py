@@ -27,6 +27,57 @@ class LivenessAnalysis:
 				varRead = instructions.expr
 				if(isinstance(varRead,Name)):
 					liveVariables[j] = set((liveVariables[j+1] - remove) | set((varRead)))
+				elif(isinstance(varRead,Or)):
+					if isinstance(varRead.nodes[0],Name) and isinstance(varRead.nodes[1],Name):
+						varRead1 = set((varRead.nodes[0].name,))
+						varRead2 = set((varRead.nodes[1].name,))
+						liveVariables[j] = set(((liveVariables[j+1] - remove)|varRead1)|varRead2)
+					elif isinstance(varRead.nodes[0],Name) and not(isinstance(varRead.nodes[1],Name)):
+						varRead1 = set((varRead.nodes[0].name,))
+						liveVariables[j] = set((liveVariables[j+1] - remove)|varRead1)
+					elif not(isinstance(varRead.nodes[0],Name)) and isinstance(varRead.nodes[1],Name):
+						varRead2 = set((varRead.nodes[1].name,))
+						liveVariables[j] = set((liveVariables[j+1] - remove)|varRead2)	
+					else:
+						liveVariables[j] = set(liveVariables[j+1] - remove)
+				elif(isinstance(varRead,And)):
+					if isinstance(varRead.nodes[0],Name) and isinstance(varRead.nodes[1],Name):
+						varRead1 = set((varRead.nodes[0].name,))
+						varRead2 = set((varRead.nodes[1].name,))
+						liveVariables[j] = set(((liveVariables[j+1] - remove)|varRead1)|varRead2)
+					elif isinstance(varRead.nodes[0],Name) and not(isinstance(varRead.nodes[1],Name)):
+						varRead1 = set((varRead.nodes[0].name,))
+						liveVariables[j] = set((liveVariables[j+1] - remove)|varRead1)
+					elif not(isinstance(varRead.nodes[0],Name)) and isinstance(varRead.nodes[1],Name):
+						varRead2 = set((varRead.nodes[1].name,))
+						liveVariables[j] = set((liveVariables[j+1] - remove)|varRead2)	
+					else:
+						liveVariables[j] = set(liveVariables[j+1] - remove)					
+				elif(isinstance(varRead,Compare)):
+					if isinstance(varRead.expr,Name) and isinstance(varRead.ops[1],Name):
+						varRead1 = set((varRead.expr.name,))
+						varRead2 = set((varRead.ops[1].name,))
+						liveVariables[j] = set(((liveVariables[j+1]-remove)|varRead1)|varRead2)
+					elif isinstance(varRead.expr,Name) and not(isinstance(varRead.ops[1],Name)):
+						varRead1 = set((varRead.expr.name,))
+						liveVariables[j] = set((liveVariables[j+1]-remove)|varRead1)
+					elif not(isinstance(varRead.expr,Name)) and isinstance(varRead.ops[1],Name):
+						varRead2 = set((varRead.ops[1].name,))
+						liveVariables[j] = set((liveVariables[j+1]-remove)|varRead2)
+					else:
+						liveVariables[j] = set(liveVariables[j+1]-remove)						
+				elif(isinstance(varRead,Subscript)):
+					liveVariables[j] = set(liveVariables[j+1]-remove)
+				elif(isinstance(varRead,List)):
+					liveVariables[j] = set(liveVariables[j+1]-remove)
+				elif(isinstance(varRead,Dict)):
+					liveVariables[j] = set(liveVariables[j+1]-remove)				
+				elif(isinstance(varRead,Not)):
+					if isinstance(varRead.expr,Name):
+						varRead = varRead.expr.name
+						liveVariables[j] = set((liveVariables[j+1] - remove) | set((varRead,)))
+					elif isinstance(varRead.expr,Const):
+						liveVariables[j] = set(liveVariables[j+1] - remove)
 				elif(isinstance(varRead,UnarySub)):
 					if isinstance(varRead.expr,Name):
 						varRead = varRead.expr.name
@@ -37,18 +88,21 @@ class LivenessAnalysis:
 					leftnode = varRead.left
 					rightnode = varRead.right
 					if(isinstance(leftnode,Name) and isinstance(rightnode,Name)):
-						liveVariables[j] = set((liveVariables[j+1] - remove) | set((leftnode)) | set((rightnode)))
+						liveVariables[j] = set((liveVariables[j+1] - remove) | set((leftnode.name,)) | set((rightnode.name,)))
 					elif(isinstance(leftnode,Name) and not(isinstance(rightnode,Name))):
-						liveVariables[j] = set((liveVariables[j+1] - remove) | set((leftnode)))
+						liveVariables[j] = set((liveVariables[j+1] - remove) | set((leftnode.name,)))
 					elif(not(isinstance(leftnode,Name)) and isinstance(rightnode,Name)):
-						liveVariables[j] = set((liveVariables[j+1] - remove) | set((rightnode)))
+						liveVariables[j] = set((liveVariables[j+1] - remove) | set((rightnode.name,)))
 					else:
 						liveVariables[j] = set((liveVariables[j+1]) - remove)
+				elif(isinstance(varRead,Const)):
+					liveVariables[j] = set(liveVariables[j+1] - remove)
 				else:
 					liveVariables[j] = set((liveVariables[j+1]) - remove)
 			elif isinstance(instructions,Printnl):
 				varRead = instructions.nodes[0]
-				liveVariables[j] = set((set((varRead))|set(liveVariables[j+1])))
+				#print varRead
+				liveVariables[j] = set(set((varRead))|set(liveVariables[j+1]))
 			elif isinstance(instructions,IfExp):
 				if isinstance(instructions.test,Name):
 					varRead1 = set((instructions.test.name,))
