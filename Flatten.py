@@ -15,6 +15,16 @@ class python_compiler:
 	flat_stmt.nodes = []
     
 	@staticmethod
+	def yesAppend(tmp_num,new_stmt):
+		flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
+		return tmp_num
+		
+	@staticmethod
+	def noAppend(tmp_num,new_stmt):
+		new_stmt = compiler.parse(new_stmt).node.nodes[0]
+		return (tmp_num,new_stmt)					
+    
+	@staticmethod
 	def treeFlatten(ast):
 		python_compiler.treeFlatten_helper(ast, 0)
 		ast2 = Module(None, Stmt(flat_stmt.nodes))
@@ -53,74 +63,64 @@ class python_compiler:
 			right_val = python_compiler.treeFlatten_helper(ast.expr, tmp_num)
 
 			new_stmt = varName + ' = tmp' + str(right_val)
-			flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
-			return right_val
+			if (append == True): return python_compiler.yesAppend(right_val,new_stmt)
+			else: return python_compiler.noAppend(rightval,new_stmt)
 
 		elif isinstance(ast, Add):
-			# recurse down BOTH sides of tree
 			left_val = python_compiler.treeFlatten_helper(ast.left, tmp_num)
 			right_val = python_compiler.treeFlatten_helper(ast.right, left_val + 1)
 			new_stmt = 'tmp' + str(right_val + 1) + ' = tmp' + str(left_val) + ' + tmp' + str(right_val)
-			flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
-			return right_val + 1
+			if (append == True): return python_compiler.yesAppend(right_val+1,new_stmt)
+			else: return python_compiler.noAppend(right_val+1,new_stmt)		
 
 		elif isinstance(ast, UnarySub):
 			neg_var = python_compiler.treeFlatten_helper(ast.expr, tmp_num)
 			new_stmt = 'tmp' + str(neg_var + 1) + ' = -tmp' + str(neg_var)
-			flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
-			return neg_var + 1
+			if (append == True): return python_compiler.yesAppend(neg_var+1,new_stmt)
+			else: return python_compiler.noAppend(neg_var+1,new_stmt)
 			
-        # CallFunc, Name, and Const are base cases
 		elif isinstance(ast, CallFunc):
 			new_stmt = 'tmp' + str(tmp_num) + ' = input()'
-			flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
-			return tmp_num
+			if (append == True): return python_compiler.yesAppend(tmp_num,new_stmt)
+			else: return python_compiler.noAppend(tmp_num,new_stmt)				
                 
 		elif isinstance(ast, Name):
 			ast.name = "__"+ast.name
 			new_stmt = 'tmp' + str(tmp_num) + ' = ' + ast.name
-			flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
-			return tmp_num
+			if (append == True): return python_compiler.yesAppend(tmp_num,new_stmt)
+			else: return python_compiler.noAppend(tmp_num,new_stmt)	
 
 		elif isinstance(ast, Const):
 			new_stmt = 'tmp' + str(tmp_num) + ' = ' + str(ast.value)
-			if append == True:
-				flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
-				return tmp_num
-			else:
-				new_stmt = compiler.parse(new_stmt).node.nodes[0]
-				return (tmp_num,new_stmt)
+			if (append == True): return python_compiler.yesAppend(tmp_num,new_stmt)
+			else: return python_compiler.noAppend(tmp_num,new_stmt)
 
 		elif isinstance(ast,Compare):
-			length = len(ast.ops)
 			expr_val = python_compiler.treeFlatten_helper(ast.expr,tmp_num)
-			new_stmt = 'tmp'+str(tmp_num) + ' = ' + 'tmp'+str(expr_val) + ' '
-			for x in ast.ops:
-				new_val = python_compiler.treeFlatten_helper(x[1],tmp_num)
-				tmp_num = new_val+1
-				new_stmt += str(x[0]) + ' ' + 'tmp'+str(new_val)
-			flat_stmt.nodes.append(compiler.parse(new_stmt))
-			return new_val + 1
+			op_val = python_compiler.treeFlatten_helper(ast.ops[1],expr_val+1)
+			new_stmt = 'tmp'+str(op_val+1) + ' = ' 'tmp'+str(expr_val) + ' ' + str(ast.ops[0]) + ' ' + 'tmp'+str(op_val)
+			if (append==True): return python_compiler.yesAppend(op_val+1,new_stmt)
+			else: return python_compiler.noAppend(op_val+1,new_stmt)
 
 		elif isinstance(ast,Or):
 			left = python_compiler.treeFlatten_helper(ast.nodes[0],tmp_num)
 			right = python_compiler.treeFlatten_helper(ast.nodes[1],left+1)
-			new_stmt = 'tmp'+str(right+1) + ' = ' + 'tmp'+str(left) + ' or ' + 'tmp'+str(right) 
-			flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
-			return right + 1
+			new_stmt = 'tmp'+str(right+1) + ' = ' + 'tmp'+str(left) + ' or ' + 'tmp'+str(right)
+			if (append==True): return python_compiler.yesAppend(right+1,new_stmt)
+			else: return python_compiler.noAppend(right+1,new_stmt)			
 		
 		elif isinstance(ast,And):
 			left = python_compiler.treeFlatten_helper(ast.nodes[0],tmp_num)
 			right = python_compiler.treeFlatten_helper(ast.nodes[1],left+1)
-			new_stmt = 'tmp'+str(right+1) + ' = ' + 'tmp'+str(left) + ' and ' + 'tmp'+str(right) 
-			flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
-			return right + 1
+			new_stmt = 'tmp'+str(right+1) + ' = ' + 'tmp'+str(left) + ' and ' + 'tmp'+str(right)
+			if (append==True): return python_compiler.yesAppend(right+1,new_stmt)
+			else: return python_compiler.noAppend(right+1,new_stmt)
 
 		elif isinstance(ast,Not):
 			not_var = python_compiler.treeFlatten_helper(ast.expr, tmp_num)
 			new_stmt = 'tmp' + str(not_var + 1) + ' = not(tmp' + str(not_var)+')'
-			flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
-			return not_var + 1
+			if (append==True): return python_compiler.yesAppend(not_var+1,new_stmt)
+			else: return python_compiler.noAppend(not_var+1,new_stmt)
 
 		elif isinstance(ast, List):
 			str_nodes = ''
@@ -134,12 +134,8 @@ class python_compiler:
 				str_nodes = str(ast.nodes[0].value)
 
 			new_stmt = 'tmp'+str(tmp_num) + ' = ' + '[' + str(str_nodes) + ']'
-			if (append==True):
-				flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
-				return tmp_num
-			else:
-				new_stmt = compiler.parse(new_stmt).node.nodes[0]
-				return (tmp_num,new_stmt)
+			if (append==True): return python_compiler.yesAppend(tmp_num,new_stmt)
+			else: return python_compiler.noAppend(tmp_num,new_stmt)
 			
 		elif isinstance(ast,Dict):
 			values = []
@@ -158,24 +154,16 @@ class python_compiler:
 					new_stmt += str(ast.items[length-1][0].value) + ':' + 'tmp'+str(new_val) + '}'
 				if isinstance(ast.items[length-1][0], Name):
 					new_stmt += str(ast.items[length-1][0].name) + ':' + 'tmp'+str(new_val) + '}'
-				if(append==True):
-					flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
-					return new_val+1
-				else:
-					new_stmt = compiler.parse(new_stmt).node.nodes[0].expr
-					return (new_val+1,new_stmt)
+				if(append==True): return python_compiler.yesAppend(new_val+1,new_stmt)
+				else: return python_compiler.noAppend(new_val+1,new_stmt)
 			else:
 				new_val = python_compiler.treeFlatten_helper(ast.items[length-1][1],tmp_num)
 				if isinstance(ast.items[length-1][0],Const):
 					new_stmt += str(ast.items[length-1][0].value) + ':' + 'tmp'+str(new_val) + '}'
 				if isinstance(ast.items[length-1][0],Name):
 					new_stmt += str(ast.items[length-1][0].name) + ':' + 'tmp'+str(new_val) + '}'
-				if(append==True):
-					flat_stmt.nodes.append(compiler.parse(new_stmt))
-					return new_val+1
-				else:
-					new_stmt = compiler.parse(new_stmt).expr
-					return (new_val+1,new_stmt)
+				if(append==True): return python_compiler.yesAppend(new_val+1,new_stmt)
+				else: return python_compiler.noAppend(new_val+1,new_stmt)
 			
 		elif isinstance(ast,Subscript):
 			new_tmp = 'tmp'+str(tmp_num)
