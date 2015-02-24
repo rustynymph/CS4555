@@ -101,7 +101,6 @@ class LivenessAnalysis:
 					liveVariables[j] = set((liveVariables[j+1]) - remove)
 			elif isinstance(instructions,Printnl):
 				varRead = instructions.nodes[0]
-				#print varRead
 				liveVariables[j] = set(set((varRead))|set(liveVariables[j+1]))
 			elif isinstance(instructions,IfExp):
 				if isinstance(instructions.test,Name):
@@ -111,7 +110,7 @@ class LivenessAnalysis:
 					varWritten = instructions.then.nodes[0].name
 					remove1 = set((varWritten,))
 					if isinstance(instructions.then.expr,Name):
-						varRead2 = set((instructions.then.expr,))
+						varRead2 = set((instructions.then.expr.name,))
 					else:
 						varRead2 = set()
 					#liveVariables[j] = set((liveVariables[j+1] - remove) |set((varRead,))) 
@@ -119,13 +118,10 @@ class LivenessAnalysis:
 					varWritten = instructions.else_.nodes[0].name
 					remove2 = set((varWritten,))
 					if isinstance(instructions.else_.expr,Name):
-						varRead3 = set((instructions.else_.expr,))
+						varRead3 = set((instructions.else_.expr.name,))
 					else:
 						varRead3 = set()
-				if remove1 == remove2:
-					liveVariables[j] = set((((liveVariables[j+1] - remove1) |varRead1)|varRead2)|varRead3)
-				else:
-					liveVariables[j] = set(((((liveVariables[j+1] - remove1) - remove2) |varRead1)|varRead2)|varRead3)
+				liveVariables[j] = set(((((liveVariables[j+1] - remove1) - remove2) |varRead1)|varRead2)|varRead3)
 			else:
 				varRead = instructions.nodes[0]
 				raise Exception("Error: Unrecognized node type")
