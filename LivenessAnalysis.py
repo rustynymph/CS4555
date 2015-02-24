@@ -20,6 +20,7 @@ class LivenessAnalysis:
 			liveVariables[i] = set()
 		j = numInstructions-1
 		for instructions in reversed(ir):
+			print instructions
 			if(isinstance(instructions,Assign)):
 				varWritten = instructions.nodes[0].name
 				remove = set((varWritten,))
@@ -45,13 +46,26 @@ class LivenessAnalysis:
 						liveVariables[j] = set((liveVariables[j+1]) - remove)
 				else:
 					liveVariables[j] = set((liveVariables[j+1]) - remove)
-			else:
-				if(isinstance(instructions,Printnl)):
-					varRead = instructions.nodes[0]
+			elif isinstance(instructions,Printnl):
+				varRead = instructions.nodes[0]
+				liveVariables[j] = set((set((varRead))|set(liveVariables[j+1])))
+			elif isinstance(instructions,IfExp):
+				if isinstance(instructions.test,Name):
+					varRead = instructions.test.name
 					liveVariables[j] = set((set((varRead))|set(liveVariables[j+1])))
-				else:
-					varRead = instructions.nodes[0]
-					raise Exception("Error: Unrecognized node type")
+				if isinstance(instructions.then,Assign):
+					varWritten = instructions.then.nodes[0].name
+					remove = set((varWritten,))
+					varRead = instructions.then.expr
+					set((liveVariables[j+1] - remove) |set((varRead))) 
+				if isinstance(instructions.else_,Assign):
+					varWritten = instructions.else_.nodes[0].name
+					remove = set((varWritten,))
+					varRead = instructions.else_.expr
+					set((liveVariables[j+1] - remove) |set((varRead)))
+			else:
+				varRead = instructions.nodes[0]
+				raise Exception("Error: Unrecognized node type")
 			j-=1
 
 		return [liveVariables[x] for x in liveVariables]	

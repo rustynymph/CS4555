@@ -154,7 +154,7 @@ class python_compiler:
 				str_nodes = str(ast.nodes[0].value)
 
 			new_stmt = 'tmp'+str(tmp_num) + ' = ' + '[' + str(str_nodes) + ']'
-			flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0].expr)
+			flat_stmt.nodes.append(compiler.parse(new_stmt).node.nodes[0])
 			return tmp_num
 			
 		elif isinstance(ast,Dict):
