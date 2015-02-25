@@ -165,7 +165,7 @@ class SubtractInstruction(SpecifiedBinaryInstruction):
 		SpecifiedBinaryInstruction.__init__(self,fromOperand, toOperand, length)
 		self.instruction = "sub"
 
-class AddInstruction(SpecifiedBinaryInstruction):
+class AddIntegerInstruction(SpecifiedBinaryInstruction):
 	def __init__(self,fromOperand,toOperand,length):
 		SpecifiedBinaryInstruction.__init__(self,fromOperand, toOperand, length)
 		self.instruction = "add"
