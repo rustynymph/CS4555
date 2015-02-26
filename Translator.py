@@ -9,8 +9,6 @@ class Translator:
 		colors = ["eax","ebx","ecx","edx","edi","esi"]
 		memory = {}
 		la = LivenessAnalysis.livenessAnalysis(ast)
-		print("\n")
-		print la
 		graph = LivenessAnalysis.createGraph(la)
 		coloredgraph = LivenessAnalysis.colorGraph(graph)
 
@@ -313,6 +311,23 @@ class Translator:
 			elif isinstance(ast,Name): return getName(ast.name)
 			
 			elif isinstance(ast,Printnl): return printFunction(ast,liveness)
+
+			#elif isinstance(ast,And):
+				
+			#elif isinstance(ast,Or):
+				
+			#elif isinstance(ast,Compare):
+			
+			#elif isinstance(ast,IfExp):
+				
+			#elif isinstance(ast,Let):
+				
+			#elif isinstance(ast,GetTag):			
+				#mov_instruction = 
+				#and_instruction = And(getName(ast.arg),ConstantOperand(3),"")
+				
+			#elif isinstance(ast,IsTag):
+				
 			
 			elif isinstance(ast,UnarySub):
 				neg_name = translatePythonAST(ast.expr,liveness)

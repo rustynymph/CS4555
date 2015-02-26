@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from compiler.ast import *
 
 MASK = 11
 
@@ -72,6 +73,11 @@ class ConstantOperand(Operand):
 
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.constant) + ")"
+
+
+class IsTag(Operand):
+	def __init__(self,arg):
+		self.arg = arg
 
 class MemoryOperand(Operand):
 	def __init__(self,register,offset=0):
@@ -212,25 +218,62 @@ class ClusteredInstructions(Instruction):
 		for i in self.nodes:
 			tmp += i.printInstruction()
 		return tmp
-			
-class GetTag(Instruction):
+
+class GetTag(Node):
 	def __init__(self,arg):
 		self.arg = arg
+
+	def __repr__(self):
+		return self.__class__.__name__ + "(" + str(self.arg) + ")"
 		
-class InjectFrom(Instruction):
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.arg) + ")"
+			
+class IsTag(Node):
+	def __init__(self,typ,arg):
+		self.typ = typ
+		self.arg = arg
+
+	def __repr__(self):
+		return self.__class__.__name__ + "(" + str(self.typ) + "," + str(self.arg) + ")"
+		
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.typ) + "," + str(self.arg) + ")"
+		
+class InjectFrom(Node):
 	def __init__(self,typ,arg):
 		self.typ = typ
 		self.arg = arg
 	
-class ProjectTo(Instruction):
+	def __repr__(self):
+		return self.__class__.__name__ + "(" + str(self.typ) + "," + str(self.arg) + ")"
+		
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.typ) + "," + str(self.arg) + ")"
+	
+class ProjectTo(Node):
 	def __init__(self,typ,arg):
 		self.typ = typ
 		self.arg = arg
+
+	def __repr__(self):
+		return self.__class__.__name__ + "(" + str(self.typ) + "," + str(self.arg) + ")"
+		
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.typ) + "," + str(self.arg) + ")"		
+		
 	
-class Let(Instruction):
+class Let(Node):
 	def __init__(self,var,rhs,body):
 		self.var = var
 		self.rhs = rhs
 		self.body = body
+		
+	def __repr__(self):
+		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.rhs) + "," + str(self.body) + ")"
+		
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.rhs) + "," + str(self.body) + ")"
+	
 		
 	

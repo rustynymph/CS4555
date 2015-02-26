@@ -39,6 +39,7 @@ class python_compiler:
 
 		elif isinstance(ast, Stmt):
 			for node in ast.nodes:
+				print node
 				length = len(flat_stmt.nodes)
 				tmp_num = length
 				python_compiler.treeFlatten_helper(node, tmp_num)

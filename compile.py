@@ -5,6 +5,7 @@ import string
 from Flatten import *
 from Translator import *
 from Optimizer import *
+from Explicate import *
 from Parser_hw2 import *
 from AssemblyAST import *
 import compiler
@@ -18,10 +19,10 @@ pythonFilename = sys.argv[1]
 pythonAST = compiler.parseFile(pythonFilename)
 pythonAST = Optimizer.reduce(pythonAST)
 pythonAST = Optimizer.negation(pythonAST)
-flattenedAST = python_compiler.treeFlatten(pythonAST)
-print("FLAT")
-print flattenedAST
-print("\n")
+print pythonAST
+explicatedAST = Explicate.explicate_helper(pythonAST)
+print explicatedAST
+flattenedAST = python_compiler.treeFlatten(explicatedAST)
 x86AST = Translator.pythonASTToAssemblyAST(flattenedAST)
 
 x86Filename = sys.argv[1].rsplit(".",1)[0] + ".s"
