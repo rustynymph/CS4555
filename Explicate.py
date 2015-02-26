@@ -6,11 +6,12 @@ import sys
 import string
 import math
 from AssemblyAST import *
+from PythonASTExtension import *
 
-INT_t = 0
-BOOL_t = 1
-BIG_t = 2
-MASK = 3
+INT_t = 0		#00
+BOOL_t = 1		#01
+BIG_t = 2		#10
+MASK = 3		#11
 
 class exp_stmt(Stmt):
 	def __init__(self, nodes):
@@ -36,7 +37,6 @@ class Explicate:
 	@staticmethod
 	def explicateBinary(ast):
 		if isinstance(ast,Add):
-			print("poop")
 			lhsvar = ast.left
 			rhsvar = ast.right			
 			#explicated = Let(lhsvar,Let(rhsvar,IfExp(And([Or([IsTag(INT_t,lhsvar),
@@ -54,7 +54,6 @@ class Explicate:
 							   IfExp(And([IsTag(BIG_t, lhsvar),IsTag(BIG_t, rhsvar)]),
 							   CallFunc(Name('add_big'), [InjectFrom(GetTag(lhsvar),ProjectTo(BIG_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(BIG_t,rhsvar))], None, None),
 							   CallFunc(Name('error'),[],None,None)))		
-		print explicated
 		return explicated
 	
 	#@staticmethod	
@@ -74,20 +73,16 @@ class Explicate:
 	@staticmethod
 	def explicate(ast):
 		Explicate.explicate_helper(ast)
-		print exp_stmt.nodes
 		explicated_ast = Module(None, Stmt(exp_stmt.nodes))
 		return explicated_ast
 	
 	@staticmethod
-	def explicate_helper(ast,discard=False):
-        
+	def explicate_helper(ast,discard=False):    
 		if isinstance(ast, Module):
-			print("hi")
 			Explicate.explicate_helper(ast.node)
 			return 0
 
 		elif isinstance(ast, Stmt):
-			print("hi2")
 			for node in ast.nodes:
 				Explicate.explicate_helper(node)
 			return 0
@@ -97,11 +92,11 @@ class Explicate:
 			if isinstance(print_var,Add):
 				print_exp = Explicate.explicate_helper(print_var)
 			new_stmt = Printnl([print_exp], None)
+			return exp_stmt.nodes.append(new_stmt)
 
 		#elif isinstance(ast, Discard):
 
 		elif isinstance(ast, Assign):
-			print("yo")
 			right = ast.expr
 			if isinstance(right,Name):
 				right_exp = Explicate.explicateName(right)
@@ -124,7 +119,7 @@ class Explicate:
 
 		#elif isinstance(ast, UnarySub):
 
-		#elif isinstance(ast, CallFunc):
+		#elif isinstance(ast, CallFunc): 
                 
 		#elif isinstance(ast, Name):
 

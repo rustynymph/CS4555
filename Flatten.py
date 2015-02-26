@@ -5,6 +5,7 @@ import compiler
 import sys
 import string
 import math
+from PythonASTExtension import *
 
 class flat_stmt(Stmt):
 	def __init__(self, nodes):
@@ -39,7 +40,6 @@ class python_compiler:
 
 		elif isinstance(ast, Stmt):
 			for node in ast.nodes:
-				print node
 				length = len(flat_stmt.nodes)
 				tmp_num = length
 				python_compiler.treeFlatten_helper(node, tmp_num)
@@ -190,6 +190,35 @@ class python_compiler:
 			
 			flat_stmt.nodes.append(new_stmt)
 			return else_tmp_num
+
+		elif isinstance(ast,InjectFrom):
+			new_stmt = ast
+			if(append==True):
+				return tmp_num
+			else:
+				return (tmp_num,new_stmt)
+        
+		elif isinstance(ast,ProjectTo):
+			new_stmt = ast
+			if(append==True):
+				return tmp_num
+			else:
+				return (tmp_num,new_stmt)
+		
+		elif isinstance(ast,GetTag):
+			new_stmt = ast
+			if(append==True):
+				return tmp_num
+			else:
+				return (tmp_num,new_stmt)
+		
+		elif isinstance(ast,IsTag):
+			new_stmt = ast
+			if(append==True):
+				return tmp_num
+			else:
+				return (tmp_num,new_stmt)
+        
             
 		else:
 			raise Exception("Error: Unrecognized node type")
