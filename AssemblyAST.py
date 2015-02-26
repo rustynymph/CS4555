@@ -1,5 +1,8 @@
 from abc import ABCMeta, abstractmethod
 
+MASK = 11
+
+
 class Instruction(object):
 	__metaclass__ = ABCMeta
 
@@ -184,6 +187,14 @@ class LeaveInstruction(NoOperandInstruction):
 class ReturnInstruction(NoOperandInstruction):
 	def printInstruction(self):
 		return "ret\n"
+
+class AndInstruction(SpecifiedBinaryInstruction):
+	def __init__(self,leftOperand,rightOperand,length):
+		SpecifiedBinaryInstruction.__init__(self,leftOperand,rightOperand,length)
+		self.instruction = "and"
+
+#class ShiftInstruction(SpecifiedBinaryInstruction):
+#	def 
 
 class ClusteredInstructions(Instruction):
 	def __init__(self, nodes=[]):
