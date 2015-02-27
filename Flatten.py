@@ -122,7 +122,8 @@ class python_compiler:
 		elif isinstance(ast,Or):
 			left = python_compiler.treeFlatten_helper(ast.nodes[0],tmp_num)
 			right = python_compiler.treeFlatten_helper(ast.nodes[1],left+1)
-			new_stmt = 'tmp'+str(right+1) + ' = ' + 'tmp'+str(left) + ' or ' + 'tmp'+str(right)		
+			new_stmt = 'tmp'+str(right+1) + ' = ' + 'tmp'+str(left) + ' or ' + 'tmp'+str(right)
+			save_nodes.nodes.append(compiler.parse(new_stmt).node.nodes[0])		
 			if (append==True): return python_compiler.yesAppend(right+1,new_stmt)
 			else: return python_compiler.noAppend(right+1,new_stmt)			
 		
@@ -130,12 +131,14 @@ class python_compiler:
 			left = python_compiler.treeFlatten_helper(ast.nodes[0],tmp_num)
 			right = python_compiler.treeFlatten_helper(ast.nodes[1],left+1)
 			new_stmt = 'tmp'+str(right+1) + ' = ' + 'tmp'+str(left) + ' and ' + 'tmp'+str(right)
+			save_nodes.nodes.append(compiler.parse(new_stmt).node.nodes[0])			
 			if (append==True): return python_compiler.yesAppend(right+1,new_stmt)
 			else: return python_compiler.noAppend(right+1,new_stmt)
 
 		elif isinstance(ast,Not):
 			not_var = python_compiler.treeFlatten_helper(ast.expr, tmp_num)
-			new_stmt = 'tmp' + str(not_var + 1) + ' = not(tmp' + str(not_var)+')'			
+			new_stmt = 'tmp' + str(not_var + 1) + ' = not(tmp' + str(not_var)+')'
+			save_nodes.nodes.append(compiler.parse(new_stmt).node.nodes[0])						
 			if (append==True): return python_compiler.yesAppend(not_var+1,new_stmt)
 			else: return python_compiler.noAppend(not_var+1,new_stmt)
 
@@ -198,11 +201,11 @@ class python_compiler:
 				test_var = python_compiler.treeFlatten_helper(ast.test, tmp_num,True)
 				test_tmp = 'tmp'+str(test_var)
 				
-				print ast.then
+				save_nodes.nodes=[]
 				new_then = python_compiler.treeFlatten_helper(ast.then,test_var+1,False)
 				then_exp = new_then[1]
 				save_nodes.nodes +=then_exp	
-				print then_exp
+				print save_nodes.nodes
 
 				if isinstance(ast.else_,IfExp):
 					return IfExp(Name(test_tmp),[i for i in save_nodes.nodes],IfExpRecursion(ast.else_, test_var+1))
