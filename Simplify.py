@@ -37,7 +37,9 @@ class Simplify():
 		if isinstance(ast,Module): return Module(ast.doc,Simplify.nameToBool(ast.node))
 		elif isinstance(ast,Stmt): return Stmt([Simplify.nameToBool(n) for n in ast.nodes])
 		elif isinstance(ast,Printnl): return Printnl([Simplify.nameToBool(n) for n in ast.nodes],ast.dest)
-		elif isinstance(ast,Assign): return Assign([Simplify.nameToBool(n) for n in ast.nodes],Simplify.nameToBool(ast.expr))
+		elif isinstance(ast,Assign): 
+			print ast.nodes
+			return Assign([Simplify.nameToBool(n) for n in ast.nodes],Simplify.nameToBool(ast.expr))
 		elif isinstance(ast,Discard): return Discard(Simplify.nameToBool(ast.expr))
 		elif isinstance(ast,Add): return Add((Simplify.nameToBool(ast.left),Simplify.nameToBool(ast.right)))
 		elif isinstance(ast,UnarySub): return UnarySub(Simplify.nameToBool(ast.expr))
@@ -57,10 +59,11 @@ class Simplify():
 		elif isinstance(ast,Name): 
 			if ast.name == "True": return Boolean(True)
 			elif ast.name == "False": return Boolean(False)
-			else: ast
+			else: return ast
 		elif isinstance(ast,AssName):
+			print ast.name
 			if ast.name == "True" or ast.name == "False": raise Exception(ast.name + " cannot be assigned to a value.")
-			else: ast
+			else: return ast
 		elif isinstance(ast,Const): return ast
 		#Needs to change in for next assignment
 		elif isinstance(ast,CallFunc): 
