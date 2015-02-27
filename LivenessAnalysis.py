@@ -20,7 +20,6 @@ class LivenessAnalysis:
 			liveVariables[i] = set()
 		j = numInstructions-1
 		for instructions in reversed(ir):
-			#print instructions
 			if(isinstance(instructions,Assign)):
 				varWritten = instructions.nodes[0].name
 				remove = set((varWritten,))

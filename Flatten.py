@@ -11,9 +11,14 @@ class flat_stmt(Stmt):
 	def __init__(self, nodes):
 		Stmt.__init__(self, nodes)
 
+class save_nodes(Stmt):
+	def __init__(self, nodes):
+		Stmt.__init__(self, nodes)
+
 class python_compiler:
     
 	flat_stmt.nodes = []
+	save_nodes.nodes = []
     
 	@staticmethod
 	def yesAppend(tmp_num,new_stmt):
@@ -30,6 +35,7 @@ class python_compiler:
 			return (tmp_num,new_stmt)
 		else:
 			new_stmt = compiler.parse(new_stmt).node.nodes[0]
+			save_nodes.nodes.append(new_stmt)			
 			return (tmp_num,new_stmt)					
     
 	@staticmethod
@@ -109,14 +115,14 @@ class python_compiler:
 		elif isinstance(ast,Compare):
 			expr_val = python_compiler.treeFlatten_helper(ast.expr,tmp_num)
 			op_val = python_compiler.treeFlatten_helper(ast.ops[1],expr_val+1)
-			new_stmt = 'tmp'+str(op_val+1) + ' = ' 'tmp'+str(expr_val) + ' ' + str(ast.ops[0]) + ' ' + 'tmp'+str(op_val)
+			new_stmt = 'tmp'+str(op_val+1) + ' = ' 'tmp'+str(expr_val) + ' ' + str(ast.ops[0]) + ' ' + 'tmp'+str(op_val)		
 			if (append==True): return python_compiler.yesAppend(op_val+1,new_stmt)
 			else: return python_compiler.noAppend(op_val+1,new_stmt)
 
 		elif isinstance(ast,Or):
 			left = python_compiler.treeFlatten_helper(ast.nodes[0],tmp_num)
 			right = python_compiler.treeFlatten_helper(ast.nodes[1],left+1)
-			new_stmt = 'tmp'+str(right+1) + ' = ' + 'tmp'+str(left) + ' or ' + 'tmp'+str(right)
+			new_stmt = 'tmp'+str(right+1) + ' = ' + 'tmp'+str(left) + ' or ' + 'tmp'+str(right)		
 			if (append==True): return python_compiler.yesAppend(right+1,new_stmt)
 			else: return python_compiler.noAppend(right+1,new_stmt)			
 		
@@ -129,7 +135,7 @@ class python_compiler:
 
 		elif isinstance(ast,Not):
 			not_var = python_compiler.treeFlatten_helper(ast.expr, tmp_num)
-			new_stmt = 'tmp' + str(not_var + 1) + ' = not(tmp' + str(not_var)+')'
+			new_stmt = 'tmp' + str(not_var + 1) + ' = not(tmp' + str(not_var)+')'			
 			if (append==True): return python_compiler.yesAppend(not_var+1,new_stmt)
 			else: return python_compiler.noAppend(not_var+1,new_stmt)
 
@@ -184,29 +190,41 @@ class python_compiler:
 			else:
 				new_stmt = Assign([AssName(new_tmp, 'OP_ASSIGN')], Subscript(ast.expr, ast.flags, [ast.subs[0]]))
 				return (tmp_num+1,new_stmt)
+		
 			
 		elif isinstance(ast,IfExp):
 
-			#yes this does work for cases like 4 if (2 if 3 else 1) else 0 :-)
-			test_var = python_compiler.treeFlatten_helper(ast.test, tmp_num,True)
-			tuple_then = python_compiler.treeFlatten_helper(ast.then,test_var+1,False)
-			then_var = tuple_then[1]
-			tuple_else = python_compiler.treeFlatten_helper(ast.else_,test_var+1,False) 
-			print("============")
-			print tuple_else
-			else_var = tuple_else[1]
-			else_tmp_num = tuple_else[0]
+			def IfExpRecursion(ast,tmp_number):			
+				test_var = python_compiler.treeFlatten_helper(ast.test, tmp_num,True)
+				test_tmp = 'tmp'+str(test_var)
+				
+				print ast.then
+				new_then = python_compiler.treeFlatten_helper(ast.then,test_var+1,False)
+				then_exp = new_then[1]
+				save_nodes.nodes +=then_exp	
+				print then_exp
 
-			test_tmp = 'tmp'+str(test_var)
-			
-			new_stmt = IfExp(Name(test_tmp),then_var,else_var)
-			
-			flat_stmt.nodes.append(new_stmt)
-			return (else_tmp_num, new_stmt)
+				if isinstance(ast.else_,IfExp):
+					return IfExp(Name(test_tmp),[i for i in save_nodes.nodes],IfExpRecursion(ast.else_, test_var+1))
+				else:
+					new_else = python_compiler.treeFlatten_helper(ast.else_,test_var+1,False)
+					else_exp = new_else[1]
+					return IfExp(Name(test_tmp),then_exp,else_exp)
+
+
+		
+			result = IfExpRecursion(ast,tmp_num)
+			print("result is:")
+			print result
+			#new_stmt = 	result[0]
+			#num = result[1]
+			return num
+
 
 		elif isinstance(ast,InjectFrom):
 			tmp = 'tmp'+str(tmp_num)
 			new_stmt = Assign([AssName(tmp, 'OP_ASSIGN')], ast)
+			save_nodes.nodes.append(new_stmt)
 			if(append==True):
 				flat_stmt.nodes.append(new_stmt)		
 				return tmp_num
@@ -216,6 +234,7 @@ class python_compiler:
 		elif isinstance(ast,ProjectTo):
 			tmp = 'tmp'+str(tmp_num)
 			new_stmt = Assign([AssName(tmp, 'OP_ASSIGN')], ast)
+			save_nodes.nodes.append(new_stmt)
 			if(append==True):
 				flat_stmt.nodes.append(new_stmt)		
 				return tmp_num
@@ -225,6 +244,7 @@ class python_compiler:
 		elif isinstance(ast,GetTag):
 			tmp = 'tmp'+str(tmp_num)
 			new_stmt = Assign([AssName(tmp, 'OP_ASSIGN')], ast)
+			save_nodes.nodes.append(new_stmt)
 			if(append==True):
 				flat_stmt.nodes.append(new_stmt)		
 				return tmp_num
@@ -234,6 +254,7 @@ class python_compiler:
 		elif isinstance(ast,IsTag):
 			tmp = 'tmp'+str(tmp_num)
 			new_stmt = Assign([AssName(tmp, 'OP_ASSIGN')], ast)
+			save_nodes.nodes.append(new_stmt)
 			if(append==True):
 				flat_stmt.nodes.append(new_stmt)		
 				return tmp_num

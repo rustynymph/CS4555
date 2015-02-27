@@ -35,27 +35,21 @@ class Explicate:
 			rhsvar = ast.right			
 
 			explicated = IfExp(And([Or([IsTag(INT_t,lhsvar),IsTag(BOOL_t, lhsvar)]),
-									Or([IsTag(INT_t, rhsvar),IsTag(BOOL_t, rhsvar)])]),
-							   Add((InjectFrom(GetTag(lhsvar),ProjectTo(INT_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(INT_t,rhsvar)))),
-							   IfExp(And([IsTag(BIG_t, lhsvar),IsTag(BIG_t, rhsvar)]),
-							   CallFunc('add_big', [InjectFrom(GetTag(lhsvar),ProjectTo(BIG_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(BIG_t,rhsvar))], None, None),
-							   CallFunc('error',[],None,None)))		
+							Or([IsTag(INT_t, rhsvar),IsTag(BOOL_t, rhsvar)])]),
+					   Add((InjectFrom(GetTag(lhsvar),ProjectTo(INT_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(INT_t,rhsvar)))),
+					   IfExp(And([IsTag(BIG_t, lhsvar),IsTag(BIG_t, rhsvar)]),
+					   CallFunc('add_big', [InjectFrom(GetTag(lhsvar),ProjectTo(BIG_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(BIG_t,rhsvar))], None, None),
+					   CallFunc('error',[],None,None)))		
 		return explicated
 	
-	#@staticmethod	
-	#def explicateIfExp(ast): 
+	#@staticmethod
+	#def explicateCallFunc(ast):
+	#	explicated = InjectFrom(GetTag(CallFunc('input', [], None, None)),ProjectTo(INT_t,)		
+	#	return explicated		
 	
 	@staticmethod	
 	def visitConst(ast): return InjectFrom(INT_t,Const(ast.value))
 
-	#def explicateLogical(ast):
-	#	if isinstance(ast,And):
-	#		lhsvar = ast.nodes[0]
-	#		rhscar = ast.nodes[1]
-	#		explicated = Let(lhsvar,Let(rhsvar,If
-	#	elif isinstance(ast,Or):
-	#	return explicated
-	
 	@staticmethod
 	def explicate(ast):
 		Explicate.explicate_helper(ast)
@@ -104,7 +98,7 @@ class Explicate:
 
 		#elif isinstance(ast, UnarySub):
 
-		#elif isinstance(ast, CallFunc): 
+		elif isinstance(ast, CallFunc): return Explicate.explicateCallFunc(ast)
                 
 		elif isinstance(ast, Name): return Explicate.explicateName(ast)
 

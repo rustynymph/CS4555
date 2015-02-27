@@ -17,12 +17,13 @@ pythonFilename = sys.argv[1]
 #raise Exception(text_to_parse)
 
 pythonAST = compiler.parseFile(pythonFilename)
-print pythonAST
 pythonAST = Simplify.nameToBool(pythonAST)
 pythonAST = Simplify.removeNamespaceDependency(pythonAST)
 pythonAST = Optimizer.reduce(pythonAST)
 pythonAST = Optimizer.negation(pythonAST)
 explicatedAST = Explicate.explicate(pythonAST)
+print explicatedAST
+print("\n")
 flattenedAST = python_compiler.treeFlatten(explicatedAST)
 print flattenedAST
 x86AST = Translator.pythonASTToAssemblyAST(flattenedAST)
