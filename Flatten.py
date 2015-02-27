@@ -22,8 +22,11 @@ class python_compiler:
 		
 	@staticmethod
 	def noAppend(tmp_num,new_stmt):
-		new_stmt = compiler.parse(new_stmt).node.nodes[0]
-		return (tmp_num,new_stmt)					
+		if isinstance(new_stmt,Assign) or isinstance(new_stmt,Name) or isinstance(new_stmt,Const) or isinstance(new_stmt,Boolean) or isinstance(new_stmt,IfExp) or isinstance(new_stmt,And) or isinstance(new_stmt,Or) or isinstance(new_stmt,Compare) or isinstance(new_stmt,Subscript) or isinstance(new_stmt,List) or isinstance(new_stmt,Dict) or isinstance(new_stmt,CallFunc) or isinstance(new_stmt,Add) or isinstance(new_stmt,UnarySub):
+			return (tmp_num,new_stmt)
+		else:
+			new_stmt = compiler.parse(new_stmt).node.nodes[0]
+			return (tmp_num,new_stmt)					
     
 	@staticmethod
 	def treeFlatten(ast):
@@ -42,7 +45,11 @@ class python_compiler:
 			for node in ast.nodes:
 				length = len(flat_stmt.nodes)
 				tmp_num = length
+				print("\n")
+				print flat_stmt.nodes
+				print("\n")
 				python_compiler.treeFlatten_helper(node, tmp_num)
+				
 			return tmp_num
 			
 		elif isinstance(ast, Printnl):
@@ -186,7 +193,6 @@ class python_compiler:
 			else_var = tuple_else[1]
 			else_tmp_num = tuple_else[0]
 
-			
 			test_tmp = 'tmp'+str(test_var)
 			
 			new_stmt = IfExp(Name(test_tmp),then_var,else_var)
@@ -197,6 +203,8 @@ class python_compiler:
 		elif isinstance(ast,InjectFrom):
 			new_stmt = ast
 			if(append==True):
+				tmp = 'tmp'+str(tmp_num)
+				flat_stmt.nodes.append(Assign([AssName(tmp, 'OP_ASSIGN')], ast))		
 				return tmp_num
 			else:
 				return (tmp_num,new_stmt)
@@ -204,6 +212,8 @@ class python_compiler:
 		elif isinstance(ast,ProjectTo):
 			new_stmt = ast
 			if(append==True):
+				tmp = 'tmp'+str(tmp_num)
+				flat_stmt.nodes.append(Assign([AssName(tmp, 'OP_ASSIGN')], ast))		
 				return tmp_num
 			else:
 				return (tmp_num,new_stmt)
@@ -211,6 +221,8 @@ class python_compiler:
 		elif isinstance(ast,GetTag):
 			new_stmt = ast
 			if(append==True):
+				tmp = 'tmp'+str(tmp_num)
+				flat_stmt.nodes.append(Assign([AssName(tmp, 'OP_ASSIGN')], ast))		
 				return tmp_num
 			else:
 				return (tmp_num,new_stmt)
@@ -218,6 +230,8 @@ class python_compiler:
 		elif isinstance(ast,IsTag):
 			new_stmt = ast
 			if(append==True):
+				tmp = 'tmp'+str(tmp_num)
+				flat_stmt.nodes.append(Assign([AssName(tmp, 'OP_ASSIGN')], ast))		
 				return tmp_num
 			else:
 				return (tmp_num,new_stmt)

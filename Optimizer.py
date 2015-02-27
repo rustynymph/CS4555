@@ -1,4 +1,6 @@
 from compiler.ast import *
+from PythonASTExtension import *
+
 class Optimizer:
 	#Reduces running time by precomputing constant expressions
 	@staticmethod
@@ -36,6 +38,7 @@ class Optimizer:
 			else: return Not(e);
 		elif isinstance(ast,CallFunc): return CallFunc(ast.node,[Optimizer.reduce(n) for n in ast.args]);
 		elif isinstance(ast,Const) or isinstance(ast,AssName) or isinstance(ast,Name): return ast;
+		elif isinstance(ast,Boolean): return ast;
 		else: raise Exception("AST reduction does not work on " + str(ast) + "node.");
 
 	@staticmethod
@@ -52,6 +55,7 @@ class Optimizer:
 		elif isinstance(ast,And): return And([Optimizer.negation(n) for n in ast.nodes]);
 		elif isinstance(ast,Compare): return Compare(Optimizer.negation(ast.expr),[(n[0],Optimizer.negation(n[1])) for n in ast.ops]);
 		elif isinstance(ast,Subscript): return Subscript(Optimizer.negation(ast.expr),ast.flags,[ast.subs[0]]);
+		elif isinstance(ast,Boolean): return ast;
 
 		elif isinstance(ast,Add):
 			rln = Optimizer.negation(ast.left);

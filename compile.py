@@ -22,6 +22,7 @@ pythonAST = Simplify.removeNamespaceDependency(pythonAST)
 pythonAST = Optimizer.reduce(pythonAST)
 pythonAST = Optimizer.negation(pythonAST)
 print pythonAST
+
 explicatedAST = Explicate.explicate(pythonAST)
 print explicatedAST
 flattenedAST = python_compiler.treeFlatten(explicatedAST)
