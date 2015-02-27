@@ -55,8 +55,8 @@ class Explicate:
 		elif isinstance(ast,Or): return Explicate.visitOr(ast)
 		elif isinstance(ast, List): return Explicate.visitList(ast)
 		elif isinstance(ast,Dict): return Explicate.visitDict(ast)
-		#elif isinstance(ast,Subscript):
-		#elif isinstance(ast,IfExp):
+		elif isinstance(ast,Subscript): return Explicate.visitSubscript(ast)
+		elif isinstance(ast,IfExp): return Explicate.explicateIfExp(ast)
 		else: raise Exception("Error: Unrecognized node type")			
 		
 	@staticmethod		
@@ -81,6 +81,14 @@ class Explicate:
 		short_name = Name(short)
 		
 		return Let(short_name,Explicate.dispatch(ast.nodes[0]),IfExp(short_name,short_name,Explicate.dispatch(ast.nodes[1])))				
+	
+	@staticmethod
+	def explicateIfExp(ast):
+		print("poop")
+		
+	@staticmethod
+	def visitSubscript(ast):
+		print("satan")
 	
 	@staticmethod
 	def visitList(ast): return InjectFrom(BIG_t, ProjectTo(BIG_t, List([node for node in ast.nodes])))
