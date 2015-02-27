@@ -26,13 +26,7 @@ class Explicate:
 	def explicateName(ast): return Name(ast.name)
 
 	@staticmethod
-	def explicateBoolean(ast):
-		if(ast.value == "True"):
-			return InjectFrom(BOOL_t, Const(1))
-		elif(ast.value == "False"):
-			return InjectFrom(BOOL_t, Const(0))
-		else:
-			raise Exception("Error: Unrecognized node type")	
+	def explicateBoolean(ast): return InjectFrom(BOOL_t, Const(int(ast.value)))
 			
 	@staticmethod
 	def explicateBinary(ast):

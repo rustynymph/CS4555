@@ -8,6 +8,7 @@ from Optimizer import *
 from Explicate import *
 from Parser_hw2 import *
 import compiler
+from Simplify import *
 
 pythonFilename = sys.argv[1]
 
