@@ -12,23 +12,94 @@ INT_t = 0		#00
 BOOL_t = 1		#01
 BIG_t = 2		#10
 MASK = 3		#11
+counter = 1
 
 class exp_stmt(Stmt):
 	def __init__(self, nodes):
 		Stmt.__init__(self, nodes)
 
 class Explicate:
-	
+
 	exp_stmt.nodes = []
 	
-	#for name nodes, which includes variable names AND booleans
 	@staticmethod
-	def explicateName(ast): return Name(ast.name)
+	def gen_count_number():
+		global counter
+		number = str(counter)
+		counter += 1
+		return numbere
+	
+	#helps us create new names for let	
+	@staticmethod
+	def create_new_name(name):
+		new_name = "new" + "_" + Explicate.gen_count_number() + "_" + name
+		return new_name
+
+	@staticmethod	
+	def dispatch(ast):
+		if isinstance(ast,Name): return Explicate.visitName(ast)
+		elif isinstance(ast,Const): return Explicate.visitConst(ast)
+		elif isinstance(ast,Boolean): return Explicate.visitBoolean(ast)
+		elif isinstance(ast,Add): return Explicate.explicateBinary(ast)
+		elif isinstance(ast,And): return Explicate.explicateAnd(ast)
+		elif isinstance(ast,Not): return Explicate.explicateNot(ast)
+		elif isinstance(ast,Printnl): return exp_stmt.nodes.append(Printnl([Explicate.dispatch(ast.nodes[0])],None))
+		elif isinstance(ast,Discard): return exp_stmt.nodes.append(Discard(Explicate.dispatch(ast.expr)))
+		elif isinstance(ast,Assign): return Assign([AssName(ast.nodes[0].name,'OP_ASSIGN')], Explicate.dispatch(ast.expr))
+		elif isinstance(ast, CallFunc): return Explicate.explicateCallFunc(ast)
+		elif isinstance(ast, Name): return Explicate.visitName(ast)
+		elif isinstance(ast, Const): return Explicate.visitConst(ast)
+		elif isinstance(ast, Boolean): return Explicate.visitBoolean(ast)
+		elif isinstance(ast, UnarySub): return Explicate.explicateUnary(ast)
+		#elif isinstance(ast,Compare):
+		elif isinstance(ast,Or): return Explicate.visitOr(ast)
+		elif isinstance(ast, List): return Explicate.visitList(ast)
+		elif isinstance(ast,Dict): return Explicate.visitDict(ast)
+		#elif isinstance(ast,Subscript):
+		#elif isinstance(ast,IfExp):
+		else: raise Exception("Error: Unrecognized node type")			
+		
+	@staticmethod		
+	def visitName(ast): return Name(ast.name)
 
 	@staticmethod
-	def explicateBoolean(ast): return InjectFrom(BOOL_t, Const(int(ast.value)))
-			
+	def visitBoolean(ast): return InjectFrom(BOOL_t, Const(int(ast.value)))
+
+	@staticmethod	
+	def explicateNot(ast): return IfExp(InjectFrom(BOOL_t,ast.expr), InjectFrom(BOOL_t, Const(0)), InjectFrom(BOOL_t, Const(1)))
+
+	@staticmethod	
+	def explicateAnd(ast):
+		short = Explicate.create_new_name('let_and1')
+		short_name = Name(short)
+		
+		return Let(short_name,Explicate.dispatch(ast.nodes[0]),IfExp(short_name,Explicate.dispatch(ast.nodes[1]),short_name))
+		
+	@staticmethod	
+	def explicateOr(ast):
+		short = Explicate.create_new_name('let_or1')
+		short_name = Name(short)
+		
+		return Let(short_name,Explicate.dispatch(ast.nodes[0]),IfExp(short_name,short_name,Explicate.dispatch(ast.nodes[1])))				
+	
 	@staticmethod
+	def visitList(ast): return InjectFrom(BIG_t, ProjectTo(BIG_t, List([node for node in ast.nodes])))
+	
+	@staticmethod
+	def visitDict(ast): return InjectFrom(BIG_t, ProjectTo(BIG_t, Dict([item for item in ast.items])))		
+	
+	@staticmethod
+	def explicateUnary(ast):
+		if isinstance(ast,UnarySub):
+			usub = Explicate.create_new_name('let_us1')
+			usub_name = Name(usub)
+			explicated = Let(usub_name,Explicate.dispatch(ast.expr),
+			IfExp(IsTag(INT_t, usub_name),InjectFrom(INT_t, UnarySub(ProjectTo(INT_t, usub_name))),
+			IfExp(IsTag(BOOL_t, usub_name),InjectFrom(INT_t, UnarySub(ProjectTo(BOOL_t, usub_name))),
+			CallFunc('error',[],None,None))))
+		return explicated	
+		
+	@staticmethod			
 	def explicateBinary(ast):
 		if isinstance(ast,Add):
 			lhsvar = ast.left
@@ -41,12 +112,7 @@ class Explicate:
 					   CallFunc('add_big', [InjectFrom(GetTag(lhsvar),ProjectTo(BIG_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(BIG_t,rhsvar))], None, None),
 					   CallFunc('error',[],None,None)))		
 		return explicated
-	
-	#@staticmethod
-	#def explicateCallFunc(ast):
-	#	explicated = InjectFrom(GetTag(CallFunc('input', [], None, None)),ProjectTo(INT_t,)		
-	#	return explicated		
-	
+
 	@staticmethod	
 	def visitConst(ast): return InjectFrom(INT_t,Const(ast.value))
 
@@ -62,65 +128,8 @@ class Explicate:
 
 		elif isinstance(ast, Stmt):
 			for node in ast.nodes:
-				Explicate.explicate_helper(node)
+				Explicate.dispatch(node)
 			return 0
-			
-		elif isinstance(ast, Printnl):
-			print_var = ast.nodes[0]
-			print_exp = Explicate.explicate_helper(print_var)
-			return exp_stmt.nodes.append(Printnl([print_exp],None))
-
-		elif isinstance(ast, Discard):
-			discard_exp = Explicate.explicate_helper(ast.expr)
-			return exp_stmt.nodes.append(Discard(discard_exp))
-
-		elif isinstance(ast, Assign):
-			right = ast.expr
-			if isinstance(right,Name):
-				right_exp = Explicate.explicateName(right)
-			elif isinstance(right,Const):
-				right_exp = Explicate.visitConst(right)
-			elif isinstance(right,Add):
-				right_exp = Explicate.explicateBinary(right)
-			#elif isinstance(right,List):
-			#elif isinstance(right,Dict):
-			#elif isinstance(right,And):
-			#elif isinstance(right,Or):
-			#elif isinstance(right,Compare):
-			#elif isinstance(right,IfExp):
-			#elif isinstance(right,Subscript):
-			assname = str(ast.nodes[0].name)
-			new_stmt = Assign([AssName(assname,'OP_ASSIGN')], right_exp)
-			#return exp_stmt.nodes.append(new_stmt)
-			return new_stmt
-
-		elif isinstance(ast, Add): return Explicate.explicateBinary(ast)
-
-		#elif isinstance(ast, UnarySub):
-
-		elif isinstance(ast, CallFunc): return Explicate.explicateCallFunc(ast)
-                
-		elif isinstance(ast, Name): return Explicate.explicateName(ast)
-
-		elif isinstance(ast, Const): return Explicate.visitConst(ast)
-		
-		elif isinstance(ast, Boolean): return Explicate.explicateBoolean(ast)
-		
-		#elif isinstance(ast,Compare):
-
-		#elif isinstance(ast,Or):
-	
-		#elif isinstance(ast,And):
-
-		#elif isinstance(ast,Not):
-
-		#elif isinstance(ast, List):
-
-		#elif isinstance(ast,Dict):
-
-		#elif isinstance(ast,Subscript):
-
-		#elif isinstance(ast,IfExp):
             
 		else:
 			raise Exception("Error: Unrecognized node type")	
