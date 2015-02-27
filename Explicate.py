@@ -46,7 +46,7 @@ class Explicate:
 		elif isinstance(ast,Printnl): return exp_stmt.nodes.append(Printnl([Explicate.dispatch(ast.nodes[0])],None))
 		elif isinstance(ast,Discard): return exp_stmt.nodes.append(Discard(Explicate.dispatch(ast.expr)))
 		elif isinstance(ast,Assign): return Assign([AssName(ast.nodes[0].name,'OP_ASSIGN')], Explicate.dispatch(ast.expr))
-		elif isinstance(ast, CallFunc): return Explicate.explicateCallFunc(ast)
+		elif isinstance(ast, CallFunc): return Explicate.visitCallFunc(ast)
 		elif isinstance(ast, Name): return Explicate.visitName(ast)
 		elif isinstance(ast, Const): return Explicate.visitConst(ast)
 		elif isinstance(ast, Boolean): return Explicate.visitBoolean(ast)
@@ -83,12 +83,10 @@ class Explicate:
 		return Let(short_name,Explicate.dispatch(ast.nodes[0]),IfExp(short_name,short_name,Explicate.dispatch(ast.nodes[1])))				
 	
 	@staticmethod
-	def explicateIfExp(ast):
-		print("poop")
+	def explicateIfExp(ast): return IfExpr(Explicate.dispatch(ast.test),Explicate.dispatch(ast.then),Explicate.dispatch(ast.else_))
 		
-	@staticmethod
-	def visitSubscript(ast):
-		print("satan")
+	@staticmethod   
+	def visitSubscript(ast): return InjectFrom(BIG_t, ProjectTo(INT_t, Subscript(ast.expr, ast.flags, ast.subs)))
 	
 	@staticmethod
 	def visitList(ast): return InjectFrom(BIG_t, ProjectTo(BIG_t, List([node for node in ast.nodes])))
@@ -129,7 +127,6 @@ class Explicate:
 			lhsvar = Name(lhsname)
 			rhsvar = Name(rhsname)
 
-
 			explicated = Let(lhsvar,Explicate.dispatch(ast.expr),Let(rhsvar,Explicate.dispatch(ast.ops[1]),IfExp(And([Or([IsTag(INT_t,lhsvar),IsTag(BOOL_t, lhsvar)]),
 							Or([IsTag(INT_t, rhsvar),IsTag(BOOL_t, rhsvar)])]),
 					   Compare(InjectFrom(GetTag(lhsvar),ProjectTo(INT_t,lhsvar)),[ast.ops[0],InjectFrom(GetTag(rhsvar),ProjectTo(INT_t,rhsvar))]),
@@ -137,19 +134,22 @@ class Explicate:
 					   CallFunc('compare_big', [InjectFrom(GetTag(lhsvar),ProjectTo(BIG_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(BIG_t,rhsvar))], None, None),
 					   CallFunc('error',[],None,None)))))
 			
-
 		return explicated
-
 
 	@staticmethod	
 	def visitConst(ast): return InjectFrom(INT_t,Const(ast.value))
+
+	@staticmethod
+	def visitCallFunc(ast): 
+		if ast.node.name == 'input':
+			return InjectFrom(INT_t, CallFunc('input', ast.args))
 
 	@staticmethod
 	def explicate(ast):
 		Explicate.explicate_helper(ast)
 		explicated_ast = Module(None, Stmt(exp_stmt.nodes))
 		return explicated_ast
-	
+		
 	@staticmethod
 	def explicate_helper(ast,discard=False):    
 		if isinstance(ast, Module):	return Explicate.explicate_helper(ast.node)
