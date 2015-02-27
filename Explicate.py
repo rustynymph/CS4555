@@ -33,21 +33,13 @@ class Explicate:
 		if isinstance(ast,Add):
 			lhsvar = ast.left
 			rhsvar = ast.right			
-			#explicated = Let(lhsvar,Let(rhsvar,IfExp(And([Or([IsTag(INT_t,lhsvar),
-			#	   IsTag(BOOL_t, lhsvar)]),
-			 #  Or([IsTag(INT_t, rhsvar),
-				#   IsTag(BOOL_t, rhsvar)])]),
-			   #Add((InjectFrom(GetTag(lhsvar),ProjectTo(INT_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(INT_t,rhsvar)))),
-			   #IfExp(And([IsTag(BIG_t, lhsvar),
-				#	   IsTag(BIG_t, rhsvar)]),
-				#	   CallFunc(Name('add_big'), [InjectFrom(GetTag(lhsvar),ProjectTo(BIG_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(BIG_t,rhsvar))], None, None)))))
-		
+
 			explicated = IfExp(And([Or([IsTag(INT_t,lhsvar),IsTag(BOOL_t, lhsvar)]),
 									Or([IsTag(INT_t, rhsvar),IsTag(BOOL_t, rhsvar)])]),
 							   Add((InjectFrom(GetTag(lhsvar),ProjectTo(INT_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(INT_t,rhsvar)))),
 							   IfExp(And([IsTag(BIG_t, lhsvar),IsTag(BIG_t, rhsvar)]),
-							   CallFunc(Name('add_big'), [InjectFrom(GetTag(lhsvar),ProjectTo(BIG_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(BIG_t,rhsvar))], None, None),
-							   CallFunc(Name('error'),[],None,None)))		
+							   CallFunc('add_big', [InjectFrom(GetTag(lhsvar),ProjectTo(BIG_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(BIG_t,rhsvar))], None, None),
+							   CallFunc('error',[],None,None)))		
 		return explicated
 	
 	#@staticmethod	
@@ -72,9 +64,7 @@ class Explicate:
 	
 	@staticmethod
 	def explicate_helper(ast,discard=False):    
-		if isinstance(ast, Module):
-			Explicate.explicate_helper(ast.node)
-			return 0
+		if isinstance(ast, Module):	return Explicate.explicate_helper(ast.node)
 
 		elif isinstance(ast, Stmt):
 			for node in ast.nodes:
@@ -83,12 +73,12 @@ class Explicate:
 			
 		elif isinstance(ast, Printnl):
 			print_var = ast.nodes[0]
-			if isinstance(print_var,Add):
-				print_exp = Explicate.explicate_helper(print_var)
-			new_stmt = Printnl([print_exp], None)
-			return exp_stmt.nodes.append(new_stmt)
+			print_exp = Explicate.explicate_helper(print_var)
+			return exp_stmt.nodes.append(Printnl([print_exp],None))
 
-		#elif isinstance(ast, Discard):
+		elif isinstance(ast, Discard):
+			discard_exp = Explicate.explicate_helper(ast.expr)
+			return exp_stmt.nodes.append(Discard(discard_exp))
 
 		elif isinstance(ast, Assign):
 			right = ast.expr
@@ -107,18 +97,21 @@ class Explicate:
 			#elif isinstance(right,Subscript):
 			assname = str(ast.nodes[0].name)
 			new_stmt = Assign([AssName(assname,'OP_ASSIGN')], right_exp)
-			return exp_stmt.nodes.append(new_stmt)
+			#return exp_stmt.nodes.append(new_stmt)
+			return new_stmt
 
-		elif isinstance(ast, Add): return exp_stmt.nodes.append(Explicate.explicateBinary(ast))
+		elif isinstance(ast, Add): return Explicate.explicateBinary(ast)
 
 		#elif isinstance(ast, UnarySub):
 
 		#elif isinstance(ast, CallFunc): 
                 
-		#elif isinstance(ast, Name):
+		elif isinstance(ast, Name): return Explicate.explicateName(ast)
 
-		#elif isinstance(ast, Const):
-
+		elif isinstance(ast, Const): return Explicate.visitConst(ast)
+		
+		elif isinstance(ast, Boolean): return Explicate.explicateBoolean(ast)
+		
 		#elif isinstance(ast,Compare):
 
 		#elif isinstance(ast,Or):
