@@ -81,7 +81,9 @@ class python_compiler:
 			else: return python_compiler.noAppend(neg_var+1,new_stmt)
 			
 		elif isinstance(ast, CallFunc):
-			new_stmt = 'tmp' + str(tmp_num) + ' = input()'
+			temp = 'tmp' + str(tmp_num)
+			name_func = Name(ast.node)
+			new_stmt = Assign([AssName(temp, 'OP_ASSIGN')], CallFunc(name_func,[],None,None))
 			if (append == True): return python_compiler.yesAppend(tmp_num,new_stmt)
 			else: return python_compiler.noAppend(tmp_num,new_stmt)				
                 
@@ -178,11 +180,12 @@ class python_compiler:
 		elif isinstance(ast,IfExp):
 			#yes this does work for cases like 4 if (2 if 3 else 1) else 0 :-)
 			test_var = python_compiler.treeFlatten_helper(ast.test, tmp_num,True)
-			tuple_then = python_compiler.treeFlatten_helper(ast.then,test_var+1,False) 
+			tuple_then = python_compiler.treeFlatten_helper(ast.then,test_var+1,False)
 			then_var = tuple_then[1]
 			tuple_else = python_compiler.treeFlatten_helper(ast.else_,test_var+1,False) 
 			else_var = tuple_else[1]
 			else_tmp_num = tuple_else[0]
+
 			
 			test_tmp = 'tmp'+str(test_var)
 			
