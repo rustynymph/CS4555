@@ -132,7 +132,56 @@ class Translator:
 			print("hail satan")
 			
 		def dictFunction(name,ast,liveness):
-			print("poop")
+			registers = []
+			
+			for x in liveness[1]:
+				if isinstance(getName(x), RegisterOperand):
+					registers += [x]
+					
+			save = [MoveInstruction(getRegister(x),getVariableInMemory(x),"l") for x in registers]
+
+			
+			eax = RegisterOperand("eax")
+
+			#Creates the initial dictionary
+			createDictionary = CallInstruction(FunctionCallOperand("create_dict"))
+			#Moves pyobj into memory 
+			nameInMemory = getVariableInMemory(name)
+			movPyobjIntoMemory = MoveInstruction(eax,nameInMemory,"l")
+			#Pushes pyobj onto the stack
+			pushPyobj = PushInstruction(eax)
+			#Pushes sentinal values onto the stack
+			pushKey = PushInstruction(ConstantOperand(0))
+			pushValue = PushInstruction(ConstantOperand(0))
+
+			x86Values = []
+			for subscription in self.items:
+				#Removes old key and value from stack
+				deallocateKVPair = AddIntegerInstruction(ConstantOperand(8),RegisterOperand("esp"))
+				#Pushes new key and value onto the stack
+				pushSubKey = PushInstruction(getName(subscription[0]))
+				pushSubValue = PushInstruction(getName(subscription[1]))
+				#Adds subscription with parameters
+				addSubIndex = CallInstruction(FunctionCallOperand("set_subscript"))
+				#Adds new subscription to assembly
+				x86Values += [deallocateKVPair,pushSubKey,pushSubValue,addSubIndex]
+
+			#If the default location for the given name is a register move the value into the register
+			nameInRegister = ClusteredInstructions()
+			if isinstance(getName(name),RegisterOperand): nameInRegister = MoveInstruction(nameInMemory,getName(name))
+
+			#Remove memory allocated for function calls
+			deallocateFunctionCall = AddIntegerInstruction(ConstantOperand(12),RegisterOperand("esp"))
+
+			#Assembly array for dictionary allocation
+			dictionaryAllocation = [movPyobjIntoMemory,pushPyobj,pushKey,pushValue] + x86Values + [nameInRegister,deallocateFunctionCall]
+			
+			if name in registers:
+				registers.remove(name)
+			
+			load = [MoveInstruction(getVariableInMemory(x),getRegister(x),"l") for x in registers]
+			 
+			return ClusteredInstructions(save + dictionaryAllocation + load)
 				
 		def unaryFunction(name,ast,liveness):
 			val = translatePythonAST(ast.expr,liveness)
@@ -240,7 +289,7 @@ class Translator:
 					
 			save = [MoveInstruction(getRegister(x),getVariableInMemory(x),"l") for x in registers]
 
-			call = CallInstruction(FunctionCallOperand(ast.node.name))
+			createDictionary = CallInstruction(FunctionCallOperand(ast.node.name))
 			mov_instruction = MoveInstruction(RegisterOperand("eax"),getName(name),"l")
 			
 			if name in registers:
@@ -248,7 +297,7 @@ class Translator:
 			
 			load = [MoveInstruction(getVariableInMemory(x),getRegister(x),"l") for x in registers]
 			 
-			return ClusteredInstructions(save + [call, mov_instruction] + load)
+			return ClusteredInstructions(save + [createDictionary, mov_instruction] + load)
 		
 		def printFunction(ast,liveness):
 			registers = []
