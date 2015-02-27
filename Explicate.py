@@ -27,7 +27,7 @@ class Explicate:
 		global counter
 		number = str(counter)
 		counter += 1
-		return numbere
+		return number
 	
 	#helps us create new names for let	
 	@staticmethod
@@ -51,7 +51,7 @@ class Explicate:
 		elif isinstance(ast, Const): return Explicate.visitConst(ast)
 		elif isinstance(ast, Boolean): return Explicate.visitBoolean(ast)
 		elif isinstance(ast, UnarySub): return Explicate.explicateUnary(ast)
-		#elif isinstance(ast,Compare):
+		elif isinstance(ast,Compare): return Explicate.explicateBinary(ast)
 		elif isinstance(ast,Or): return Explicate.visitOr(ast)
 		elif isinstance(ast, List): return Explicate.visitList(ast)
 		elif isinstance(ast,Dict): return Explicate.visitDict(ast)
@@ -101,17 +101,37 @@ class Explicate:
 		
 	@staticmethod			
 	def explicateBinary(ast):
-		if isinstance(ast,Add):
-			lhsvar = ast.left
-			rhsvar = ast.right			
+		if isinstance(ast,Add):		
+			lhsname = Explicate.create_new_name('let_add_lhs')
+			rhsname = Explicate.create_new_name('let_add_rhs')
+			lhsvar = Name(lhsname)
+			rhsvar = Name(rhsname)
 
-			explicated = IfExp(And([Or([IsTag(INT_t,lhsvar),IsTag(BOOL_t, lhsvar)]),
+
+			explicated = Let(lhsvar,Explicate.dispatch(ast.left),Let(rhsvar,Explicate.dispatch(ast.right),IfExp(And([Or([IsTag(INT_t,lhsvar),IsTag(BOOL_t, lhsvar)]),
 							Or([IsTag(INT_t, rhsvar),IsTag(BOOL_t, rhsvar)])]),
 					   Add((InjectFrom(GetTag(lhsvar),ProjectTo(INT_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(INT_t,rhsvar)))),
 					   IfExp(And([IsTag(BIG_t, lhsvar),IsTag(BIG_t, rhsvar)]),
 					   CallFunc('add_big', [InjectFrom(GetTag(lhsvar),ProjectTo(BIG_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(BIG_t,rhsvar))], None, None),
-					   CallFunc('error',[],None,None)))		
+					   CallFunc('error',[],None,None)))))
+		
+		elif isinstance(ast,Compare):
+			lhsname = Explicate.create_new_name('let_comp_lhs')
+			rhsname = Explicate.create_new_name('let_comp_rhs')
+			lhsvar = Name(lhsname)
+			rhsvar = Name(rhsname)
+
+
+			explicated = Let(lhsvar,Explicate.dispatch(ast.expr),Let(rhsvar,Explicate.dispatch(ast.ops[1]),IfExp(And([Or([IsTag(INT_t,lhsvar),IsTag(BOOL_t, lhsvar)]),
+							Or([IsTag(INT_t, rhsvar),IsTag(BOOL_t, rhsvar)])]),
+					   Compare(InjectFrom(GetTag(lhsvar),ProjectTo(INT_t,lhsvar)),[ast.ops[0],InjectFrom(GetTag(rhsvar),ProjectTo(INT_t,rhsvar))]),
+					   IfExp(And([IsTag(BIG_t, lhsvar),IsTag(BIG_t, rhsvar)]),
+					   CallFunc('compare_big', [InjectFrom(GetTag(lhsvar),ProjectTo(BIG_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(BIG_t,rhsvar))], None, None),
+					   CallFunc('error',[],None,None)))))
+			
+
 		return explicated
+
 
 	@staticmethod	
 	def visitConst(ast): return InjectFrom(INT_t,Const(ast.value))
