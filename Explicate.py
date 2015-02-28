@@ -92,7 +92,7 @@ class Explicate:
 	def visitList(ast): return List([Explicate.dispatch(node) for node in ast.nodes])
 	
 	@staticmethod
-	def visitDict(ast): return Dict([Explicate.dispatch(item) for item in ast.items])	
+	def visitDict(ast): return Dict([(Explicate.dispatch(item[0]),Explicate.dispatch(item[1])) for item in ast.items])	
 	
 	@staticmethod
 	def explicateUnary(ast):

@@ -39,6 +39,7 @@ class python_compiler:
 
 	@staticmethod
 	def yesAppend(tmp_num,new_stmt):
+		print new_stmt
 		if isinstance(new_stmt,Assign) or isinstance(new_stmt,Name) or isinstance(new_stmt,Const) or isinstance(new_stmt,Boolean) or isinstance(new_stmt,IfExp) or isinstance(new_stmt,And) or isinstance(new_stmt,Or) or isinstance(new_stmt,Compare) or isinstance(new_stmt,Subscript) or isinstance(new_stmt,List) or isinstance(new_stmt,Dict) or isinstance(new_stmt,CallFunc) or isinstance(new_stmt,Add) or isinstance(new_stmt,UnarySub):
 			flat_stmt.nodes.append(new_stmt)
 			return (tmp_num,new_stmt)
@@ -164,15 +165,25 @@ class python_compiler:
 			length = len(ast.nodes)
 			if length > 1:
 				for x in range(0,length-1):
-					str_nodes += str(ast.nodes[x].value)
+					lala = python_compiler.treeFlatten_helper(ast.nodes[x],tmp_num)
+					str_nodes += 'tmp'+str(lala)
 					str_nodes += ','
-				str_nodes += str(ast.nodes[length-1].value)
+					tmp_num = lala+1
+				lala = python_compiler.treeFlatten_helper(ast.nodes[length-1],tmp_num)
+				str_nodes += 'tmp'+str(lala)
 			else:
-				str_nodes = str(ast.nodes[0].value)
+				str_nodes = str(ast.nodes[0])
 
-			new_stmt = 'tmp'+str(tmp_num) + ' = ' + '[' + str(str_nodes) + ']'
-			if (append==True): return python_compiler.yesAppend(tmp_num,new_stmt)
-			else: return python_compiler.noAppend(tmp_num,new_stmt)
+			#new_stmt = 'tmp'+str(tmp_num) + ' = ' + '[' + str(str_nodes) + ']'
+			new_tmp = 'tmp'+str(tmp_num+1)
+			new_stmt = Assign([AssName(new_tmp, 'OP_ASSIGN')], List([str_nodes]))
+			#if (append==True): return python_compiler.yesAppend(tmp_num,new_stmt)
+			#else: return python_compiler.noAppend(tmp_num,new_stmt)
+			if (append==True):
+				flat_stmt.nodes.append(new_stmt)
+				return tmp_num+1
+			else: return (tmp_num+1,new_stmt)
+			
 			
 		elif isinstance(ast,Dict):
 			values = []
