@@ -83,34 +83,21 @@ class Translator:
 		def assignFunction(ast,liveness):
 			name = ast.nodes[0].name
 			read = ast.expr
-			if isinstance(read,UnarySub):
-				return unaryFunction(name,read,liveness)
-			elif isinstance(read,Add):
-				return addFunction(name,read,liveness)
-			elif isinstance(read,Name):
-				return nameFunction(name,read,liveness)
-			elif isinstance(read,Const):
-				return constFunction(name,read,liveness)
-			elif isinstance(read,CallFunc):
-				return callfuncFunction(name,read,liveness)
-			elif isinstance(read,List):
-				return listFunction(name,read,liveness)
-			elif isinstance(read,Dict):
-				return dictFunction(name,read,liveness)
-			elif isinstance(read,Not):
-				return notFunction(name,read,liveness)
-			elif isinstance(read,Compare):
-				return compareFunction(name,read,liveness)
-			elif isinstance(read,Or):
-				return orFunction(name,read,liveness)
-			elif isinstance(read,And):
-				return andFunction(name,read,liveness)
-			elif isinstance(read,IfExp):
-				return ifExpFunction(name,read,liveness)
-			elif isinstance(read,Subscript):
-				return subscriptFunction(name,read,liveness)
-			else:
-				raise "Error: " + str(ast) + " currently not supported.\n"
+			if isinstance(read,UnarySub): return unaryFunction(name,read,liveness)
+			elif isinstance(read,Add): return addFunction(name,read,liveness)
+			elif isinstance(read,Name): return nameFunction(name,read,liveness)
+			elif isinstance(read,Const): return constFunction(name,read,liveness)
+			elif isinstance(read,CallFunc): return callfuncFunction(name,read,liveness)
+			elif isinstance(read,List):	return listFunction(name,read,liveness)
+			elif isinstance(read,Dict):	return dictFunction(name,read,liveness)
+			elif isinstance(read,Not): return notFunction(name,read,liveness)
+			elif isinstance(read,Compare): return compareFunction(name,read,liveness)
+			elif isinstance(read,Or): return orFunction(name,read,liveness)
+			elif isinstance(read,And): return andFunction(name,read,liveness)
+			elif isinstance(read,IfExp): return ifExpFunction(name,read,liveness)
+			elif isinstance(read,Subscript): return subscriptFunction(name,read,liveness)
+			elif isinstance(read,GetTag): return getTagFunction(name,read,liveness)
+			else: raise "Error: " + str(ast) + " currently not supported.\n"
 		
 		def notFunction(name,ast,liveness):
 			print("wow")
@@ -181,6 +168,23 @@ class Translator:
 			load = [MoveInstruction(getVariableInMemory(x),getRegister(x),"l") for x in registers]
 			 
 			return ClusteredInstructions(save + dictionaryAllocation + load)
+			
+		def getTagFunction(name,ast,liveness):
+			val = translatePythonAST(ast,liveness)
+			mov_instruction = MoveInstruction(val, getName(name))
+			and_instruction = AndInstruction(ConstantOperand(3),val)
+			return ClusteredInstructions([mov_instruction,and_instruction])
+
+		#def isTagFunction(name,ast,liveness):
+		#	get_tag_instruction = getTagFunction(name,ast,liveness)
+		#	jump_instruction = JumpInstruction()
+					
+		#def injectToFunction(name,ast,liveness):
+		#	shift_left_instruction = left shift
+		#	or_instruction = #or with some tag
+
+		#def projectToFunction(name,ast,liveness):
+		#	shift_right_instruction = right shift
 			
 		def dictFunction(name,ast,liveness):
 			registers = []

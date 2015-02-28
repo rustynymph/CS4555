@@ -177,7 +177,6 @@ class AddIntegerInstruction(SpecifiedBinaryInstruction):
 		SpecifiedBinaryInstruction.__init__(self,fromOperand, toOperand, length)
 		self.instruction = "add"
 
-
 class NoOperandInstruction(Instruction):
 	__metaclass__ = ABCMeta
 
@@ -194,9 +193,11 @@ class ReturnInstruction(NoOperandInstruction):
 
 class AndInstruction(SpecifiedBinaryInstruction):
 	def __init__(self,leftOperand,rightOperand,length):
-		SpecifiedBinaryInstruction.__init__(self,leftOperand,rightOperand,length)
+		SpecifiedBinaryInstruction.__init__(self,fromOperand,toOperand,length)
 		self.instruction = "and"
 
+<<<<<<< HEAD
+=======
 class OrInstruction(SpecifiedBinaryInstruction):
 	def __init__(self,leftOperand,rightOperand,length):
 		SpecifiedBinaryInstruction().__init__(self,leftOperand,rightOperand,length)
@@ -340,4 +341,4 @@ class ClusteredInstructions(Instruction):
 		for i in self.nodes:
 			tmp += i.printInstruction()
 		return tmp
-	
+
