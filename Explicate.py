@@ -86,7 +86,7 @@ class Explicate:
 	def explicateIfExp(ast): return IfExpr(Explicate.dispatch(ast.test),Explicate.dispatch(ast.then),Explicate.dispatch(ast.else_))
 		
 	@staticmethod   
-	def visitSubscript(ast): return Subscript(Explicate.dispatch(ast.expr), ast.flags, Explicate.dispatch(ast.subs[0]))
+	def visitSubscript(ast): return Subscript(Explicate.dispatch(ast.expr), ast.flags, [Explicate.dispatch(ast.subs[0])])
 	
 	@staticmethod
 	def visitList(ast): return List([Explicate.dispatch(node) for node in ast.nodes])
