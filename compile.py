@@ -18,12 +18,15 @@ pythonFilename = sys.argv[1]
 #raise Exception(text_to_parse)
 
 pythonAST = compiler.parseFile(pythonFilename)
-pythonAST = Simplify.nameToBool(pythonAST)
-pythonAST = Simplify.removeNamespaceDependency(pythonAST)
 pythonAST = Optimizer.reduce(pythonAST)
 pythonAST = Optimizer.negation(pythonAST)
+pythonAST = Simplify.nameToBool(pythonAST)
+pythonAST = Simplify.removeNamespaceDependency(pythonAST)
+
 explicatedAST = Explicate.explicate(pythonAST)
+print explicatedAST
 flattenedAST = python_compiler.treeFlatten(explicatedAST)
+print flattenedAST
 x86AST = Translator.pythonASTToAssemblyAST(flattenedAST)
 
 x86Filename = sys.argv[1].rsplit(".",1)[0] + ".s"
