@@ -1,7 +1,7 @@
 from compiler.ast import *
 import copy
 import Queue
-
+from PythonASTExtension import *
 
 class LivenessAnalysis:
 	
@@ -67,9 +67,15 @@ class LivenessAnalysis:
 					else:
 						liveVariables[j] = set(liveVariables[j+1]-remove)						
 				elif(isinstance(varRead,Subscript)):
-					liveVariables[j] = set(liveVariables[j+1]-remove)
+					varRead1 = set((varRead.expr,))
+					varRead2 = set((varRead.subs[0],))
+					liveVariables[j] = set(((liveVariables[j+1]-remove)|varRead1)|varRead2)
 				elif(isinstance(varRead,List)):
-					liveVariables[j] = set(liveVariables[j+1]-remove)
+					varReadList = set()
+					for node in varRead.nodes:
+						readnode = set((node.name,))
+						varReadList = varReadList|readnode
+					liveVariables[j] = set((liveVariables[j+1]-remove)|varReadList)
 				elif(isinstance(varRead,Dict)):
 					liveVariables[j] = set(liveVariables[j+1]-remove)				
 				elif(isinstance(varRead,Not)):

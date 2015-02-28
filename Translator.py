@@ -11,6 +11,8 @@ class Translator:
 		environment = ast[1]
 		ast = ast[0]
 		la = LivenessAnalysis.livenessAnalysis(ast,environment)
+		print("liveness")
+		print la
 		graph = LivenessAnalysis.createGraph(la)
 		coloredgraph = LivenessAnalysis.colorGraph(graph)
 
@@ -97,6 +99,9 @@ class Translator:
 			elif isinstance(read,IfExp): return ifExpFunction(name,read,liveness)
 			elif isinstance(read,Subscript): return subscriptFunction(name,read,liveness)
 			elif isinstance(read,GetTag): return getTagFunction(name,read,liveness)
+			elif isinstance(read,InjectFrom): return injectFromFunction(name,read,liveness)
+			elif isinstance(read,ProjectTo): return injectFromFunction(name,read,liveness)
+			elif isinstance(read,IsTag): return isTagFunction(name,read,liveness)
 			else: raise "Error: " + str(ast) + " currently not supported.\n"
 		
 		def notFunction(name,ast,liveness):
@@ -153,9 +158,9 @@ class Translator:
 			#Assigns a subscription value to a name
 			assignSubscription = []
 			#Pushes pyobj dict/list to stack
-			assignSubscription += [PushInstruction(getName(ast.expr.name))]
+			assignSubscription += [PushInstruction(getName(ast.expr),"l")]
 			#Pushes pyobj key to stack
-			assignSubscription += [PushInstruction(getName(ast.subs[0].name))]
+			assignSubscription += [PushInstruction(getName(ast.subs[0]),"l")]
 			#Calls get_subscription
 			assignSubscription += [CallInstruction(FunctionCallOperand("get_subscript"))]
 			#Moves return value to name
@@ -182,23 +187,23 @@ class Translator:
 			eax = RegisterOperand("eax")
 
 			#Creates the initial list
-			createList = ClusteredInstructions([PushInstruction(ConstantOperand(len(ast.nodes))),CallInstruction(FunctionCallOperand("create_list")),OrInstruction(ConstantOperand(3),eax,"l"),AddIntegerInstruction(ConstantOperand(4),RegisterOperand("esp"))])
+			createList = ClusteredInstructions([PushInstruction(ConstantOperand(len(ast.nodes)*4),"l"),CallInstruction(FunctionCallOperand("create_list")),OrInstruction(ConstantOperand(3),eax,"l"),AddIntegerInstruction(ConstantOperand(4),RegisterOperand("esp"),"l")])
 			#Moves pyobj into memory 
 			nameInMemory = getVariableInMemory(name)
 			movPyobjIntoMemory = MoveInstruction(eax,nameInMemory,"l")
 			#Pushes pyobj onto the stack
-			pushPyobj = PushInstruction(eax)
+			pushPyobj = PushInstruction(eax,"l")
 			#Pushes sentinal values onto the stack
-			pushKey = PushInstruction(ConstantOperand(0))
-			pushValue = PushInstruction(ConstantOperand(0))
+			pushKey = PushInstruction(ConstantOperand(0),"l")
+			pushValue = PushInstruction(ConstantOperand(0),"l")
 
 			x86Values = []
 			for i in range(len(ast.nodes)):
 				#Removes old key and value from stack
-				deallocateKVPair = AddIntegerInstruction(ConstantOperand(8),RegisterOperand("esp"))
+				deallocateKVPair = AddIntegerInstruction(ConstantOperand(8),RegisterOperand("esp"),"l")
 				#Pushes new key and value onto the stack
-				pushSubKey = PushInstruction(getName(ConstantOperand(i)))
-				pushSubValue = PushInstruction(getName(ast.nodes[i]))
+				pushSubKey = PushInstruction(getName(ConstantOperand(i)),"l")
+				pushSubValue = PushInstruction(getName(ast.nodes[i].name),"l")
 				#Adds subscription with parameters
 				addSubIndex = CallInstruction(FunctionCallOperand("set_subscript"))
 				#Adds index value to assembly
@@ -206,10 +211,10 @@ class Translator:
 
 			#If the default location for the given name is a register move the value into the register
 			nameInRegister = ClusteredInstructions()
-			if isinstance(getName(name),RegisterOperand): nameInRegister = MoveInstruction(nameInMemory,getName(name))
+			if isinstance(getName(name),RegisterOperand): nameInRegister = MoveInstruction(nameInMemory,getName(name),"l")
 
 			#Remove memory allocated for function calls
-			deallocateFunctionCall = AddIntegerInstruction(ConstantOperand(12),RegisterOperand("esp"))
+			deallocateFunctionCall = AddIntegerInstruction(ConstantOperand(12),RegisterOperand("esp"),"l")
 
 			#Assembly array for dictionary allocation
 			listAllocation = [createList,movPyobjIntoMemory,pushPyobj,pushKey,pushValue] + x86Values + [nameInRegister,deallocateFunctionCall]
@@ -219,7 +224,7 @@ class Translator:
 			
 			load = [MoveInstruction(getVariableInMemory(x),getRegister(x),"l") for x in registers]
 			 
-			return ClusteredInstructions(save + dictionaryAllocation + load)
+			return ClusteredInstructions(save + listAllocation + load)
 			
 		def getTagFunction(name,ast,liveness):
 			val = translatePythonAST(ast,liveness)
@@ -227,16 +232,23 @@ class Translator:
 			and_instruction = AndInstruction(ConstantOperand(3),val)
 			return ClusteredInstructions([mov_instruction,and_instruction])
 
-		#def isTagFunction(name,ast,liveness):
-		#	get_tag_instruction = getTagFunction(name,ast,liveness)
-		#	jump_instruction = JumpInstruction()
+		def isTagFunction(name,ast,liveness):
+			get_tag_instruction = getTagFunction(name,ast,liveness)
+			jump_instruction = JumpInstruction()
 					
-		#def injectToFunction(name,ast,liveness):
-		#	shift_left_instruction = left shift
-		#	or_instruction = #or with some tag
+		def injectFromFunction(name,ast,liveness):
+			reg = getName(name)
+			mov_instruction = MoveInstruction(getName(ast.arg),reg,"l")			
+			shift_left_instruction = ShiftLeftInstruction(ConstantOperand(2),reg,"l")
+			or_instruction = OrInstruction(ConstantOperand(ast.typ),reg,"l")
+			save_instruction = MoveInstruction(reg,getName(ast.arg),"l")
 
-		#def projectToFunction(name,ast,liveness):
-		#	shift_right_instruction = right shift
+			return ClusteredInstructions([mov_instruction,shift_left_instruction,or_instruction,save_instruction])
+
+		def projectToFunction(name,ast,liveness):
+			shift_right_instruction = RightShiftInstruction(ConstantOperand(2),getName(ast.arg),"l")
+			mov_instruction = MoveInstruction(getName(ast.arg),getName(name),"l")
+			return ClusteredInstructions([shift_right_instruction,mov_instruction])
 			
 		def dictFunction(name,ast,liveness):
 			registers = []
@@ -497,6 +509,7 @@ class Translator:
 				x86AST = [leftAST,rightAST]
 				return x86AST
 			
-			raise "Error: " + str(ast) + " currently not supported.\n"
+			#print ast
+			else: raise "Error: " + str(ast) + " currently not supported.\n"
 		t = translatePythonAST(ast,la)
 		return t

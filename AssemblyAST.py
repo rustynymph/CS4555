@@ -148,7 +148,9 @@ class SpecifiedBinaryInstruction(BinaryInstruction):
 		self.instruction = ""
 
 	def printInstruction(self):
-		return self.instruction + self.length + " " + self.fromOperand.printInstruction() + ", " + self.toOperand.printInstruction() + "\n"
+		return self.instruction + self.length + \
+		" " + self.fromOperand.printInstruction() + ", "\
+		 + self.toOperand.printInstruction() + "\n"
 
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.fromOperand) + "," + str(self.toOperand) + "," + str(self.length) + ")"
@@ -189,7 +191,7 @@ class AndInstruction(SpecifiedBinaryInstruction):
 
 class OrInstruction(SpecifiedBinaryInstruction):
 	def __init__(self,leftOperand,rightOperand,length):
-		SpecifiedBinaryInstruction().__init__(self,leftOperand,rightOperand,length)
+		SpecifiedBinaryInstruction.__init__(self,leftOperand,rightOperand,length)
 		self.instruction = "or"
 
 class NotInstruction(UnaryInstruction):
@@ -203,34 +205,24 @@ class NotInstruction(UnaryInstruction):
 		return self.__class__.__name__ + "(" + str(self.operand) + ")"
 
 
-class ShiftInstruction(BinaryInstruction):
-	def __init__(self,fromOperand,toOperand,arithmetic):
+class ShiftInstruction(SpecifiedBinaryInstruction):
+	def __init__(self,fromOperand,toOperand,length,arithmetic):
 		if not isinstance(fromOperand,ConstantOperand):
+			print length
 			raise Exception(operand.__class__.__name__ + " is not a valid operand. " + self.__class__.__name__ + " takes a ConstantOperand as it's fromOperand.")
-		BinaryInstruction.__init__(self,fromOperand,toOperand)
+		SpecifiedBinaryInstruction.__init__(self,fromOperand,toOperand,length)
 		self.arithmetic = True
 
 class ShiftLeftInstruction(ShiftInstruction):
-	def __init__(self,fromOperand,toOperand,arithmetic=True):
-		ShiftInstruction.__init__(self,fromOperand,toOperand,arithmetic)
+	def __init__(self,fromOperand,toOperand,length,arithmetic=True):
+		ShiftInstruction.__init__(self,fromOperand,toOperand,length,arithmetic)
 		self.instruction = "sal" if arithmetic else "shl"
 
-	def __str__(self):
-		return self.__class__.__name__ + "(" + str(fromOperand) + "," + str(toOperand) + "," + str(arithmetic) + ")"
-
-	def printInstruction(self):
-		return self.instruction + " " + fromOperand.printInstruction() + ", " + toOperand.printInstruction()
-
 class ShiftRightInstruction(ShiftInstruction):
-	def __init__(self,fromOperand,toOperand,arithmetic=True):
-		ShiftInstruction.__init__(self,fromOperand,toOperand,arithmetic)
+	def __init__(self,fromOperand,toOperand,length,arithmetic=True):
+		ShiftInstruction.__init__(self,fromOperand,toOperand,length,arithmetic)
 		self.instruction = "sar" if arithmetic else "shr"
 
-	def __str__(self):
-		return self.__class__.__name__ + "(" + str(fromOperand) + "," + str(toOperand) + "," + str(arithmetic) + ")"
-
-	def printInstruction(self):
-		return self.instruction + " " + fromOperand.printInstruction() + ", " + toOperand.printInstruction()
 
 class NameOperand(Operand):
 	def __init__(self,name):

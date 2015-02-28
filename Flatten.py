@@ -165,24 +165,15 @@ class python_compiler:
 			else: return python_compiler.noAppend(not_var+1,new_stmt)
 
 		elif isinstance(ast, List):
-			str_nodes = ''
-			length = len(ast.nodes)
-			if length > 1:
-				for x in range(0,length-1):
-					lala = python_compiler.treeFlatten_helper(ast.nodes[x],tmp_num)
-					str_nodes += 'tmp'+str(lala)
-					str_nodes += ','
-					tmp_num = lala+1
-				lala = python_compiler.treeFlatten_helper(ast.nodes[length-1],tmp_num)
-				str_nodes += 'tmp'+str(lala)
-			else:
-				str_nodes = str(ast.nodes[0])
+			nodeList = []
+			for node in ast.nodes:
+				new_node = python_compiler.treeFlatten_helper(node,tmp_num,True)
+				new_tmp = 'tmp'+str(new_node)
+				nodeList.append(Name(new_tmp))
+				tmp_num+=1
 
-			#new_stmt = 'tmp'+str(tmp_num) + ' = ' + '[' + str(str_nodes) + ']'
-			new_tmp = 'tmp'+str(tmp_num+1)
-			new_stmt = Assign([AssName(new_tmp, 'OP_ASSIGN')], List([str_nodes]))
-			#if (append==True): return python_compiler.yesAppend(tmp_num,new_stmt)
-			#else: return python_compiler.noAppend(tmp_num,new_stmt)
+			new_tmp2 = 'tmp'+str(tmp_num+1)
+			new_stmt = Assign([AssName(new_tmp2, 'OP_ASSIGN')], List(nodeList))
 			if (append==True):
 				flat_stmt.nodes.append(new_stmt)
 				return tmp_num+1
@@ -203,17 +194,19 @@ class python_compiler:
 				return python_compiler.yesAppend(new_val+1,new_stmt)
 			else: return python_compiler.noAppend(new_val+1,new_stmt)
 
-			
 		elif isinstance(ast,Subscript):
-			new_tmp = 'tmp'+str(tmp_num)
+			new_list = python_compiler.treeFlatten_helper(ast.expr,tmp_num,True)
+			new_list_tmp = 'tmp'+str(new_list)
+			new_sub = python_compiler.treeFlatten_helper(ast.subs[0],new_list+1,True)
+			new_sub_tmp = 'tmp'+str(new_sub)
+			new_tmp = 'tmp'+str(new_sub+1)
+			new_stmt = Assign([AssName(new_tmp,'OP_ASSIGN')], Subscript(new_list_tmp,ast.flags,[new_sub_tmp]))
+			print new_stmt
 			if(append==True):
-				flat_stmt.nodes.append(Assign([AssName(new_tmp, 'OP_ASSIGN')], Subscript(ast.expr, ast.flags, [ast.subs[0]])))
-				return tmp_num+1
-			else:
-				new_stmt = Assign([AssName(new_tmp, 'OP_ASSIGN')], Subscript(ast.expr, ast.flags, [ast.subs[0]]))
-				return (tmp_num+1,new_stmt)
+				flat_stmt.nodes.append(new_stmt)
+				return new_sub+1
+			else: return (new_sub+1,new_stmt)
 		
-			
 		elif isinstance(ast,IfExp):
 			final_tmp = Name(python_compiler.create_new_name('temp'))			
 			if isinstance(ast.test,Name):
