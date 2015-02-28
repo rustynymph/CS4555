@@ -22,10 +22,13 @@ pythonAST = Simplify.removeNamespaceDependency(pythonAST)
 pythonAST = Optimizer.reduce(pythonAST)
 pythonAST = Optimizer.negation(pythonAST)
 explicatedAST = Explicate.explicate(pythonAST)
+print("Explicate")
 print explicatedAST
 print("\n")
 flattenedAST = python_compiler.treeFlatten(explicatedAST)
-print flattenedAST
+print("Flat")
+print flattenedAST[0]
+print flattenedAST[1]
 x86AST = Translator.pythonASTToAssemblyAST(flattenedAST)
 
 x86Filename = sys.argv[1].rsplit(".",1)[0] + ".s"

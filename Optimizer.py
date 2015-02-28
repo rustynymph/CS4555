@@ -16,7 +16,7 @@ class Optimizer:
 		elif isinstance(ast,Or): return Or([Optimizer.reduce(n) for n in ast.nodes]);
 		elif isinstance(ast,And): return And([Optimizer.reduce(n) for n in ast.nodes]);
 		elif isinstance(ast,Compare): return Compare(Optimizer.reduce(ast.expr),[(n[0],Optimizer.reduce(n[1])) for n in ast.ops]);
-		elif isinstance(ast,Subscript): return Subscript(Optimizer.reduce(ast.expr),ast.flags,[ast.subs[0]]);
+		elif isinstance(ast,Subscript): return Subscript(Optimizer.reduce(ast.expr),ast.flags,[Optimizer.reduce(sub) for sub in ast.subs]);
 
 		elif isinstance(ast,Add):
 			rln = Optimizer.reduce(ast.left);
