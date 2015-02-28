@@ -36,7 +36,9 @@ class Optimizer:
 			e = Optimizer.reduce(ast.expr);
 			if isinstance(e,Not): return e.expr
 			else: return Not(e);
-		elif isinstance(ast,CallFunc): return CallFunc(ast.node,[Optimizer.reduce(n) for n in ast.args]);
+		elif isinstance(ast,CallFunc): 
+			print ast.args
+			return CallFunc(ast.node,[Optimizer.reduce(n) for n in ast.args]);
 		elif isinstance(ast,Const) or isinstance(ast,AssName) or isinstance(ast,Name): return ast;
 		elif isinstance(ast,Boolean): return ast;
 		else: raise Exception("AST reduction does not work on " + str(ast) + "node.");

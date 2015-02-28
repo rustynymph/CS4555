@@ -100,7 +100,33 @@ class Translator:
 			else: raise "Error: " + str(ast) + " currently not supported.\n"
 		
 		def notFunction(name,ast,liveness):
-			print("wow")
+			registers = []
+			
+			for x in liveness[1]:
+				if isinstance(getName(x), RegisterOperand):
+					registers += [x]
+			
+			#Saves current registers
+			save = [MoveInstruction(getRegister(x),getVariableInMemory(x),"l") for x in registers]
+
+			notInstructions = []
+			#Pushes pyobj to stack
+			notInstructions += [PushInstruction(getName(ast.name))]
+			#Checks if pyobj is true
+			notInstructions += [CallInstruction(FunctionCallOperand("is_true"))]
+			#Restores esp's old value
+			notInstructions += [AddIntegerInstruction(ConstantOperand(4),RegisterOperand("esp"))]
+			#negates return value
+			notInstructions += [NotInstruction(RegisterOperand("eax"))]
+			#Moves value into corrisponding memory or register location
+			notInstructions += [MoveInstruction(RegisterOperand("eax"),getName(name),"l")]
+			
+			if name in registers:
+				registers.remove(name)
+			
+			load = [MoveInstruction(getVariableInMemory(x),getRegister(x),"l") for x in registers]
+			 
+			return ClusteredInstructions(save + notInstructions + load)
 		
 		def compareFunction(name,ast,liveness):
 			print("p1")
@@ -116,7 +142,32 @@ class Translator:
 			mov_instruction = MoveInstruction()
 			
 		def subscriptFunction(name,ast,liveness):
-			print("sheeeet")
+			registers = []
+			
+			for x in liveness[1]:
+				if isinstance(getName(x), RegisterOperand):
+					registers += [x]
+					
+			save = [MoveInstruction(getRegister(x),getVariableInMemory(x),"l") for x in registers]
+
+			#Assigns a subscription value to a name
+			assignSubscription = []
+			#Pushes pyobj dict/list to stack
+			assignSubscription += [PushInstruction(getName(ast.expr.name))]
+			#Pushes pyobj key to stack
+			assignSubscription += [PushInstruction(getName(ast.subs[0].name))]
+			#Calls get_subscription
+			assignSubscription += [CallInstruction(FunctionCallOperand("get_subscript"))]
+			#Moves return value to name
+			assignSubscription += [MoveInstruction(RegisterOperand("eax"),getName(name),"l")]
+			
+			if name in registers:
+				registers.remove(name)
+			
+			load = [MoveInstruction(getVariableInMemory(x),getRegister(x),"l") for x in registers]
+			 
+			return ClusteredInstructions(save + assignSubscription + load)
+
 			
 		def listFunction(name,ast,liveness):
 			registers = []
@@ -131,7 +182,7 @@ class Translator:
 			eax = RegisterOperand("eax")
 
 			#Creates the initial list
-			createList = ClusteredInstructions([PushInstruction(ConstantOperand(len(ast.nodes))),CallInstruction(FunctionCallOperand("create_list")),AddIntegerInstruction(ConstantOperand(4),RegisterOperand("esp"))])
+			createList = ClusteredInstructions([PushInstruction(ConstantOperand(len(ast.nodes))),CallInstruction(FunctionCallOperand("create_list")),OrInstruction(ConstantOperand(3),eax,"l"),AddIntegerInstruction(ConstantOperand(4),RegisterOperand("esp"))])
 			#Moves pyobj into memory 
 			nameInMemory = getVariableInMemory(name)
 			movPyobjIntoMemory = MoveInstruction(eax,nameInMemory,"l")
@@ -200,7 +251,7 @@ class Translator:
 			eax = RegisterOperand("eax")
 
 			#Creates the initial dictionary
-			createDictionary = CallInstruction(FunctionCallOperand("create_dict"))
+			createDictionary = ClusteredInstructions([CallInstruction(FunctionCallOperand("create_dict")),OrInstruction(ConstantOperand(3),eax,"l")])
 			#Moves pyobj into memory 
 			nameInMemory = getVariableInMemory(name)
 			movPyobjIntoMemory = MoveInstruction(eax,nameInMemory,"l")

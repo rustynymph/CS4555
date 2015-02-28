@@ -192,6 +192,17 @@ class OrInstruction(SpecifiedBinaryInstruction):
 		SpecifiedBinaryInstruction().__init__(self,leftOperand,rightOperand,length)
 		self.instruction = "or"
 
+class NotInstruction(UnaryInstruction):
+	def __init__(self,operand):
+		self.operand
+
+	def printInstruction(self):
+		return "not " + self.operand.printInstruction() + "\n"
+
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.operand) + ")"
+
+
 class ShiftInstruction(BinaryInstruction):
 	def __init__(self,fromOperand,toOperand,arithmetic):
 		if not isinstance(fromOperand,ConstantOperand):
@@ -308,6 +319,7 @@ class IfClusteredInstruction(Instruction):
 		self.jumpInstruction = jumpInstruction
 		self.trueCluster = trueCluster
 		self.falseCluster = falseCluster
+		self.endJump = JumpInstruction(JumpPredicate(NameOperand(self.jumpInstruction.operand.name+"end")))
 
 
 class ClusteredInstructions(Instruction):
@@ -318,7 +330,7 @@ class ClusteredInstructions(Instruction):
 		tmp = self.__class__.__name__ + "(["
 		for i in range (0,len(self.nodes)-2):
 			tmp += str(self.nodes[i]) + ","
-		tmp += str(self.nodes[len(self.nodes)-1]) + "])"
+		if len(self.nodes) >= 1: tmp += str(self.nodes[len(self.nodes)-1]) + "])"
 		return tmp
 		
 	def printInstruction(self):

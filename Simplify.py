@@ -10,7 +10,7 @@ class Simplify():
 		elif isinstance(ast,Add): return Add((Simplify.removeNamespaceDependency(ast.left),Simplify.removeNamespaceDependency(ast.right)))
 		elif isinstance(ast,UnarySub): return UnarySub(Simplify.removeNamespaceDependency(ast.expr))
 
-		elif isinstance(ast,Compare): return Compare(Simplify.removeNamespaceDependency(ast.expr,[(t[0],Simplify.removeNamespaceDependency(t[1])) for t in ast.ops]))
+		elif isinstance(ast,Compare): return Compare(Simplify.removeNamespaceDependency(ast.expr),[(t[0],Simplify.removeNamespaceDependency(t[1])) for t in ast.ops])
 		elif isinstance(ast,Or): return Or([Simplify.removeNamespaceDependency(n) for n in ast.nodes])
 		elif isinstance(ast,And): return And([Simplify.removeNamespaceDependency(n) for n in ast.nodes])
 		elif isinstance(ast,Not): return Not(Simplify.removeNamespaceDependency(ast.expr))
@@ -42,7 +42,7 @@ class Simplify():
 		elif isinstance(ast,Add): return Add((Simplify.nameToBool(ast.left),Simplify.nameToBool(ast.right)))
 		elif isinstance(ast,UnarySub): return UnarySub(Simplify.nameToBool(ast.expr))
 
-		elif isinstance(ast,Compare): return Compare(Simplify.nameToBool(ast.expr,[(t[0],Simplify.nameToBool(t[1])) for t in ast.ops]))
+		elif isinstance(ast,Compare): return Compare(Simplify.nameToBool(ast.expr),[(t[0],Simplify.nameToBool(t[1])) for t in ast.ops])
 		elif isinstance(ast,Or): return Or([Simplify.nameToBool(n) for n in ast.nodes])
 		elif isinstance(ast,And): return And([Simplify.nameToBool(n) for n in ast.nodes])
 		elif isinstance(ast,Not): return Not(Simplify.nameToBool(ast.expr))
