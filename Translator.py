@@ -8,7 +8,9 @@ class Translator:
 	def pythonASTToAssemblyAST(ast):
 		colors = ["eax","ebx","ecx","edx","edi","esi"]
 		memory = {}
-		la = LivenessAnalysis.livenessAnalysis(ast)
+		environment = ast[1]
+		ast = ast[0]
+		la = LivenessAnalysis.livenessAnalysis(ast,environment)
 		graph = LivenessAnalysis.createGraph(la)
 		coloredgraph = LivenessAnalysis.colorGraph(graph)
 

@@ -117,8 +117,6 @@ class CallInstruction(UnaryInstruction):
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.operand) + ")"
 
-
-
 class SpecifiedUnaryInstruction(UnaryInstruction):
 	__metaclass__ = ABCMeta
 
@@ -219,6 +217,10 @@ class ClusteredInstructions(Instruction):
 			tmp += i.printInstruction()
 		return tmp
 
-
+#class GetTagInstruction(Instruction):
+	
+#class InjectFromInstruction(Instruction):
+	
+#class ProjectToInstruction(Instruction):
 		
 	

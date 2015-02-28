@@ -66,7 +66,7 @@ class Explicate:
 	def visitBoolean(ast): return InjectFrom(BOOL_t, Const(int(ast.value)))
 
 	@staticmethod	
-	def explicateNot(ast): return IfExp(InjectFrom(BOOL_t,ast.expr), InjectFrom(BOOL_t, Const(0)), InjectFrom(BOOL_t, Const(1)))
+	def explicateNot(ast): return IfExp(InjectFrom(BOOL_t,Explicate.dispatch(ast.expr)), InjectFrom(BOOL_t, Const(0)), InjectFrom(BOOL_t, Const(1)))
 
 	@staticmethod	
 	def explicateAnd(ast):
@@ -112,28 +112,23 @@ class Explicate:
 			rhsname = Explicate.create_new_name('let_add_rhs')
 			lhsvar = Name(lhsname)
 			rhsvar = Name(rhsname)
-
-
 			explicated = Let(lhsvar,Explicate.dispatch(ast.left),Let(rhsvar,Explicate.dispatch(ast.right),IfExp(And([Or([IsTag(INT_t,lhsvar),IsTag(BOOL_t, lhsvar)]),
 							Or([IsTag(INT_t, rhsvar),IsTag(BOOL_t, rhsvar)])]),
 					   Add((InjectFrom(GetTag(lhsvar),ProjectTo(INT_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(INT_t,rhsvar)))),
 					   IfExp(And([IsTag(BIG_t, lhsvar),IsTag(BIG_t, rhsvar)]),
 					   CallFunc('add_big', [InjectFrom(GetTag(lhsvar),ProjectTo(BIG_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(BIG_t,rhsvar))], None, None),
 					   CallFunc('error',[],None,None)))))
-		
 		elif isinstance(ast,Compare):
 			lhsname = Explicate.create_new_name('let_comp_lhs')
 			rhsname = Explicate.create_new_name('let_comp_rhs')
 			lhsvar = Name(lhsname)
 			rhsvar = Name(rhsname)
-
 			explicated = Let(lhsvar,Explicate.dispatch(ast.expr),Let(rhsvar,Explicate.dispatch(ast.ops[1]),IfExp(And([Or([IsTag(INT_t,lhsvar),IsTag(BOOL_t, lhsvar)]),
 							Or([IsTag(INT_t, rhsvar),IsTag(BOOL_t, rhsvar)])]),
 					   Compare(InjectFrom(GetTag(lhsvar),ProjectTo(INT_t,lhsvar)),[ast.ops[0],InjectFrom(GetTag(rhsvar),ProjectTo(INT_t,rhsvar))]),
 					   IfExp(And([IsTag(BIG_t, lhsvar),IsTag(BIG_t, rhsvar)]),
 					   CallFunc('compare_big', [InjectFrom(GetTag(lhsvar),ProjectTo(BIG_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(BIG_t,rhsvar))], None, None),
 					   CallFunc('error',[],None,None)))))
-			
 		return explicated
 
 	@staticmethod	
@@ -141,8 +136,7 @@ class Explicate:
 
 	@staticmethod
 	def visitCallFunc(ast): 
-		if ast.node.name == 'input':
-			return InjectFrom(INT_t, CallFunc('input', ast.args))
+		if ast.node.name == 'input': return InjectFrom(INT_t, CallFunc('input', ast.args))
 
 	@staticmethod
 	def explicate(ast):

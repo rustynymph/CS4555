@@ -7,6 +7,7 @@ import string
 import math
 from PythonASTExtension import *
 
+
 class flat_stmt(Stmt):
 	def __init__(self, nodes):
 		Stmt.__init__(self, nodes)
@@ -14,12 +15,30 @@ class flat_stmt(Stmt):
 class save_nodes(Stmt):
 	def __init__(self, nodes):
 		Stmt.__init__(self, nodes)
-
+	
+counter = 1
+tmp_nummy = 0
+	
 class python_compiler:
     
 	flat_stmt.nodes = []
 	save_nodes.nodes = []
-    
+	environment = {}
+
+
+	
+	@staticmethod
+	def gen_count_number():
+		global counter
+		number = str(counter)
+		counter += 1
+		return number
+	
+	@staticmethod
+	def create_new_name(name):
+		new_name = "new" + "_" + python_compiler.gen_count_number() + "_" + name
+		return new_name
+
 	@staticmethod
 	def yesAppend(tmp_num,new_stmt):
 		if isinstance(new_stmt,Assign) or isinstance(new_stmt,Name) or isinstance(new_stmt,Const) or isinstance(new_stmt,Boolean) or isinstance(new_stmt,IfExp) or isinstance(new_stmt,And) or isinstance(new_stmt,Or) or isinstance(new_stmt,Compare) or isinstance(new_stmt,Subscript) or isinstance(new_stmt,List) or isinstance(new_stmt,Dict) or isinstance(new_stmt,CallFunc) or isinstance(new_stmt,Add) or isinstance(new_stmt,UnarySub):
@@ -41,7 +60,7 @@ class python_compiler:
 	@staticmethod
 	def treeFlatten(ast):
 		python_compiler.treeFlatten_helper(ast, 0)
-		ast2 = Module(None, Stmt(flat_stmt.nodes))
+		ast2 = (Module(None, Stmt(flat_stmt.nodes)),python_compiler.environment)
 		return ast2
 
 	@staticmethod
@@ -74,7 +93,7 @@ class python_compiler:
 				if ast.nodes[0].name == ast.expr.name:
 					return tmp_num
 					
-			varName = "__"+ast.nodes[0].name
+			varName = ast.nodes[0].name
 			right_val = python_compiler.treeFlatten_helper(ast.expr, tmp_num)
 
 			new_stmt = varName + ' = tmp' + str(right_val)
@@ -102,7 +121,7 @@ class python_compiler:
 			else: return python_compiler.noAppend(tmp_num,new_stmt)				
                 
 		elif isinstance(ast, Name):
-			ast.name = "__"+ast.name
+			ast.name = ast.name
 			new_stmt = 'tmp' + str(tmp_num) + ' = ' + ast.name
 			if (append == True): return python_compiler.yesAppend(tmp_num,new_stmt)
 			else: return python_compiler.noAppend(tmp_num,new_stmt)	
@@ -196,32 +215,30 @@ class python_compiler:
 		
 			
 		elif isinstance(ast,IfExp):
-
+			final_tmp = python_compiler.create_new_name('temp')
 			def IfExpRecursion(ast,tmp_number):			
 				test_var = python_compiler.treeFlatten_helper(ast.test, tmp_num,True)
 				test_tmp = 'tmp'+str(test_var)
 				
-				save_nodes.nodes=[]
 				new_then = python_compiler.treeFlatten_helper(ast.then,test_var+1,False)
+				#new_st = 'tmp'+str(final_tmp) + ' = ' + 'tmp'+str(new_then[0])
 				then_exp = new_then[1]
+				print then_exp
 				save_nodes.nodes +=then_exp	
-				print save_nodes.nodes
 
 				if isinstance(ast.else_,IfExp):
-					return IfExp(Name(test_tmp),[i for i in save_nodes.nodes],IfExpRecursion(ast.else_, test_var+1))
+					#some_nodes = save_nodes.nodes
+					#save_nodes.nodes = []
+					return IfExp(Name(test_tmp),[],IfExpRecursion(ast.else_, test_var+1))
 				else:
 					new_else = python_compiler.treeFlatten_helper(ast.else_,test_var+1,False)
 					else_exp = new_else[1]
-					return IfExp(Name(test_tmp),then_exp,else_exp)
+					tmp_nummy = new_else[0]
+					return flat_stmt.nodes.append(IfExp(Name(test_tmp),save_nodes.nodes,else_exp))
 
-
-		
+			save_nodes.nodes=[]
 			result = IfExpRecursion(ast,tmp_num)
-			print("result is:")
-			print result
-			#new_stmt = 	result[0]
-			#num = result[1]
-			return num
+			return tmp_nummy+1
 
 
 		elif isinstance(ast,InjectFrom):
@@ -264,7 +281,12 @@ class python_compiler:
 			else:
 				return (tmp_num,new_stmt)
         
-            
+		elif isinstance(ast,Let):
+			let_name = ast.var
+			let_value = ast.rhs
+			python_compiler.environment[let_name] = let_value #keeps a mapping from all names to values
+			return python_compiler.treeFlatten_helper(ast.body,tmp_num,True)		
+			
 		else:
 			raise Exception("Error: Unrecognized node type")
 			
