@@ -1,8 +1,4 @@
 from abc import ABCMeta, abstractmethod
-from compiler.ast import *
-
-MASK = 11
-
 
 class Instruction(object):
 	__metaclass__ = ABCMeta
@@ -73,11 +69,6 @@ class ConstantOperand(Operand):
 
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.constant) + ")"
-
-
-class IsTag(Operand):
-	def __init__(self,arg):
-		self.arg = arg
 
 class MemoryOperand(Operand):
 	def __init__(self,register,offset=0):
@@ -229,10 +220,6 @@ class ShiftRightInstruction(ShiftInstruction):
 
 	def printInstruction(self):
 		return self.instruction + " " + fromOperand.printInstruction() + ", " + toOperand.printInstruction()
-
-
-#class ShiftInstruction(SpecifiedBinaryInstruction):
-#	def 
 
 class NameOperand(Operand):
 	def __init__(self,name):
