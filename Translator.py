@@ -129,7 +129,56 @@ class Translator:
 			print("sheeeet")
 			
 		def listFunction(name,ast,liveness):
-			print("hail satan")
+			registers = []
+			
+			for x in liveness[1]:
+				if isinstance(getName(x), RegisterOperand):
+					registers += [x]
+					
+			save = [MoveInstruction(getRegister(x),getVariableInMemory(x),"l") for x in registers]
+
+			
+			eax = RegisterOperand("eax")
+
+			#Creates the initial list
+			createList = ClusteredInstructions([PushInstruction(ConstantOperand(len(ast.nodes))),CallInstruction(FunctionCallOperand("create_list")),AddIntegerInstruction(ConstantOperand(4),RegisterOperand("esp"))])
+			#Moves pyobj into memory 
+			nameInMemory = getVariableInMemory(name)
+			movPyobjIntoMemory = MoveInstruction(eax,nameInMemory,"l")
+			#Pushes pyobj onto the stack
+			pushPyobj = PushInstruction(eax)
+			#Pushes sentinal values onto the stack
+			pushKey = PushInstruction(ConstantOperand(0))
+			pushValue = PushInstruction(ConstantOperand(0))
+
+			x86Values = []
+			for i in range(len(ast.nodes)):
+				#Removes old key and value from stack
+				deallocateKVPair = AddIntegerInstruction(ConstantOperand(8),RegisterOperand("esp"))
+				#Pushes new key and value onto the stack
+				pushSubKey = PushInstruction(getName(ConstantOperand(i)))
+				pushSubValue = PushInstruction(getName(ast.nodes[i]))
+				#Adds subscription with parameters
+				addSubIndex = CallInstruction(FunctionCallOperand("set_subscript"))
+				#Adds index value to assembly
+				x86Values += [deallocateKVPair,pushSubKey,pushSubValue,addSubIndex]
+
+			#If the default location for the given name is a register move the value into the register
+			nameInRegister = ClusteredInstructions()
+			if isinstance(getName(name),RegisterOperand): nameInRegister = MoveInstruction(nameInMemory,getName(name))
+
+			#Remove memory allocated for function calls
+			deallocateFunctionCall = AddIntegerInstruction(ConstantOperand(12),RegisterOperand("esp"))
+
+			#Assembly array for dictionary allocation
+			listAllocation = [createList,movPyobjIntoMemory,pushPyobj,pushKey,pushValue] + x86Values + [nameInRegister,deallocateFunctionCall]
+			
+			if name in registers:
+				registers.remove(name)
+			
+			load = [MoveInstruction(getVariableInMemory(x),getRegister(x),"l") for x in registers]
+			 
+			return ClusteredInstructions(save + dictionaryAllocation + load)
 			
 		def dictFunction(name,ast,liveness):
 			registers = []
@@ -174,7 +223,7 @@ class Translator:
 			deallocateFunctionCall = AddIntegerInstruction(ConstantOperand(12),RegisterOperand("esp"))
 
 			#Assembly array for dictionary allocation
-			dictionaryAllocation = [movPyobjIntoMemory,pushPyobj,pushKey,pushValue] + x86Values + [nameInRegister,deallocateFunctionCall]
+			dictionaryAllocation = [createDictionary,movPyobjIntoMemory,pushPyobj,pushKey,pushValue] + x86Values + [nameInRegister,deallocateFunctionCall]
 			
 			if name in registers:
 				registers.remove(name)

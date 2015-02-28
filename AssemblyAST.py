@@ -199,8 +199,132 @@ class AndInstruction(SpecifiedBinaryInstruction):
 		SpecifiedBinaryInstruction.__init__(self,leftOperand,rightOperand,length)
 		self.instruction = "and"
 
+class OrInstruction(SpecifiedBinaryInstruction):
+	def __init__(self,leftOperand,rightOperand,length):
+		SpecifiedBinaryInstruction().__init__(self,leftOperand,rightOperand,length)
+		self.instruction = "or"
+
+class ShiftInstruction(BinaryInstruction):
+	def __init__(self,fromOperand,toOperand,arithmetic):
+		if not isinstance(fromOperand,ConstantOperand):
+			raise Exception(operand.__class__.__name__ + " is not a valid operand. " + self.__class__.__name__ + " takes a ConstantOperand as it's fromOperand.")
+		BinaryInstruction.__init__(self,fromOperand,toOperand)
+		self.arithmetic = True
+
+class ShiftLeftInstruction(ShiftInstruction):
+	def __init__(self,fromOperand,toOperand,arithmetic=True):
+		ShiftInstruction.__init__(self,fromOperand,toOperand,arithmetic)
+		self.instruction = "s" + "a" if arithmetic else "e" + "l"
+
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(fromOperand) + "," + str(toOperand) + "," + str(arithmetic) + ")"
+
+	def printInstruction(self):
+		return self.instruction + " " + fromOperand.printInstruction() + ", " + toOperand.printInstruction()
+
+class ShiftRightInstruction(ShiftInstruction):
+	def __init__(self,fromOperand,toOperand,arithmetic=True):
+		ShiftInstruction.__init__(self,fromOperand,toOperand,arithmetic)
+		self.instruction = "s" + "a" if arithmetic else "e" + "r"
+
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(fromOperand) + "," + str(toOperand) + "," + str(arithmetic) + ")"
+
+	def printInstruction(self):
+		return self.instruction + " " + fromOperand.printInstruction() + ", " + toOperand.printInstruction()
+
+
 #class ShiftInstruction(SpecifiedBinaryInstruction):
 #	def 
+
+class NameOperand(Operand):
+	def __init__(self,name):
+		self.name = name
+
+	def printInstruction(self):
+		return str(self.name)
+
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.name) + ")"
+
+class SectionHeaderInstruction(UnaryInstruction):
+	def __init__(self,operand):
+		if not isinstance(operand,NameOperand): 
+			raise Exception(operand.__class__.__name__ + " is not a valid operand. " + self.__class__.__name__ + " takes NameOperand's.")
+		self.operand = operand
+
+	def printInstruction(self):
+		return self.operand.printInstruction()+":\n"
+
+	def __str__(self):
+		return self.__class__.__name__+"("+str(self.operand)+")"
+
+class ClusteredSectionInstruction(Instruction):
+	def __init__(self,sectionHeader,cluster):
+		if not isinstance(sectionHeader,SectionHeaderInstruction): 
+			raise Exception(sectionHeader.__class__.__name__ + " is not a valid instruction. " + self.__class__.__name__+ " will only accept SectionHeaderInstruction's for it's section.")
+		# Cluster does not need to be a ClusteredInstructions class
+		# if not isinstance(cluster,ClusteredInstructions): 
+		# 	raise Exception(cluster.__class__.__name__ + " is not a valid instruction. " + self.__class__.__name__+ " will only accept ClusteredInstructions for it's cluster.")
+		self.sectionHeader = sectionHeader
+		self.cluster = cluster
+
+	def printInstruction(self):
+		return self.section.printInstruction() + self.cluster.printInstruction()
+
+	def __str__(self):
+		return self.__class__.__name__+"("+str(self.section)+","+str(self.cluster)+")"
+
+class CompareInstruction(BinaryInstruction):
+	def printInstruction(self):
+		return "cmp " + fromOperand.printInstruction() + ", " + toOperand.printInstruction() + "\n"
+
+class JumpPredicate():
+	def __init__(self,predicate):
+		self.predicate = predicate
+
+	def __str__(self):
+		return self.predicate
+
+	def printInstruction(self):
+		return str(self.name)
+
+class JumpPredicateEnum():
+	NONE = "jmp"
+	ZERO = "jz"
+	NOTZERO = "jnz"
+	NEGATIVE = "js"
+	NOTNEGATIVE = "jns"
+	OVERFLOW = "jo"
+	NOTOVERFLOW = "jno"
+	CARRY = "jc"
+	NOTCARRY = "jnc"
+	BORROW = "jb"
+	NOTBORROW = "jae"
+	BORROWORZERO = "jbe"
+	NOTBORROWNOTZERO = "ja"
+	SIGNEDLESS = "jl"
+	SIGNEDLESSOREQUAL = "jle"
+	SIGNEDGREATER = "jg"
+	SIGNEDGREATEROREQUAL = "jge"
+
+class JumpInstruction(UnaryInstruction):
+	def __init__(self,operand,predicate=JumpPredicateEnum.NONE):
+		if not isinstance(operand,NameOperand):
+			raise Exception(operand.__class__.__name__ + " is not a valid operand for " + self.__class__.__name__ + ". Operand must be NameOperand node.")
+		UnaryInstruction(operand)
+
+	def printInstruction(self):
+		return str(predicate) + " " + operand.printInstruction()
+
+class IfClusteredInstruction(Instruction):
+	def __init__(self,jumpInstruction,trueCluster,falseCluster):
+		if not isinstance(falseCluster,ClusteredSectionInstruction):
+			raise Exception(falseCluster.__class__.__name__ + " is not a valid node type. falseCluster must be ClusteredSectionInstruction.")
+		self.jumpInstruction = jumpInstruction
+		self.trueCluster = trueCluster
+		self.falseCluster = falseCluster
+
 
 class ClusteredInstructions(Instruction):
 	def __init__(self, nodes=[]):
@@ -220,5 +344,6 @@ class ClusteredInstructions(Instruction):
 		return tmp
 
 
-		
+
+
 	
