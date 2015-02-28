@@ -1,5 +1,5 @@
 submit:
-	zip  hw.zip compile.py AssemblyAST.py Flatten.py LivenessAnalysis.py Optimizer.py Parser_hw2.py Translator.py ply/ -j runtime/*
+	zip  hw.zip compile.py AssemblyAST.py Flatten.py LivenessAnalysis.py Optimizer.py PythonASTExtension.py Explicate.py Simplify.py Parser_hw2.py Translator.py ply/ -j runtime/*
 
 clean:
 	find . -type f -name "*.s" -delete
