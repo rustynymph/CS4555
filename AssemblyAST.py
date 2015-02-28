@@ -196,8 +196,6 @@ class AndInstruction(SpecifiedBinaryInstruction):
 		SpecifiedBinaryInstruction.__init__(self,fromOperand,toOperand,length)
 		self.instruction = "and"
 
-<<<<<<< HEAD
-=======
 class OrInstruction(SpecifiedBinaryInstruction):
 	def __init__(self,leftOperand,rightOperand,length):
 		SpecifiedBinaryInstruction().__init__(self,leftOperand,rightOperand,length)
@@ -213,7 +211,7 @@ class ShiftInstruction(BinaryInstruction):
 class ShiftLeftInstruction(ShiftInstruction):
 	def __init__(self,fromOperand,toOperand,arithmetic=True):
 		ShiftInstruction.__init__(self,fromOperand,toOperand,arithmetic)
-		self.instruction = "s" + "a" if arithmetic else "e" + "l"
+		self.instruction = "sal" if arithmetic else "shl"
 
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(fromOperand) + "," + str(toOperand) + "," + str(arithmetic) + ")"
@@ -224,7 +222,7 @@ class ShiftLeftInstruction(ShiftInstruction):
 class ShiftRightInstruction(ShiftInstruction):
 	def __init__(self,fromOperand,toOperand,arithmetic=True):
 		ShiftInstruction.__init__(self,fromOperand,toOperand,arithmetic)
-		self.instruction = "s" + "a" if arithmetic else "e" + "r"
+		self.instruction = "sar" if arithmetic else "shr"
 
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(fromOperand) + "," + str(toOperand) + "," + str(arithmetic) + ")"

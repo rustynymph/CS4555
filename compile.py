@@ -3,6 +3,7 @@
 import sys
 import string
 from Flatten import *
+#from Flatten2 import *
 from Translator import *
 from Optimizer import *
 from Explicate import *
@@ -17,6 +18,7 @@ pythonFilename = sys.argv[1]
 #raise Exception(text_to_parse)
 
 pythonAST = compiler.parseFile(pythonFilename)
+print pythonAST
 pythonAST = Simplify.nameToBool(pythonAST)
 pythonAST = Simplify.removeNamespaceDependency(pythonAST)
 pythonAST = Optimizer.reduce(pythonAST)
@@ -28,7 +30,7 @@ print("\n")
 flattenedAST = python_compiler.treeFlatten(explicatedAST)
 print("Flat")
 print flattenedAST[0]
-print flattenedAST[1]
+
 x86AST = Translator.pythonASTToAssemblyAST(flattenedAST)
 
 x86Filename = sys.argv[1].rsplit(".",1)[0] + ".s"

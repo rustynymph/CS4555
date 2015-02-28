@@ -9,9 +9,10 @@ class LivenessAnalysis:
 	__liveVariables = {}
 	
 	@staticmethod
-	def livenessAnalysis(IR):
+	def livenessAnalysis(IR,environment):
 		
 		ir = IR.node.nodes
+		environmentMap = environment
 
 		interference = {}
 		liveVariables = {}
@@ -112,7 +113,13 @@ class LivenessAnalysis:
 						varRead2 = set((instructions.then.expr.name,))
 					else:
 						varRead2 = set()
-					#liveVariables[j] = set((liveVariables[j+1] - remove) |set((varRead,))) 
+					#liveVariables[j] = set((liveVariables[j+1] - remove) |set((varRead,)))
+				else:
+					remove1 = set() 
+					if isinstance(instructions.then[0].expr,Name):
+						varRead2 = set((instructions.then[0].expr.name,))
+					else:
+						varRead2 = set()
 				if isinstance(instructions.else_,Assign):
 					varWritten = instructions.else_.nodes[0].name
 					remove2 = set((varWritten,))

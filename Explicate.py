@@ -86,13 +86,13 @@ class Explicate:
 	def explicateIfExp(ast): return IfExpr(Explicate.dispatch(ast.test),Explicate.dispatch(ast.then),Explicate.dispatch(ast.else_))
 		
 	@staticmethod   
-	def visitSubscript(ast): return InjectFrom(BIG_t, ProjectTo(INT_t, Subscript(ast.expr, ast.flags, ast.subs)))
+	def visitSubscript(ast): return Subscript(Explicate.dispatch(ast.expr), ast.flags, Explicate.dispatch(ast.subs[0]))
 	
 	@staticmethod
-	def visitList(ast): return InjectFrom(BIG_t, ProjectTo(BIG_t, List([node for node in ast.nodes])))
+	def visitList(ast): return List([Explicate.dispatch(node) for node in ast.nodes])
 	
 	@staticmethod
-	def visitDict(ast): return InjectFrom(BIG_t, ProjectTo(BIG_t, Dict([item for item in ast.items])))		
+	def visitDict(ast): return Dict([Explicate.dispatch(item) for item in ast.items])	
 	
 	@staticmethod
 	def explicateUnary(ast):
@@ -118,6 +118,13 @@ class Explicate:
 					   IfExp(And([IsTag(BIG_t, lhsvar),IsTag(BIG_t, rhsvar)]),
 					   CallFunc('add_big', [InjectFrom(GetTag(lhsvar),ProjectTo(BIG_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(BIG_t,rhsvar))], None, None),
 					   CallFunc('error',[],None,None)))))
+					   
+			explicated = Let(lhsvar,Explicate.dispatch(ast.left),Let(rhsvar,Explicate.dispatch(ast.right),IfExp(And([Or([IsTag(INT_t,lhsvar),IsTag(BOOL_t, lhsvar)]),
+							Or([IsTag(INT_t, rhsvar),IsTag(BOOL_t, rhsvar)])]),
+					   Add((InjectFrom(GetTag(lhsvar),ProjectTo(INT_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(INT_t,rhsvar)))),
+					   IfExp(And([IsTag(BIG_t, lhsvar),IsTag(BIG_t, rhsvar)]),
+					   CallFunc('add_big', [InjectFrom(GetTag(lhsvar),ProjectTo(BIG_t,lhsvar)),InjectFrom(GetTag(rhsvar),ProjectTo(BIG_t,rhsvar))], None, None),
+					   CallFunc('error',[],None,None)))))					   
 		elif isinstance(ast,Compare):
 			lhsname = Explicate.create_new_name('let_comp_lhs')
 			rhsname = Explicate.create_new_name('let_comp_rhs')

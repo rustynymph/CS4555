@@ -112,7 +112,8 @@ class Translator:
 			print("a")
 		
 		def ifExpFunction(name,ast,liveness):
-			print("lotta")
+			val = translatePythonAST(ast.test)
+			mov_instruction = MoveInstruction()
 			
 		def subscriptFunction(name,ast,liveness):
 			print("sheeeet")

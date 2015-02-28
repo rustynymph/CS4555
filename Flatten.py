@@ -25,8 +25,6 @@ class python_compiler:
 	save_nodes.nodes = []
 	environment = {}
 
-
-	
 	@staticmethod
 	def gen_count_number():
 		global counter
@@ -221,25 +219,22 @@ class python_compiler:
 				test_tmp = 'tmp'+str(test_var)
 				
 				new_then = python_compiler.treeFlatten_helper(ast.then,test_var+1,False)
-				#new_st = 'tmp'+str(final_tmp) + ' = ' + 'tmp'+str(new_then[0])
 				then_exp = new_then[1]
 				print then_exp
+				ast.then = then_exp
 				save_nodes.nodes +=then_exp	
 
 				if isinstance(ast.else_,IfExp):
-					#some_nodes = save_nodes.nodes
-					#save_nodes.nodes = []
-					return IfExp(Name(test_tmp),[],IfExpRecursion(ast.else_, test_var+1))
+					return IfExp(Name(test_tmp),ast.then,IfExpRecursion(ast.else_, test_var+1))
 				else:
 					new_else = python_compiler.treeFlatten_helper(ast.else_,test_var+1,False)
 					else_exp = new_else[1]
 					tmp_nummy = new_else[0]
-					return flat_stmt.nodes.append(IfExp(Name(test_tmp),save_nodes.nodes,else_exp))
+					return flat_stmt.nodes.append(IfExp(Name(test_tmp),ast.then,else_exp))
 
 			save_nodes.nodes=[]
 			result = IfExpRecursion(ast,tmp_num)
 			return tmp_nummy+1
-
 
 		elif isinstance(ast,InjectFrom):
 			tmp = 'tmp'+str(tmp_num)
