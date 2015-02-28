@@ -177,7 +177,6 @@ class AddIntegerInstruction(SpecifiedBinaryInstruction):
 		SpecifiedBinaryInstruction.__init__(self,fromOperand, toOperand, length)
 		self.instruction = "add"
 
-
 class NoOperandInstruction(Instruction):
 	__metaclass__ = ABCMeta
 
@@ -194,11 +193,8 @@ class ReturnInstruction(NoOperandInstruction):
 
 class AndInstruction(SpecifiedBinaryInstruction):
 	def __init__(self,leftOperand,rightOperand,length):
-		SpecifiedBinaryInstruction.__init__(self,leftOperand,rightOperand,length)
+		SpecifiedBinaryInstruction.__init__(self,fromOperand,toOperand,length)
 		self.instruction = "and"
-
-#class ShiftInstruction(SpecifiedBinaryInstruction):
-#	def 
 
 class ClusteredInstructions(Instruction):
 	def __init__(self, nodes=[]):
@@ -217,10 +213,3 @@ class ClusteredInstructions(Instruction):
 			tmp += i.printInstruction()
 		return tmp
 
-#class GetTagInstruction(Instruction):
-	
-#class InjectFromInstruction(Instruction):
-	
-#class ProjectToInstruction(Instruction):
-		
-	
