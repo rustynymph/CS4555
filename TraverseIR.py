@@ -129,33 +129,51 @@ class TraverseIR():
 		elif isinstance(ast,Name):
 			return f(environment,ast,acc) if environment else f(ast,acc)
 
-		#Not complete
 		#P1 nodes
 		elif isinstance(ast,List):
-			l = List([TraverseIR.foldPostOrderLeft(n,f,environment) for n in ast.nodes])
-			return f(environment,l) if environment else f(l)
+			listAcc = acc
+			for n in ast.nodes:
+				listAcc = TraverseIR.foldPostOrderLeft(n,f,listAcc,environment)
+			return f(environment,ast,listAcc) if environment else f(ast,listAcc)
 		elif isinstance(ast,IfExp):
-			ifexp = IfExp(TraverseIR.foldPostOrderLeft(ast.test,f,environment),TraverseIR.foldPostOrderLeft(ast.then,f,environment),TraverseIR.foldPostOrderLeft(ast.else_,f,environment))
-			return f(environment,ifexp) if environment else f(ifexp)
+			testAcc = TraverseIR.foldPostOrderLeft(ast.test,f,acc,environment)
+			thenAcc = TraverseIR.foldPostOrderLeft(ast.then,f,testAcc,environment)
+			elseAcc = TraverseIR.foldPostOrderLeft(ast.else_,f,thenAcc,environment)
+			return f(environment,ast,elseAcc) if environment else f(ast,elseAcc)
 		elif isinstance(ast,Dict):
-			d = Dict([(TraverseIR.foldPostOrderLeft(t[0],f,environment),TraverseIR.foldPostOrderLeft(t[1],f,environment)) for t in ast.items])
-			return f(environment,d) if environment else f(d)
+			dictAcc = acc
+			for t in ast.items:
+				valueAcc = TraverseIR.foldPostOrderLeft(t[1],f,dictAcc,environment)
+				keyAcc = TraverseIR.foldPostOrderLeft(t[0],f,valueAcc,environment)
+				dictAcc = keyAcc
+			return f(environment,ast,dictAcc) if environment else f(ast,dictAcc)
 		elif isinstance(ast,Or):
-			o = Or([TraverseIR.foldPostOrderLeft(n,f,environment) for n in ast.nodes])
-			return f(environment,o) if environment else f(o)
+			orAcc = acc
+			for n in ast.nodes:
+				orAcc = TraverseIR.foldPostOrderLeft(n,f,orAcc,environment)
+			return f(environment,ast,orAcc) if environment else f(ast,orAcc)
 		elif isinstance(ast,And):
-			a = And([TraverseIR.foldPostOrderLeft(n,f,environment) for n in ast.nodes])
-			return f(environment,a) if environment else f(a)
+			andAcc = acc
+			for n in ast.nodes:
+				andAcc = TraverseIR.foldPostOrderLeft(n,f,andAcc,environment)
+			return f(environment,ast,andAcc) if environment else f(ast,andAcc)
 		elif isinstance(ast,Compare):
-			compare = Compare(TraverseIR.foldPostOrderLeft(ast.expr,f,environment),[(t[0],TraverseIR.foldPostOrderLeft(t[1],f,environment)) for t in ast.ops])
-			return f(environment,compare) if environment else f(compare)
+			compare0Acc = TraverseIR.foldPostOrderLeft(ast.expr,f,acc,environment)
+			compareNAcc = compare0Acc
+			for t in ast.ops:
+				compareNAcc = TraverseIR.foldPostOrderLeft(t[1],f,compareNAcc,environment)
+			return f(environment,ast,compareNAcc) if environment else f(ast,compareNAcc)
 		elif isinstance(ast,Subscript):
-			subscript = Subscript(TraverseIR.foldPostOrderLeft(ast.expr,f,environment),ast.flags,[TraverseIR.foldPostOrderLeft(n,f,environment) for n in ast.subs])
-			return f(environment,subscript) if environment else f(subscript)
+			exprAcc = TraverseIR.foldPostOrderLeft(ast.expr,f,acc,environment)
+			subsAcc = exprAcc
+			for n in ast.subs:
+				subsAcc = TraverseIR.foldPostOrderLeft(n,f,subsAcc,environment)
+			return f(environment,ast,subsAcc) if environment else f(ast,subsAcc)
 		elif isinstance(ast,Not):
-			n = Not(TraverseIR.foldPostOrderLeft(ast.expr,f,environment))
-			return f(environment,n) if environment else f(n)
+			notAcc = TraverseIR.foldPostOrderLeft(ast.expr,f,acc,environment)
+			return f(environment,ast,notAcc) if environment else f(ast,notAcc)
 
+		#Not complete
 		#P1 Extension nodes
 		elif isinstance(ast,Boolean):
 			return f(environment,ast) if environment else f(ast)
