@@ -10,6 +10,8 @@ from Explicate import *
 from Parser_hw2 import *
 import compiler
 from Simplify import *
+from TraverseIR import *
+from Namespace import *
 
 pythonFilename = sys.argv[1]
 
@@ -18,11 +20,10 @@ pythonFilename = sys.argv[1]
 #raise Exception(text_to_parse)
 
 pythonAST = compiler.parseFile(pythonFilename)
-pythonAST = Optimizer.reduce(pythonAST)
-pythonAST = Optimizer.negation(pythonAST)
-pythonAST = Simplify.nameToBool(pythonAST)
-pythonAST = Simplify.removeNamespaceDependency(pythonAST)
-print pythonAST
+pythonAST = TraverseIR.map(pythonAST,Optimizer.reduceMap)
+pythonAST = TraverseIR.map(pythonAST,Optimizer.negationMap)
+pythonAST = TraverseIR.map(pythonAST,Namespace.removeDependenciesMap,Namespace(Namespace.environmentKeywords + Namespace.reservedKeywords))
+pythonAST = TraverseIR.map(pythonAST,Simplify.nameToBoolMap)
 
 explicatedAST = Explicate.explicate(pythonAST)
 print explicatedAST
