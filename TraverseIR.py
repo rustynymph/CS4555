@@ -98,7 +98,7 @@ class TraverseIR():
 		elif isinstance(ast,Printnl):
 			subAcc = acc
 			for n in ast.nodes:
-				subAcc = TraverseIR.foldPostOrderLeft(n,f,subscript,environment)
+				subAcc = TraverseIR.foldPostOrderLeft(n,f,subAcc,environment)
 			return f(environment,ast,subAcc) if environment else f(ast,subAcc)
 		elif isinstance(ast,Assign):
 			nodesAcc = acc
@@ -120,7 +120,7 @@ class TraverseIR():
 			nodeAcc = TraverseIR.foldPostOrderLeft(ast.node,f,acc,environment)
 			argsAcc = nodeAcc
 			for n in ast.args:
-				argsAcc = TraverseIR.foldPostOrderLeft(n,f,argsAcc)
+				argsAcc = TraverseIR.foldPostOrderLeft(n,f,argsAcc,environment)
 			return f(environment,callfunc,argsAcc) if environment else f(callfunc,argsAcc)
 		elif isinstance(ast,Const):
 			return f(environment,ast,acc) if environment else f(ast,acc)
@@ -181,10 +181,10 @@ class TraverseIR():
 			return f(environment,ast,argAcc) if environment else f(ast,argAcc)
 		elif isinstance(ast,InjectFrom):
 			argAcc = TraverseIR.foldPostOrderLeft(ast.arg,f,acc,environment)
-			return f(environment,ast,argsAcc) if environment else f(ast,argsAcc)
+			return f(environment,ast,argAcc) if environment else f(ast,argAcc)
 		elif isinstance(ast,ProjectTo):
 			argAcc = TraverseIR.foldPostOrderLeft(ast.arg,f,acc,environment)
-			return f(environment,ast,argsAcc) if environment else f(ast,argsAcc)
+			return f(environment,ast,argAcc) if environment else f(ast,argAcc)
 		elif isinstance(ast,Let):
 			varAcc = TraverseIR.foldPostOrderLeft(ast.var,f,acc,environment)
 			rhsAcc = TraverseIR.foldPostOrderLeft(ast.rhs,f,varAcc,environment)
