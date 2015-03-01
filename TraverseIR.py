@@ -173,25 +173,24 @@ class TraverseIR():
 			notAcc = TraverseIR.foldPostOrderLeft(ast.expr,f,acc,environment)
 			return f(environment,ast,notAcc) if environment else f(ast,notAcc)
 
-		#Not complete
 		#P1 Extension nodes
 		elif isinstance(ast,Boolean):
-			return f(environment,ast) if environment else f(ast)
+			return f(environment,ast,acc) if environment else f(ast,acc)
 		elif isinstance(ast,GetTag):
-			gettag = GetTag(TraverseIR.foldPostOrderLeft(ast.arg,f,environment))
-			return f(environment,gettag) if environment else f(gettag)
+			argAcc = TraverseIR.foldPostOrderLeft(ast.arg,f,acc,environment)
+			return f(environment,ast,argAcc) if environment else f(ast,argAcc)
 		elif isinstance(ast,InjectFrom):
-			injectfrom = InjectFrom(ast.typ,TraverseIR.foldPostOrderLeft(ast.arg,f,environment))
-			return f(environment,injectfrom) if environment else f(injectfrom)
+			argAcc = TraverseIR.foldPostOrderLeft(ast.arg,f,acc,environment)
+			return f(environment,ast,argsAcc) if environment else f(ast,argsAcc)
 		elif isinstance(ast,ProjectTo):
-			projectto = ProjectTo(ast.typ,TraverseIR.foldPostOrderLeft(ast.arg,f,environment))
-			return f(environment,projectto) if environment else f(projectto)
+			argAcc = TraverseIR.foldPostOrderLeft(ast.arg,f,acc,environment)
+			return f(environment,ast,argsAcc) if environment else f(ast,argsAcc)
 		elif isinstance(ast,Let):
-			let = Let(TraverseIR.foldPostOrderLeft(ast.var,f,environment),TraverseIR.foldPostOrderLeft(ast.rhs,f,environment),TraverseIR.foldPostOrderLeft(ast.body,f,environment))
-			return f(environment,let) if environment else f(let)
+			varAcc = TraverseIR.foldPostOrderLeft(ast.var,f,acc,environment)
+			rhsAcc = TraverseIR.foldPostOrderLeft(ast.rhs,f,varAcc,environment)
+			bodyAcc = TraverseIR.foldPostOrderLeft(ast.body,f,rhsAcc,environment)
+			return f(environment,ast,bodyAcc) if environment else f(ast,bodyAcc)
 		elif isinstance(ast,IsTag):
-			istag = IsTag(ast.typ,TraverseIR.foldPostOrderLeft(ast.arg,f,environment))
-			return f(environment,istag) if environment else f(istag)
-
-
+			argAcc = TraverseIR.foldPostOrderLeft(ast.arg,f,acc,environment)
+			return f(environment,ast,argAcc) if environment else f(ast,argAcc)
 		else: raise Exception("foldPostOrderLeft does not currently support the " + ast.__class__.__name__ + " node.")
