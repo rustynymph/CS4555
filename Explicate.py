@@ -103,8 +103,7 @@ class Explicate:
 			IfExp(IsTag(INT_t, usub_name),InjectFrom(INT_t, UnarySub(ProjectTo(INT_t, usub_name))),
 			IfExp(IsTag(BOOL_t, usub_name),InjectFrom(INT_t, UnarySub(ProjectTo(BOOL_t, usub_name))),
 			CallFunc('error',[],None,None))))
-			
-			
+		
 		return explicated	
 		
 	@staticmethod			

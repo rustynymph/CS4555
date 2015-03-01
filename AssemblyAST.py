@@ -318,7 +318,7 @@ class ClusteredInstructions(Instruction):
 	def __init__(self, nodes=[]):
 		self.nodes = nodes
 		
-	def __str__(self):
+	def __repr__(self):
 		tmp = self.__class__.__name__ + "(["
 		for i in range (0,len(self.nodes)-2):
 			tmp += str(self.nodes[i]) + ","

@@ -100,7 +100,7 @@ class Translator:
 			elif isinstance(read,Subscript): return subscriptFunction(name,read,liveness)
 			elif isinstance(read,GetTag): return getTagFunction(name,read,liveness)
 			elif isinstance(read,InjectFrom): return injectFromFunction(name,read,liveness)
-			elif isinstance(read,ProjectTo): return injectFromFunction(name,read,liveness)
+			elif isinstance(read,ProjectTo): return projectToFunction(name,read,liveness)
 			elif isinstance(read,IsTag): return isTagFunction(name,read,liveness)
 			else: raise "Error: " + str(ast) + " currently not supported.\n"
 		
@@ -238,12 +238,17 @@ class Translator:
 					
 		def injectFromFunction(name,ast,liveness):
 			reg = getName(name)
-			mov_instruction = MoveInstruction(getName(ast.arg),reg,"l")			
-			shift_left_instruction = ShiftLeftInstruction(ConstantOperand(2),reg,"l")
-			or_instruction = OrInstruction(ConstantOperand(ast.typ),reg,"l")
-			save_instruction = MoveInstruction(reg,getName(ast.arg),"l")
+			if isinstance(ast.arg,Const):
+				val = ConstantOperand(ast.arg.value)
+				mov_instruction = MoveInstruction(val,reg,"l")			
+				shift_left_instruction = ShiftLeftInstruction(ConstantOperand(2),reg,"l")
+				or_instruction = OrInstruction(ConstantOperand(ast.typ),reg,"l")
+				save_instruction = MoveInstruction(reg,getName(ast.arg),"l")
 
-			return ClusteredInstructions([mov_instruction,shift_left_instruction,or_instruction,save_instruction])
+				return ClusteredInstructions([mov_instruction,shift_left_instruction,or_instruction,save_instruction])				
+			elif isinstance(ast.arg,CallFunc): return callfuncFunction(name,ast.arg,liveness)
+
+
 
 		def projectToFunction(name,ast,liveness):
 			shift_right_instruction = RightShiftInstruction(ConstantOperand(2),getName(ast.arg),"l")
@@ -408,7 +413,9 @@ class Translator:
 					
 			save = [MoveInstruction(getRegister(x),getVariableInMemory(x),"l") for x in registers]
 
-			createDictionary = CallInstruction(FunctionCallOperand(ast.node.name))
+			createDictionary = CallInstruction(FunctionCallOperand(ast.node))
+			shift_l_instruction = ShiftLeftInstruction(ConstantOperand(2),RegisterOperand("eax"),"l")
+			or_instruction = OrInstruction(ConstantOperand(0),RegisterOperand("eax"),"l")
 			mov_instruction = MoveInstruction(RegisterOperand("eax"),getName(name),"l")
 			
 			if name in registers:
@@ -416,7 +423,7 @@ class Translator:
 			
 			load = [MoveInstruction(getVariableInMemory(x),getRegister(x),"l") for x in registers]
 			 
-			return ClusteredInstructions(save + [createDictionary, mov_instruction] + load)
+			return ClusteredInstructions(save + [createDictionary, shift_l_instruction, or_instruction, mov_instruction] + load)
 		
 		def printFunction(ast,liveness):
 			registers = []
@@ -428,8 +435,9 @@ class Translator:
 			save = [MoveInstruction(getRegister(x),getVariableInMemory(x),"l") for x in registers]
 			
 			operand = getName(ast.nodes[0].name)
+			instruction = [ShiftRightInstruction(ConstantOperand(2),operand,"l")]
 			
-			instruction = [PushInstruction(operand,"l")]
+			instruction += [PushInstruction(operand,"l")]
 			instruction += [CallInstruction(FunctionCallOperand("print_int_nl"))]
 			instruction += [AddIntegerInstruction(ConstantOperand(4),RegisterOperand("esp"),"l")]
 				
@@ -463,6 +471,7 @@ class Translator:
 				
 				x86 = []
 				for i in range(0,len(ast.nodes)):
+					#print ast.nodes[i]
 					x86.append(translatePythonAST(ast.nodes[i],liveness[i:i+2]))
 				
 				x86 = removeTrivialMoves(x86)
