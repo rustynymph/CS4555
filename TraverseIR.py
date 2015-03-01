@@ -16,7 +16,7 @@ class TraverseIR():
 			assign = Assign([TraverseIR.map(n,f,environment) for n in ast.nodes],TraverseIR.map(ast.expr,f,environment))
 			return f(environment,assign) if environment else f(assign)
 		elif isinstance(ast,Discard):
-			discard = Discard(TraverseIR.map(ast.expr))
+			discard = Discard(TraverseIR.map(ast.expr,f,environment))
 			return f(environment,discard) if environment else f(discard)
 		elif isinstance(ast,Add):
 			lhs = TraverseIR.map(ast.left,f,environment)
@@ -45,7 +45,7 @@ class TraverseIR():
 			ifexp = IfExp(TraverseIR.map(ast.test,f,environment),TraverseIR.map(ast.then,f,environment),TraverseIR.map(ast.else_,f,environment))
 			return f(environment,ifexp) if environment else f(ifexp)
 		elif isinstance(ast,Dict):
-			d = Dict([(TraverseIR.map(t[0]),TraverseIR.map(t[1])) for t in ast.items])
+			d = Dict([(TraverseIR.map(t[0],f,environment),TraverseIR.map(t[1],f,environment)) for t in ast.items])
 			return f(environment,d) if environment else f(d)
 		elif isinstance(ast,Or):
 			o = Or([TraverseIR.map(n,f,environment) for n in ast.nodes])
@@ -57,14 +57,30 @@ class TraverseIR():
 			compare = Compare(TraverseIR.map(ast.expr,f,environment),[(t[0],TraverseIR.map(t[1],f,environment)) for t in ast.ops])
 			return f(environment,compare) if environment else f(compare)
 		elif isinstance(ast,Subscript):
-			subscript = Subscript(TraverseIR.map(ast.expr,f,environment),ast.flags,[TraverseIR.map(n) for n in ast.subs])
+			subscript = Subscript(TraverseIR.map(ast.expr,f,environment),ast.flags,[TraverseIR.map(n,f,environment) for n in ast.subs])
 			return f(environment,subscript) if environment else f(subscript)
 		elif isinstance(ast,Not):
-			n = Not(TraverseIR.map(ast.expr))
+			n = Not(TraverseIR.map(ast.expr,f,environment))
 			return f(environment,n) if environment else f(n)
 
 		#P1 Extension nodes
 		elif isinstance(ast,Boolean):
 			return f(environment,ast) if environment else f(ast)
+		elif isinstance(ast,GetTag):
+			gettag = GetTag(TraverseIR.map(ast.arg,f,environment))
+			return f(environment,gettag) if environment else f(gettag)
+		elif isinstance(ast,InjectFrom):
+			injectfrom = InjectFrom(ast.typ,TraverseIR.map(ast.arg,f,environment))
+			return f(environment,injectfrom) if environment else f(injectfrom)
+		elif isinstance(ast,ProjectTo):
+			projectto = ProjectTo(ast.typ,TraverseIR.map(ast.arg,f,environment))
+			return f(environment,projectto) if environment else f(projectto)
+		elif isinstance(ast,Let):
+			let = Let(TraverseIR.map(ast.var,f,environment),TraverseIR.map(ast.rhs,f,environment),TraverseIR.map(ast.body,f,environment))
+			return f(environment,let) if environment else f(let)
+		elif isinstance(ast,IsTag):
+			istag = IsTag(ast.typ,TraverseIR.map(ast.arg,f,environment))
+			return f(environment,istag) if environment else f(istag)
+
 
 		else: raise Exception("map does not currently support the " + ast.__class__.__name__ + " node.")

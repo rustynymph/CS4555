@@ -3,7 +3,6 @@
 import sys
 import string
 from Flatten import *
-#from Flatten2 import *
 from Translator import *
 from Optimizer import *
 from Explicate import *
