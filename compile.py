@@ -23,8 +23,8 @@ pythonAST = TraverseIR.map(pythonAST,Optimizer.reduceMap)
 pythonAST = TraverseIR.map(pythonAST,Optimizer.negationMap)
 pythonAST = TraverseIR.map(pythonAST,Namespace.removeDependenciesMap,Namespace(Namespace.environmentKeywords + Namespace.reservedKeywords))
 pythonAST = TraverseIR.map(pythonAST,Simplify.nameToBoolMap)
-
-explicatedAST = Explicate.explicate(pythonAST)
+print pythonAST
+pythonAST = TraverseIR.map(pythonAST,Explicate.explicateMap,Explicate())
 print explicatedAST
 flattenedAST = python_compiler.treeFlatten(explicatedAST)
 print flattenedAST[0]
