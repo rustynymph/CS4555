@@ -7,6 +7,57 @@ import string
 import math
 from PythonASTExtension import *
 
+class PrintFlattener():
+	globalPrintCounter = 0;
+
+	def getAndIncrement():
+		currentCounter = globalPrintCounter
+		globalPrintCounter += 1
+		return currentCounter
+
+	def __init__(self,number):
+		self.number = number
+		self.name = "printVar" + str(number)
+
+	# def flattenPrintMap(self,ast):
+
+class ArithmeticFlattener():
+	def __init__(self,name,assign=False,count=None):
+		self.name = name
+		self.assign = assign
+		self.count = count
+
+	def flattenArithmeticMap(self,ast):
+		if isPythonASTLeaf(ast) and not isinstance(ast,AssignName): return ast
+		elif isinstance(ast,Add):
+			isLeftLeaf = isPythonASTLeaf(ast.left)
+			isRightLeaf = isPythonASTLeaf(ast.right)
+			if isLeftLeaf and isRightLeaf:
+
+
+		else: raise Exception("Invalid ast input. ArithmeticFlattener does not hanle " + ast.__class__.__name__ + ".")
+
+class DictionaryFlattener():
+	def __init__(self,name):
+		self.name = name
+		self.count = None
+
+
+class Flatten():
+	def __init__(self):
+		self.count = 0
+
+	def getAndIncrement(self):
+		count = self.count
+		self.count += 1
+		return count
+
+	def flattenMap(self,ast):
+		if isinstance(ast,Printnl):
+			if isinstance(ast,Const) or isinstance(ast,Boolean) or isinstance(ast,Name): return ast
+			else:
+
+		else: return ast
 
 class flat_stmt(Stmt):
 	def __init__(self, nodes):
