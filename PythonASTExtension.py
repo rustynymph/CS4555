@@ -66,3 +66,5 @@ class Let(Node):
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.rhs) + "," + str(self.body) + ")"
 	
+def isPythonASTLeaf(ast):
+	return isinstance(ast,Const) or isinstance(ast,Boolean) or isinstance(ast,Name) or isinstance(ast,AssName)
