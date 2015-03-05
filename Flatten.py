@@ -11,16 +11,9 @@ from TraverseIR import *
 class ArithmeticFlattener():
 
 	@staticmethod
-	def isFlattenedLeaf(ast):
-		return isPythonASTLeaf(ast)
-
-	@staticmethod
 	def flattenArithmetic(ast,name,isInitial=True):
-		# if ArithmeticFlattener.isFlattenedLeaf(ast):
-		# 	if isInitial: return Stmt([Assign([AssName(name,'OP_ASSIGN')],ast)])
-		# 	else: return Stmt([Assign([AssName(name,'OP_ASSIGN')],)])
 		if isinstance(ast,UnarySub):
-			if not ArithmeticFlattener.isFlattenedLeaf(ast.expr):
+			if not isPythonASTLeaf(ast.expr):
 				flattenedExpression = [ArithmeticFlattener.flattenArithmetic(ast.expr,name,isInitial)]
 				assign = Assign([AssName(name,'OP_ASSIGN')],UnarySub(Name(name))) 
 			else:
@@ -31,7 +24,7 @@ class ArithmeticFlattener():
 		elif isinstance(ast,Add):
 			#Flattens left sub tree
 			#Checks to see if left subtree is a leaf
-			if not ArithmeticFlattener.isFlattenedLeaf(ast.left):
+			if not isPythonASTLeaf(ast.left):
 				#Recurses down the left subtree and returns a Stmt
 				leftFlattenedExpression = ArithmeticFlattener.flattenArithmetic(ast.left,name,isInitial)
 			else:
@@ -43,13 +36,13 @@ class ArithmeticFlattener():
 			#Initially assigns rightName = name
 			rightName = name
 			#If both the right and left subtree are not leafs then append a value to avoid name clashing
-			if not (ArithmeticFlattener.isFlattenedLeaf(ast.left) or ArithmeticFlattener.isFlattenedLeaf(ast.right)):
+			if not (isPythonASTLeaf(ast.left) or isPythonASTLeaf(ast.right)):
 				rightName = name+"$AddRight"
 
 			#Final assignment for the tree
 			assign = None
 			#Checks if the tree is a leaf
-			if not ArithmeticFlattener.isFlattenedLeaf(ast.right):
+			if not isPythonASTLeaf(ast.right):
 				#Recurses down the right subtree and returns a Stmt
 				rightFlattenedExpression = ArithmeticFlattener.flattenArithmetic(ast.right,rightName,False)
 				#Adds the right and left subtrees and sets it equal to name
