@@ -18,18 +18,30 @@ pythonFilename = sys.argv[1]
 #text_to_parse = file_to_parse.read()
 #raise Exception(text_to_parse)
 
+def removeNestedStmtMap(ast):
+	if isinstance(ast,Stmt):
+		stmtArray = []
+		for expr in ast.nodes:
+			stmtArray += expr.nodes if isinstance(expr,Stmt) else [expr]
+		return Stmt(stmtArray)
+	else: return ast
+
 pythonAST = compiler.parseFile(pythonFilename)
-pythonAST = TraverseIR.map(pythonAST,Optimizer.reduceMap)
+# pythonAST = TraverseIR.map(pythonAST,Optimizer.reduceMap)
 pythonAST = TraverseIR.map(pythonAST,Optimizer.negationMap)
 pythonAST = TraverseIR.map(pythonAST,Namespace.removeDependenciesMap,Namespace(Namespace.environmentKeywords + Namespace.reservedKeywords))
 pythonAST = TraverseIR.map(pythonAST,Simplify.nameToBoolMap)
+# pythonAST = TraverseIR.map(pythonAST,Explicate.explicateMap,Explicate())
+# print pythonAST
+pythonAST = TraverseIR.map(pythonAST,Flatten.flattenMap,Flatten())
+# print pythonAST
+pythonAST = TraverseIR.map(pythonAST,removeNestedStmtMap)
 print pythonAST
-pythonAST = TraverseIR.map(pythonAST,Explicate.explicateMap,Explicate())
-print explicatedAST
-flattenedAST = python_compiler.treeFlatten(explicatedAST)
-print flattenedAST[0]
-x86AST = Translator.pythonASTToAssemblyAST(flattenedAST)
+# flattenedAST = python_compiler.treeFlatten(explicatedAST)
+# print flattenedAST[0]
+# flattenedAST = pythonAST
+# x86AST = Translator.pythonASTToAssemblyAST(flattenedAST)
 
-x86Filename = sys.argv[1].rsplit(".",1)[0] + ".s"
-x86File = open(x86Filename,"w")
-x86File.write(x86AST.printInstruction())
+# x86Filename = sys.argv[1].rsplit(".",1)[0] + ".s"
+# x86File = open(x86Filename,"w")
+# x86File.write(x86AST.printInstruction())
