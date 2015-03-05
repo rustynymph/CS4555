@@ -116,19 +116,29 @@ class ArithmeticFlattener():
 
 				dictParameters += [(keyName,valueName)]
 			dictionary = Dict(dictParameters)
-			return Stmt(stmtArray + [dictionary])
+			assign = Assign([AssName(name,'OP_ASSIGN')],dictionary)
+			return Stmt(stmtArray + [assign])
 
 		else: return ast
 
 class PrintFlattener():
-	def __init__(self,name,count=0):
-		self.name = name
+	def __init__(self,prefix,count=0):
+		self.prefix = prefix
 		self.count = count
+
+	def getName(self):
+		return self.prefix + "$" + str(self.count)
+
+	def getNameAndIncrementCounter(self):
+		name = self.getName()
+		self.count += 1
+		return name
 
 
 class Flatten():
 	def __init__(self):
 		self.count = 0
+		self.printFlattener = PrintFlattener("print")
 
 	def getAndIncrement(self):
 		count = self.count
@@ -139,5 +149,8 @@ class Flatten():
 		if isinstance(ast,Assign):
 			return ArithmeticFlattener.flattenArithmetic(ast.expr,ast.nodes[0].name)
 		elif isinstance(ast,Printnl):
-			print "hello"
+			name = self.printFlattener.getNameAndIncrementCounter()
+			printStmt = ArithmeticFlattener.flattenArithmetic(ast.nodes[0],name)
+			assign = Printnl([Name(name)],None)
+			return Stmt([printStmt,assign])
 		else: return ast
