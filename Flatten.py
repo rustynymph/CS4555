@@ -60,7 +60,7 @@ class ArithmeticFlattener():
 		elif isinstance(ast,CallFunc):
 			stmtArray = []
 			functionParameters = []
-
+			print ast
 			parameterPrefixName = name + "$" + ast.node.name
 			for i in range(len(ast.args)):
 				parameter = ast.args[i]
@@ -115,13 +115,36 @@ class ArithmeticFlattener():
 				else: keyName = key
 
 				dictParameters += [(keyName,valueName)]
+
 			dictionary = Dict(dictParameters)
 			assign = Assign([AssName(name,'OP_ASSIGN')],dictionary)
 			return Stmt(stmtArray + [assign])
+		elif isinstance(ast,Subscript):
+			stmtArray = []
+
+			exprName = None
+			subName = None
+			if not isPythonASTLeaf(ast.expr):
+				exprStringName = name + "$sub-expr"
+				exprName = Name(exprStringName)
+				stmtArray += [ArithmeticFlattener.flattenArithmetic(ast.expr,exprStringName)]
+			else: exprName = ast.expr
+
+			print ast.subs[0]
+			if not isPythonASTLeaf(ast.subs[0]):
+				subStringName = name + "$sub-0"
+				subName = Name(subStringName)
+				stmtArray += [ArithmeticFlattener.flattenArithmetic(ast.subs[0],subStringName)]
+			else: subName = ast.subs[0]
+
+			subscription = Subscript(exprName,ast.flags,[subName])
+			assign = Assign([AssName(name,'OP_ASSIGN')],subscription)
+			return Stmt(stmtArray + [assign])
+
 
 		else: return ast
 
-class PrintFlattener():
+class FlattenTracker():
 	def __init__(self,prefix,count=0):
 		self.prefix = prefix
 		self.count = count
@@ -138,19 +161,17 @@ class PrintFlattener():
 class Flatten():
 	def __init__(self):
 		self.count = 0
-		self.printFlattener = PrintFlattener("print")
-
-	def getAndIncrement(self):
-		count = self.count
-		self.count += 1
-		return count
+		self.printTracker = FlattenTracker("print")
 
 	def flattenMap(self,ast):
 		if isinstance(ast,Assign):
 			return ArithmeticFlattener.flattenArithmetic(ast.expr,ast.nodes[0].name)
 		elif isinstance(ast,Printnl):
-			name = self.printFlattener.getNameAndIncrementCounter()
-			printStmt = ArithmeticFlattener.flattenArithmetic(ast.nodes[0],name)
-			assign = Printnl([Name(name)],None)
-			return Stmt([printStmt,assign])
-		else: return ast
+			name = self.printTracker.getNameAndIncrementCounter()
+			if not isPythonASTLeaf(ast.nodes[0]):
+				printStmt = ArithmeticFlattener.flattenArithmetic(ast.nodes[0],name)
+				assign = Printnl([Name(name)],None)
+				cluster = [printStmt,assign]
+			else: cluster = [Printnl([ast.nodes[0]],None)]
+			return Stmt(cluster)
+		else: ast
