@@ -36,7 +36,7 @@ class ArithmeticFlattener():
 			#Initially assigns rightName = name
 			rightName = name
 			#If both the right and left subtree are not leafs then append a value to avoid name clashing
-			if not (isPythonASTLeaf(ast.left) or isPythonASTLeaf(ast.right)):
+			if not (isPythonASTLeaf(ast.left) or isPythonASTLeaf(ast.right)) or isinstance(ast.right,CallFunc):
 				rightName = name+"$AddRight"
 
 			#Final assignment for the tree
