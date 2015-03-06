@@ -60,7 +60,6 @@ class ArithmeticFlattener():
 		elif isinstance(ast,CallFunc):
 			stmtArray = []
 			functionParameters = []
-			print ast
 			parameterPrefixName = name + "$" + ast.node.name
 			for i in range(len(ast.args)):
 				parameter = ast.args[i]
@@ -130,7 +129,6 @@ class ArithmeticFlattener():
 				stmtArray += [ArithmeticFlattener.flattenArithmetic(ast.expr,exprStringName)]
 			else: exprName = ast.expr
 
-			print ast.subs[0]
 			if not isPythonASTLeaf(ast.subs[0]):
 				subStringName = name + "$sub-0"
 				subName = Name(subStringName)
@@ -140,7 +138,46 @@ class ArithmeticFlattener():
 			subscription = Subscript(exprName,ast.flags,[subName])
 			assign = Assign([AssName(name,'OP_ASSIGN')],subscription)
 			return Stmt(stmtArray + [assign])
+		elif isinstance(ast,IfExp):
+			testExpr = None
+			testName = None
+			if not isPythonASTLeaf(ast.test):
+				testExpr = ArithmeticFlattener.flattenArithmetic(ast.test,name+"$test")
+				testName = Name(name+"$test")
+			else:
+				testExpr = ast.test
 
+			thenExpr = None
+			if not isPythonASTLeaf(ast.then):
+				thenExpr = ArithmeticFlattener.flattenArithmetic(ast.then,name)
+			else:
+				thenExpr = Stmt([Assign([AssName(name,'OP_ASSIGN')],ast.then)])
+
+			elseExpr = None
+			if not isPythonASTLeaf(ast.else_):
+				elseExpr = ArithmeticFlattener.flattenArithmetic(ast.else_,name)
+			else:
+				elseExpr = Stmt([Assign([AssName(name,'OP_ASSIGN')],ast.else_)])
+
+			stmtArray = []
+
+			ifexpr = None
+			if testName: 
+				ifexpr = IfExp(testName,thenExpr,elseExpr)
+				stmtArray += [testExpr]
+
+			else: ifexpr = IfExp(testExpr,thenExpr,elseExpr)
+			stmtArray += [ifexpr]
+			return Stmt(stmtArray)
+
+
+		elif isinstance(ast,Compare):
+			print "Compare"
+			return ast
+		elif isinstance(ast,Let):
+			expr = ArithmeticFlattener.flattenArithmetic(ast.expr,ast.var.name)
+			body = ArithmeticFlattener.flattenArithmetic(ast.body,name)
+			return Stmt([Let(ast.var,expr,body)])
 
 		else: return ast
 
@@ -174,4 +211,4 @@ class Flatten():
 				cluster = [printStmt,assign]
 			else: cluster = [Printnl([ast.nodes[0]],None)]
 			return Stmt(cluster)
-		else: ast
+		else: return ast

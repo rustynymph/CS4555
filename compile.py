@@ -11,6 +11,7 @@ import compiler
 from Simplify import *
 from TraverseIR import *
 from Namespace import *
+from Orphan import *
 
 pythonFilename = sys.argv[1]
 
@@ -28,13 +29,17 @@ def removeNestedStmtMap(ast):
 
 pythonAST = compiler.parseFile(pythonFilename)
 # pythonAST = TraverseIR.map(pythonAST,Optimizer.reduceMap)
+pythonAST = TraverseIR.map(pythonAST,Simplify.removeDiscardMap)
+# print pythonAST
 pythonAST = TraverseIR.map(pythonAST,Optimizer.negationMap)
 pythonAST = TraverseIR.map(pythonAST,Namespace.removeDependenciesMap,Namespace(Namespace.environmentKeywords + Namespace.reservedKeywords))
 pythonAST = TraverseIR.map(pythonAST,Simplify.nameToBoolMap)
-# pythonAST = TraverseIR.map(pythonAST,Explicate.explicateMap,Explicate())
-# print pythonAST
+pythonAST = TraverseIR.map(pythonAST,Orphan.findParentMap,Orphan())
+pythonAST = TraverseIR.map(pythonAST,Explicate.explicateMap,Explicate())
+pythonAST = TraverseIR.map(pythonAST,Explicate.removeIsTagMap)
+print pythonAST
+print
 pythonAST = TraverseIR.map(pythonAST,Flatten.flattenMap,Flatten())
-# print pythonAST
 pythonAST = TraverseIR.map(pythonAST,removeNestedStmtMap)
 print pythonAST
 # flattenedAST = python_compiler.treeFlatten(explicatedAST)
