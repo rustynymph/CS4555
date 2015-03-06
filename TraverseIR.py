@@ -75,7 +75,7 @@ class TraverseIR():
 			projectto = ProjectTo(ast.typ,TraverseIR.map(ast.arg,f,environment))
 			return f(environment,projectto) if environment else f(projectto)
 		elif isinstance(ast,Let):
-			let = Let(TraverseIR.map(ast.var,f,environment),TraverseIR.map(ast.rhs,f,environment),TraverseIR.map(ast.body,f,environment))
+			let = Let(TraverseIR.map(ast.var,f,environment),TraverseIR.map(ast.expr,f,environment),TraverseIR.map(ast.body,f,environment))
 			return f(environment,let) if environment else f(let)
 		elif isinstance(ast,IsTag):
 			istag = IsTag(ast.typ,TraverseIR.map(ast.arg,f,environment))
@@ -187,8 +187,8 @@ class TraverseIR():
 			return f(environment,ast,argAcc) if environment else f(ast,argAcc)
 		elif isinstance(ast,Let):
 			varAcc = TraverseIR.foldPostOrderLeft(ast.var,f,acc,environment)
-			rhsAcc = TraverseIR.foldPostOrderLeft(ast.rhs,f,varAcc,environment)
-			bodyAcc = TraverseIR.foldPostOrderLeft(ast.body,f,rhsAcc,environment)
+			exprAcc = TraverseIR.foldPostOrderLeft(ast.expr,f,varAcc,environment)
+			bodyAcc = TraverseIR.foldPostOrderLeft(ast.body,f,exprAcc,environment)
 			return f(environment,ast,bodyAcc) if environment else f(ast,bodyAcc)
 		elif isinstance(ast,IsTag):
 			argAcc = TraverseIR.foldPostOrderLeft(ast.arg,f,acc,environment)

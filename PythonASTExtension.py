@@ -55,16 +55,16 @@ class ProjectTo(Node):
 		
 	
 class Let(Node):
-	def __init__(self,var,rhs,body):
+	def __init__(self,var,expr,body):
 		self.var = var
-		self.rhs = rhs
+		self.expr = expr
 		self.body = body
 		
 	def __repr__(self):
-		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.rhs) + "," + str(self.body) + ")"
+		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.expr) + "," + str(self.body) + ")"
 		
 	def __str__(self):
-		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.rhs) + "," + str(self.body) + ")"
+		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.expr) + "," + str(self.body) + ")"
 	
 def isPythonASTLeaf(ast):
 	return isinstance(ast,Const) or isinstance(ast,Boolean) or isinstance(ast,Name) or isinstance(ast,AssName)
