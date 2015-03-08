@@ -14,10 +14,6 @@ BIG_t = 3		#11
 MASK = 3		#11
 counter = 1
 
-class exp_stmt(Stmt):
-	def __init__(self, nodes):
-		Stmt.__init__(self, nodes)
-
 class Explicate:
 
 	def __init__(self):
@@ -65,6 +61,9 @@ class Explicate:
 			andName = Name("letAnd"+str(self.getAndIncrement()))
 			andexp = Let(andName,ast.nodes[0],IfExp(Not(andName),andName,ast.nodes[1]))
 			return andexp
+		elif isinstance(ast,Not):
+			notexp = ProjectTo(BOOL_t,ast)
+			return notexp
 
 		else: return ast
 
