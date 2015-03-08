@@ -11,8 +11,6 @@ class Translator:
 		environment = ast[1]
 		ast = ast[0]
 		la = LivenessAnalysis.livenessAnalysis(ast,environment)
-		print("liveness")
-		print la
 		graph = LivenessAnalysis.createGraph(la)
 		coloredgraph = LivenessAnalysis.colorGraph(graph)
 
