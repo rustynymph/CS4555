@@ -50,7 +50,7 @@ def x86InstructionToString(name,args):
 		a = args[i]
 		instructionString += str(a) + ","
 
-	if len(args) > 0: instruction += str(args[len(args)-1])
+	if len(args) > 0: instructionString += str(args[len(args)-1])
 	instructionString += ")"
 	return instructionString
 
@@ -61,4 +61,4 @@ def printUnaryX86Instruction(name,operand,size=""):
 	return name + size + " " + operand.printOperand() + "\n"
 
 def printBinaryX86Instruction(name,fromOperand,toOperand,size=""):
-	return name + size + fromOperand.printOperand() + ", " + toOperand.printOperand() + "\n"
+	return name + size + " " + fromOperand.printOperand() + ", " + toOperand.printOperand() + "\n"

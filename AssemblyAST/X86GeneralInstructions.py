@@ -86,6 +86,8 @@ class CallInstruction(UnaryInstruction):
 class MoveInstruction(BinaryInstruction):
 	def __init__(self,fromOperand,toOperand):
 		BinaryInstruction(fromOperand,toOperand)
+		self.fromOperand = fromOperand
+		self.toOperand = toOperand
 
 	def __repr__(self):
 		return x86InstructionToString(self.__class__.__name__,[self.fromOperand,self.toOperand])
