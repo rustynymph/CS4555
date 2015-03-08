@@ -3,10 +3,12 @@ class TraverseIR():
 	@staticmethod
 	def map(ast,f,environment=None):
 		#P0 nodes
+		# print ast
 		if isinstance(ast,Module): 
 			module = Module(ast.doc,TraverseIR.map(ast.node,f,environment))
 			return f(environment, module) if environment else f(module)
 		elif isinstance(ast,Stmt):
+
 			stmt = Stmt([TraverseIR.map(n,f,environment) for n in ast.nodes])
 			return f(environment,stmt) if environment else f(stmt)
 		elif isinstance(ast,Printnl):
@@ -82,7 +84,7 @@ class TraverseIR():
 			return f(environment,istag) if environment else f(istag)
 
 
-		else: raise Exception("map does not currently support the " + ast.__class__.__name__ + " node.")
+		else: raise Exception("map does not currently support the " + ast.__class__.__name__ + " node. (" + str(ast) + ")")
 
 	@staticmethod
 	def foldPostOrderLeft(ast,f,acc,environment=None):
