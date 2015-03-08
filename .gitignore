@@ -1,4 +1,5 @@
 /*.pyc
+AssemblyAST/*.pyc
 .*
 !/.gitignore
 tests/
