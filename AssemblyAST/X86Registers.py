@@ -6,7 +6,7 @@ class RegisterSize:
 
 	@staticmethod
 	def sizeToString(size):
-		if RegisterSize.SixtyFourBits == size: return "qw"
+		if RegisterSize.SixtyFourBits == size: return "q"
 		elif RegisterSize.ThirtyTwoBits == size: return "l"
 		elif RegisterSize.SixteenBits == size: return "w"
 		elif RegisterSize.EightBits == size: return "b"
@@ -71,18 +71,18 @@ class Registers32(Registers16):
 	
 
 class Registers64(Registers32):
-	RAX = Register("rax",RegisterSize.SixtyFourBits)
-	RCX = Register("rcx",RegisterSize.SixtyFourBits)
-	RDX = Register("rdx",RegisterSize.SixtyFourBits)
+	RAX = CallerSavedRegister("rax",RegisterSize.SixtyFourBits)
+	RCX = ArguementRegister("rcx",RegisterSize.SixtyFourBits)
+	RDX = ArguementRegister("rdx",RegisterSize.SixtyFourBits)
 	RBX = CalleeSavedRegister("rbx",RegisterSize.SixtyFourBits)
 	RSP = Register("rsp",RegisterSize.SixtyFourBits)
 	RBP = Register("rbp",RegisterSize.SixtyFourBits)
-	RSI = Register("rsi",RegisterSize.SixtyFourBits)
-	RDI = Register("rdi",RegisterSize.SixtyFourBits)
-	R8  = Register("r8",RegisterSize.SixtyFourBits)
-	R9  = Register("r9",RegisterSize.SixtyFourBits)
-	R10 = Register("r10",RegisterSize.SixtyFourBits)
-	R11 = Register("r11",RegisterSize.SixtyFourBits)
+	RSI = ArguementRegister("rsi",RegisterSize.SixtyFourBits)
+	RDI = ArguementRegister("rdi",RegisterSize.SixtyFourBits)
+	R8  = ArguementRegister("r8",RegisterSize.SixtyFourBits)
+	R9  = ArguementRegister("r9",RegisterSize.SixtyFourBits)
+	R10 = CallerSavedRegister("r10",RegisterSize.SixtyFourBits)
+	R11 = CallerSavedRegister("r11",RegisterSize.SixtyFourBits)
 	R12 = CalleeSavedRegister("r12",RegisterSize.SixtyFourBits)
 	R13 = CalleeSavedRegister("r13",RegisterSize.SixtyFourBits)
 	R14 = CalleeSavedRegister("r14",RegisterSize.SixtyFourBits)
