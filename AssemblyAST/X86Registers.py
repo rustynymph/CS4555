@@ -35,6 +35,10 @@ class CallerSavedRegister(Register):
 	def __init__(self,name,size):
 		Register(name,size)
 
+class ArguementRegister(Register):
+	def __init__(self,name,size):
+		Register(name,size)
+
 class Registers8():
 	AH = Register("ah",RegisterSize.EightBits)
 	AL = Register("al",RegisterSize.EightBits)
@@ -56,20 +60,21 @@ class Registers16(Registers8):
 	DI = Register("edi",RegisterSize.SixteenBits)
 
 class Registers32(Registers16):
-	EAX = Register("eax",RegisterSize.ThirtyTwoBits)
-	ECX = Register("ecx",RegisterSize.ThirtyTwoBits)
-	EDX = Register("edx",RegisterSize.ThirtyTwoBits)
-	EBX = Register("ebx",RegisterSize.ThirtyTwoBits)
+	EAX = CallerSavedRegister("eax",RegisterSize.ThirtyTwoBits)
+	ECX = CallerSavedRegister("ecx",RegisterSize.ThirtyTwoBits)
+	EDX = CallerSavedRegister("edx",RegisterSize.ThirtyTwoBits)
+	EBX = CalleeSavedRegister("ebx",RegisterSize.ThirtyTwoBits)
+	ESI = CalleeSavedRegister("esi",RegisterSize.ThirtyTwoBits)
+	EDI = CalleeSavedRegister("edi",RegisterSize.ThirtyTwoBits)
 	ESP = Register("esp",RegisterSize.ThirtyTwoBits)
 	EBP = Register("ebp",RegisterSize.ThirtyTwoBits)
-	ESI = Register("esi",RegisterSize.ThirtyTwoBits)
-	EDI = Register("edi",RegisterSize.ThirtyTwoBits)
+	
 
 class Registers64(Registers32):
 	RAX = Register("rax",RegisterSize.SixtyFourBits)
 	RCX = Register("rcx",RegisterSize.SixtyFourBits)
 	RDX = Register("rdx",RegisterSize.SixtyFourBits)
-	RBX = Register("rbx",RegisterSize.SixtyFourBits)
+	RBX = CalleeSavedRegister("rbx",RegisterSize.SixtyFourBits)
 	RSP = Register("rsp",RegisterSize.SixtyFourBits)
 	RBP = Register("rbp",RegisterSize.SixtyFourBits)
 	RSI = Register("rsi",RegisterSize.SixtyFourBits)
@@ -78,7 +83,7 @@ class Registers64(Registers32):
 	R9  = Register("r9",RegisterSize.SixtyFourBits)
 	R10 = Register("r10",RegisterSize.SixtyFourBits)
 	R11 = Register("r11",RegisterSize.SixtyFourBits)
-	R12 = Register("r12",RegisterSize.SixtyFourBits)
-	R13 = Register("r13",RegisterSize.SixtyFourBits)
-	R14 = Register("r14",RegisterSize.SixtyFourBits)
-	R15 = Register("r15",RegisterSize.SixtyFourBits)
+	R12 = CalleeSavedRegister("r12",RegisterSize.SixtyFourBits)
+	R13 = CalleeSavedRegister("r13",RegisterSize.SixtyFourBits)
+	R14 = CalleeSavedRegister("r14",RegisterSize.SixtyFourBits)
+	R15 = CalleeSavedRegister("r15",RegisterSize.SixtyFourBits)
