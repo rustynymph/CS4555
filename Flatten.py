@@ -8,17 +8,32 @@ import math
 from PythonASTExtension import *
 from TraverseIR import *
 
+class FlattenTracker():
+	def __init__(self,prefix,count=0):
+		self.prefix = prefix
+		self.count = count
+
+	def getName(self):
+		return self.prefix + "$" + str(self.count)
+
+	def getNameAndIncrementCounter(self):
+		name = self.getName()
+		self.count += 1
+		return name
+
 class ArithmeticFlattener():
 
-	@staticmethod
-	def flattenArithmetic(ast,name,isInitial=True):
+	def __init__(self):
+		self.getTagTracker = FlattenTracker("getTag")
+
+	def flattenArithmetic(self,ast,name,isInitial=True):
 		if isinstance(ast,UnarySub):
 			if not isPythonASTLeaf(ast.expr):
-				flattenedExpression = [ArithmeticFlattener.flattenArithmetic(ast.expr,name,isInitial)]
+				flattenedExpression = [self.flattenArithmetic(ast.expr,name,isInitial)]
 				assign = Assign([AssName(name,'OP_ASSIGN')],UnarySub(Name(name))) 
 			else:
-				flattenedExpression = []
-				assign = Assign([AssName(name,'OP_ASSIGN')],UnarySub(ast.expr))
+				flattenedExpression = [Assign([AssName(name,'OP_ASSIGN')],ast.expr)]
+				assign = Assign([AssName(name,'OP_ASSIGN')],UnarySub(Name(name)))
 			return Stmt(flattenedExpression + [assign])
 
 		elif isinstance(ast,Add):
@@ -26,7 +41,7 @@ class ArithmeticFlattener():
 			#Checks to see if left subtree is a leaf
 			if not isPythonASTLeaf(ast.left):
 				#Recurses down the left subtree and returns a Stmt
-				leftFlattenedExpression = ArithmeticFlattener.flattenArithmetic(ast.left,name,isInitial)
+				leftFlattenedExpression = self.flattenArithmetic(ast.left,name,isInitial)
 			else:
 				#Checks to see if name has been assigned its initial value and responses accordingly
 				if isInitial: leftFlattenedExpression = Assign([AssName(name,'OP_ASSIGN')],ast.left)
@@ -44,7 +59,7 @@ class ArithmeticFlattener():
 			#Checks if the tree is a leaf
 			if not isPythonASTLeaf(ast.right):
 				#Recurses down the right subtree and returns a Stmt
-				rightFlattenedExpression = ArithmeticFlattener.flattenArithmetic(ast.right,rightName,False)
+				rightFlattenedExpression = self.flattenArithmetic(ast.right,rightName,False)
 				#Adds the right and left subtrees and sets it equal to name
 				assign = Assign([AssName(name,'OP_ASSIGN')],Add((Name(name),Name(rightName))))
 			else:
@@ -66,7 +81,7 @@ class ArithmeticFlattener():
 				if not isPythonASTLeaf(parameter):
 					parameterName = parameterPrefixName + "$" +str(i)
 					functionParameters += [Name(parameterName)]
-					stmtArray += [ArithmeticFlattener.flattenArithmetic(parameter,parameterName)]
+					stmtArray += [self.flattenArithmetic(parameter,parameterName)]
 				else: functionParameters += [parameter]
 			assign = Assign([AssName(name,'OP_ASSIGN')],CallFunc(ast.node,functionParameters))
 			return Stmt(stmtArray + [assign])
@@ -81,7 +96,7 @@ class ArithmeticFlattener():
 				if not isPythonASTLeaf(parameter):
 					parameterName = parameterPrefixName + "$" + str(i)
 					listParameters += [Name(parameterName)]
-					stmtArray += [ArithmeticFlattener.flattenArithmetic(parameter,parameterName)]
+					stmtArray += [self.flattenArithmetic(parameter,parameterName)]
 				else: listParameters += [parameter]
 
 			assign = Assign([AssName(name,'OP_ASSIGN')],List(listParameters))
@@ -104,13 +119,13 @@ class ArithmeticFlattener():
 				if not isPythonASTLeaf(value):
 					valueParameterName = valueParameterPrefixName + "$" + str(i)
 					valueName = Name(valueParameterName)
-					stmtArray += [ArithmeticFlattener.flattenArithmetic(value,valueParameterName)]
+					stmtArray += [self.flattenArithmetic(value,valueParameterName)]
 				else: valueName = value
 
 				if not isPythonASTLeaf(key):
 					keyParameterName = keyParameterPrefixName + "$" + str(i)
 					keyName = Name(keyParameterName)
-					stmtArray += [ArithmeticFlattener.flattenArithmetic(key,keyParameterName)]
+					stmtArray += [self.flattenArithmetic(key,keyParameterName)]
 				else: keyName = key
 
 				dictParameters += [(keyName,valueName)]
@@ -126,13 +141,13 @@ class ArithmeticFlattener():
 			if not isPythonASTLeaf(ast.expr):
 				exprStringName = name + "$sub-expr"
 				exprName = Name(exprStringName)
-				stmtArray += [ArithmeticFlattener.flattenArithmetic(ast.expr,exprStringName)]
+				stmtArray += [self.flattenArithmetic(ast.expr,exprStringName)]
 			else: exprName = ast.expr
 
 			if not isPythonASTLeaf(ast.subs[0]):
 				subStringName = name + "$sub-0"
 				subName = Name(subStringName)
-				stmtArray += [ArithmeticFlattener.flattenArithmetic(ast.subs[0],subStringName)]
+				stmtArray += [self.flattenArithmetic(ast.subs[0],subStringName)]
 			else: subName = ast.subs[0]
 
 			subscription = Subscript(exprName,ast.flags,[subName])
@@ -142,20 +157,20 @@ class ArithmeticFlattener():
 			testExpr = None
 			testName = None
 			if not isPythonASTLeaf(ast.test):
-				testExpr = ArithmeticFlattener.flattenArithmetic(ast.test,name+"$test")
+				testExpr = self.flattenArithmetic(ast.test,name+"$test")
 				testName = Name(name+"$test")
 			else:
 				testExpr = ast.test
 
 			thenExpr = None
 			if not isPythonASTLeaf(ast.then):
-				thenExpr = ArithmeticFlattener.flattenArithmetic(ast.then,name)
+				thenExpr = self.flattenArithmetic(ast.then,name)
 			else:
 				thenExpr = Stmt([Assign([AssName(name,'OP_ASSIGN')],ast.then)])
 
 			elseExpr = None
 			if not isPythonASTLeaf(ast.else_):
-				elseExpr = ArithmeticFlattener.flattenArithmetic(ast.else_,name)
+				elseExpr = self.flattenArithmetic(ast.else_,name)
 			else:
 				elseExpr = Stmt([Assign([AssName(name,'OP_ASSIGN')],ast.else_)])
 
@@ -172,41 +187,122 @@ class ArithmeticFlattener():
 
 
 		elif isinstance(ast,Compare):
-			print "Compare"
-			return ast
+			compareNamePrefix = name + "$compare$"
+
+			stmtArray = []
+
+			initialComarisionExprName = Name(compareNamePrefix+str(0))
+			initialComarisionExpr = ast.expr if isPythonASTLeaf(ast.expr) else self.flattenArithmetic(ast.expr,initialComarisionExprName.name)
+
+
+			if not isPythonASTLeaf(initialComarisionExpr): stmtArray += [initialComarisionExpr]
+
+			compareArray = []
+			for i in range(len(ast.ops)):
+				compareType = ast.ops[i][0]
+
+				compareName = Name(compareNamePrefix + str(i+1))
+				compareExpr = ast.ops[i][1] if isPythonASTLeaf(ast.ops[i][1]) else self.flattenArithmetic(ast.ops[i][1],compareName.name)
+
+				if not isPythonASTLeaf(compareExpr):
+					stmtArray += [compareExpr]
+					compareArray += [(compareType,compareName)]
+				else:
+					compareArray += [(compareType,compareExpr)]
+
+			compare = Compare(initialComarisionExpr if isPythonASTLeaf(initialComarisionExpr) else initialComarisionExprName, compareArray)
+			assign = Assign([AssName(name,'OP_ASSIGN')],compare)
+			stmtArray += [assign]
+			return Stmt(stmtArray)
+
 		elif isinstance(ast,Let):
-			expr = ArithmeticFlattener.flattenArithmetic(ast.expr,ast.var.name)
-			body = ArithmeticFlattener.flattenArithmetic(ast.body,name)
+			expr = self.flattenArithmetic(ast.expr,ast.var.name)
+			body = self.flattenArithmetic(ast.body,name)
 			return Stmt([Let(ast.var,expr,body)])
 
-		else: return ast
+		elif isinstance(ast,InjectFrom):
 
-class FlattenTracker():
-	def __init__(self,prefix,count=0):
-		self.prefix = prefix
-		self.count = count
+			stmtArray = []
 
-	def getName(self):
-		return self.prefix + "$" + str(self.count)
+			if not isPythonASTLeaf(ast.arg):
+				flattenedArg = self.flattenArithmetic(ast.arg,name)
+				inject = InjectFrom(ast.typ,Name(name))
+				assign = Assign([AssName(name,'OP_ASSIGN')],inject)
+				stmtArray += [flattenedArg,assign]
+			else:
+				flattenedArg = Assign([AssName(name,'OP_ASSIGN')],ast.arg)
+				inject = InjectFrom(ast.typ,Name(name))
+				assign = Assign([AssName(name,'OP_ASSIGN')],inject)
+				stmtArray += [flattenedArg,assign]
 
-	def getNameAndIncrementCounter(self):
-		name = self.getName()
-		self.count += 1
-		return name
+			return Stmt(stmtArray)
+
+		elif isinstance(ast,ProjectTo):
+
+			stmtArray = []
+			if not isPythonASTLeaf(ast.arg):
+				flattenArg = self.flattenArithmetic(ast.arg,name)
+				project = ProjectTo(ast.typ,Name(name))
+				assign = Assign([AssName(name,'OP_ASSIGN')],project)
+				stmtArray += [flattenArg,assign]
+			else:
+				flattenArg = Assign([AssName(name,'OP_ASSIGN')],ast.arg)
+				project = ProjectTo(ast.typ,Name(name))
+				assign = Assign([AssName(name,'OP_ASSIGN')],project)
+				stmtArray += [flattenArg,assign]
+			return Stmt(stmtArray)
+
+		elif isinstance(ast,Not):
+
+			if not isPythonASTLeaf(ast.expr):
+				expr = self.flattenArithmetic(ast.expr,name)
+				n = Not(Name(name))
+				assign = Assign([AssName(name,'OP_ASSIGN')],n)
+				return Stmt([expr,assign])
+			else:
+				expr = Assign([AssName(name,'OP_ASSIGN')],ast.expr)
+				n = Not(Name(name))
+				assign = Assign([AssName(name,'OP_ASSIGN')],n)
+				return Stmt([expr,assign])
+
+
+
+		# elif isinstance(ast,GetTag):
+		# 	stmtArray = []
+		# 	nameNode = Name(name)
+
+		# 	if not isPythonASTLeaf(ast.arg):
+		# 		expr = self.flattenArithmetic(ast.arg,nameNode)
+		# 		gettag = GetTag(nameNode)
+		# 		assign = 
+		# 		stmtArray +=[expr]
+
+
+		else: return Assign([AssName(name,'OP_ASSIGN')],ast)
 
 
 class Flatten():
 	def __init__(self):
 		self.count = 0
 		self.printTracker = FlattenTracker("print")
+		self.arithmeticFlattener = ArithmeticFlattener()
+
+	@staticmethod
+	def removeNestedStmtMap(ast):
+		if isinstance(ast,Stmt):
+			stmtArray = []
+			for expr in ast.nodes:
+				stmtArray += expr.nodes if isinstance(expr,Stmt) else [expr]
+			return Stmt(stmtArray)
+		else: return ast
 
 	def flattenMap(self,ast):
 		if isinstance(ast,Assign):
-			return ArithmeticFlattener.flattenArithmetic(ast.expr,ast.nodes[0].name)
+			return self.arithmeticFlattener.flattenArithmetic(ast.expr,ast.nodes[0].name)
 		elif isinstance(ast,Printnl):
 			name = self.printTracker.getNameAndIncrementCounter()
 			if not isPythonASTLeaf(ast.nodes[0]):
-				printStmt = ArithmeticFlattener.flattenArithmetic(ast.nodes[0],name)
+				printStmt = self.arithmeticFlattener.flattenArithmetic(ast.nodes[0],name)
 				assign = Printnl([Name(name)],None)
 				cluster = [printStmt,assign]
 			else: cluster = [Printnl([ast.nodes[0]],None)]
