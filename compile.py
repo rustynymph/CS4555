@@ -21,6 +21,7 @@ pythonFilename = sys.argv[1]
 #raise Exception(text_to_parse)
 
 pythonAST = compiler.parseFile(pythonFilename)
+# print pythonAST
 pythonAST = TraverseIR.map(pythonAST,Simplify.removeDiscardMap)
 pythonAST = TraverseIR.map(pythonAST,Simplify.nameToBoolMap)
 pythonAST = TraverseIR.map(pythonAST,Optimizer.constantFoldingMap)
@@ -28,13 +29,14 @@ pythonAST = TraverseIR.map(pythonAST,Orphan.findParentMap,Orphan())
 pythonAST = TraverseIR.map(pythonAST,Namespace.removeDependenciesMap,Namespace(Namespace.environmentKeywords + Namespace.reservedKeywords))
 
 pythonAST = TraverseIR.map(pythonAST,Explicate.explicateMap,Explicate())
+pythonAST = TraverseIR.map(pythonAST,Explicate.shortCircuitMap,Explicate())
 pythonAST = TraverseIR.map(pythonAST,Optimizer.explicateFoldingMap)
 pythonAST = TraverseIR.map(pythonAST,Explicate.removeIsTagMap)
 pythonAST = TraverseIR.map(pythonAST,Flatten.flattenMap,Flatten())
 pythonAST = TraverseIR.map(pythonAST,Functionize.replaceBigPyobjMap)
-# pythonAST = TraverseIR.map(pythonAST,Functionize.replaceFunctionWithRuntimeMap)
-# print pythonAST
+pythonAST = TraverseIR.map(pythonAST,Functionize.replaceWithRuntimeEquivalentMap,Functionize({"input":"input_int"}))
 pythonAST = TraverseIR.map(pythonAST,Flatten.removeNestedStmtMap)
+pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
 print pythonAST
 # flattenedAST = pythonAST
 # x86AST = Translator.pythonASTToAssemblyAST(flattenedAST)
