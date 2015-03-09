@@ -43,7 +43,8 @@ class Explicate:
 			#Adds ints and bools
 			addIntsAndBools = InjectFrom(INT_t,Add((ProjectTo(INT_t,leftName),ProjectTo(INT_t,rightName))))
 			#Adds bigs
-			addBig = InjectFrom(BIG_t,Add((ProjectTo(BIG_t,leftName),ProjectTo(BIG_t,rightName))))
+			add = CallFunc(Name("add"),[ProjectTo(BIG_t,leftName),ProjectTo(BIG_t,rightName)],None,None)
+			addBig = InjectFrom(BIG_t,add)
 			#Explicated add tree
 			explicatedAdd = IfExp(predicate,addIntsAndBools,addBig)
 
@@ -53,19 +54,39 @@ class Explicate:
 		elif isinstance(ast,CallFunc):
 			#Not sure if we have to do anything here
 			return ast
-		elif isinstance(ast,Or):
-			orName = Name("letOr"+str(self.getAndIncrement()))
-			orexp = Let(orName,ast.nodes[0],IfExp(orName,orName,ast.nodes[1]))
-			return orexp
-		elif isinstance(ast,And):
-			andName = Name("letAnd"+str(self.getAndIncrement()))
-			andexp = Let(andName,ast.nodes[0],IfExp(Not(andName),andName,ast.nodes[1]))
-			return andexp
 		elif isinstance(ast,Not):
 			notexp = ProjectTo(BOOL_t,ast)
 			return notexp
 
 		else: return ast
+
+	def shortCircuitMap(self,ast):
+		if isinstance(ast,Or):
+			previous = ast.nodes[len(ast.nodes)-1]
+			orNamePrefix ="letOr$"+str(self.getAndIncrement())+"$"
+			i = len(ast.nodes) - 1
+			currentOrName = None
+			for current in reversed(ast.nodes[:len(ast.nodes)-1]):
+				currentOrName = Name(orNamePrefix + str(i))
+				orexp = Let(currentOrName,current,IfExp(currentOrName,currentOrName,previous))
+
+				previous = orexp
+				i -= 1
+			return previous
+
+		elif isinstance(ast,And):
+			previous = ast.nodes[len(ast.nodes)-1]
+			andNamePrefix = "letAnd$"+str(self.getAndIncrement())+"$"
+			i = len(ast.nodes) - 1
+			for current in reversed(ast.nodes[:len(ast.nodes)-1]):
+				currentAndName = Name(andNamePrefix+str(i))
+				andexp = Let(currentAndName,current,IfExp(currentAndName,previous,currentAndName))
+
+				previous = andexp
+				i -= 1
+			return previous
+		else: return ast
+
 
 	@staticmethod
 	def removeIsTagMap(ast):
