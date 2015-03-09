@@ -139,7 +139,8 @@ class ArithmeticFlattener():
 			exprName = None
 			subName = None
 			if not isPythonASTLeaf(ast.expr):
-				exprStringName = name + "$sub-expr"
+				# exprStringName = name + "$sub-expr"
+				exprStringName = name
 				exprName = Name(exprStringName)
 				stmtArray += [self.flattenArithmetic(ast.expr,exprStringName)]
 			else: exprName = ast.expr
@@ -154,13 +155,12 @@ class ArithmeticFlattener():
 			assign = Assign([AssName(name,'OP_ASSIGN')],subscription)
 			return Stmt(stmtArray + [assign])
 		elif isinstance(ast,IfExp):
-			testExpr = None
-			testName = None
-			if not isPythonASTLeaf(ast.test):
-				testExpr = self.flattenArithmetic(ast.test,name+"$test")
-				testName = Name(name+"$test")
-			else:
-				testExpr = ast.test
+			testName = Name(name+"$test")
+			testExpr = self.flattenArithmetic(ast.test,name+"$test")
+			isTrue = CallFunc(Name("is_true"),[testName],None,None)
+			assignTest = Assign([AssName(testName.name,'OP_ASSIGN')],isTrue)
+			testExpr = Stmt([testExpr,assignTest])
+			
 
 			thenExpr = None
 			if not isPythonASTLeaf(ast.then):
@@ -279,6 +279,7 @@ class Flatten():
 	def __init__(self):
 		self.count = 0
 		self.printTracker = FlattenTracker("print")
+		self.subscriptionAssignTracker = FlattenTracker("subscription")
 		self.arithmeticFlattener = ArithmeticFlattener()
 
 	@staticmethod
@@ -291,8 +292,21 @@ class Flatten():
 		else: return ast
 
 	def flattenMap(self,ast):
-		if isinstance(ast,Assign):
+		if isinstance(ast,Assign) and isinstance(ast.nodes[0],AssName):
 			return self.arithmeticFlattener.flattenArithmetic(ast.expr,ast.nodes[0].name)
+		# if isinstance(ast,Assign) and isinstance(ast.nodes[0],Subscript):
+		# 	subscription = ast.nodes[0]
+		# 	subscriptionPrefix = self.subscriptionAssignTracker.getNameAndIncrementCounter()
+		# 	if not isPythonASTLeaf(subscription.expr):
+		# 		pyobjName = Name(subscriptionPrefix+"$pyobj")
+		# 		subscriptionStmt = self.arithmeticFlattener.flattenArithmetic(subscription.expr,subscriptionPrefix+"$pyobj")
+
+
+			if not isPythonASTLeaf(ast.expr):
+				assignExprStmt = self.arithmeticFlattener.flattenArithmetic(ast.expr,subscriptionStringName+"$value")
+				assign = Assign(ast.nodes,Name(subscriptionStringName))
+				cluster = [assignExprStmt,assign]
+			else: cluster[ast]
 		elif isinstance(ast,Printnl):
 			name = self.printTracker.getNameAndIncrementCounter()
 			if not isPythonASTLeaf(ast.nodes[0]):
