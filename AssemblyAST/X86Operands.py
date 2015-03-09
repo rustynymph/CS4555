@@ -48,6 +48,9 @@ class RegisterOperand(Operand):
 	def __eq__(self,other):
 		return self.register == other.register and self.size == other.size
 
+	def __hash__(self):
+		return hash(str(self))
+
 	def printOperand(self):
 		return self.register.printRegister()
 
@@ -68,6 +71,9 @@ class MemoryOperand(Operand):
 	def __eq__(self,other):
 		return self.register == other.register and self.offset == other.offset and self.size == other.size
 
+	def __hash__(self):
+		return hash(str(self))
+
 	def printOperand(self):
 			if self.offset == 0: return "(" + self.register.printRegister() + ")"
 			else: return str(self.offset) + "(" + self.register.printRegister() + ")"
@@ -81,12 +87,16 @@ class ConstantValue():
 	def __eq__(self,other):
 		return self.value == other.value
 
+	def __hash__(self):
+		return hash(str(self))
+
 	def printValue(self):
 		pass
 
 class DecimalValue(ConstantValue):
 	def __init__(self,value):
 		ConstantValue(value)
+		self.value = value
 
 	def printValue(self):
 		return str(self.value)
@@ -94,6 +104,7 @@ class DecimalValue(ConstantValue):
 class HexaDecimalValue(ConstantValue):
 	def __init__(self,value):
 		ConstantValue(value)
+		self.value = value
 
 	def printValue(self):
 		return "0x" + str(self.value)
@@ -115,6 +126,9 @@ class ConstantOperand(Operand):
 	def __eq__(self,other):
 		return self.value == other.value
 
+	def __hash__(self):
+		return hash(str(self))
+
 	def printOperand(self):
 		return "$" + self.value.printValue()
 
@@ -132,6 +146,9 @@ class NameOperand(Operand):
 
 	def __eq__(self,other):
 		return self.name == other.name and self.size == other.size
+
+	def __hash__(self):
+		return hash(str(self))
 
 	def printOperand(self):
 		return self.name

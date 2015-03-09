@@ -21,6 +21,9 @@ class Register():
 	def __eq__(self,other):
 		return isinstance(other,self.__class__) and other.name == self.name
 
+	def __hash__(self):
+		return hash(str(self))
+
 	def __repr__(self):
 		return self.__class__.__name__ + "(" + self.name + "," + RegisterSize.sizeToString(self.size) + ")"
 
@@ -30,14 +33,20 @@ class Register():
 class CalleeSavedRegister(Register):
 	def __init__(self,name,size):
 		Register(name,size)
+		self.name = name
+		self.size = size
 
 class CallerSavedRegister(Register):
 	def __init__(self,name,size):
 		Register(name,size)
+		self.name = name
+		self.size = size
 
 class ArguementRegister(Register):
 	def __init__(self,name,size):
 		Register(name,size)
+		self.name = name
+		self.size = size
 
 class Registers8():
 	AH = Register("ah",RegisterSize.EightBits)
