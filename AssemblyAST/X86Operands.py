@@ -45,6 +45,9 @@ class RegisterOperand(Operand):
 	def __str__(self):
 		return self.__class__.__name__ + "(" + self.register.name + "," + OperandSize.sizeToString(self.size) + ")"
 
+	def __eq__(self,other):
+		return self.register == other.register and self.size == other.size
+
 	def printOperand(self):
 		return self.register.printRegister()
 
@@ -62,6 +65,9 @@ class MemoryOperand(Operand):
 	def __str__(self):
 		return self.__class__.__name__ + "(" + self.register.name + "," + str(offset) + "," + OperandSize.sizeToString(self.size) + ")"
 
+	def __eq__(self,other):
+		return self.register == other.register and self.offset == other.offset and self.size == other.size
+
 	def printOperand(self):
 			if self.offset == 0: return "(" + self.register.printRegister() + ")"
 			else: return str(self.offset) + "(" + self.register.printRegister() + ")"
@@ -71,6 +77,9 @@ class ConstantValue():
 
 	def __init__(self,value):
 		self.value = value
+
+	def __eq__(self,other):
+		return self.value == other.value
 
 	def printValue(self):
 		pass
@@ -83,13 +92,11 @@ class DecimalValue(ConstantValue):
 		return str(self.value)
 
 class HexaDecimalValue(ConstantValue):
-	def __init__(self,valueString):
-		if not isinstance(valueString,str):
-			raise Exception("valueString must be of type str.")
-		ConstantValue(valueString)
+	def __init__(self,value):
+		ConstantValue(value)
 
 	def printValue(self):
-		return "0x" + value
+		return "0x" + str(self.value)
 
 class ConstantOperand(Operand):
 
@@ -105,6 +112,9 @@ class ConstantOperand(Operand):
 	def __str__(self):
 		return self.__class__.__name__ + "(" + self.value + "," + OperandSize.sizeToString(self.size) + ")"
 
+	def __eq__(self,other):
+		return self.value == other.value
+
 	def printOperand(self):
 		return "$" + self.value.printValue()
 
@@ -119,6 +129,9 @@ class NameOperand(Operand):
 
 	def __str__(self):
 		return self.__class__.__name__ + "(" + self.name + "," + OperandSize.sizeToString(self.size) + ")"
+
+	def __eq__(self,other):
+		return self.name == other.name and self.size == other.size
 
 	def printOperand(self):
 		return self.name
