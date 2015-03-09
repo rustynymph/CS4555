@@ -2,6 +2,10 @@ from PythonASTExtension import *
 
 class Functionize():
 
+	def __init__(self,replaceDictionary):
+		self.replaceDictionary = replaceDictionary
+
+
 	@staticmethod
 	def replaceBigPyobjMap(ast):
 		if isinstance(ast,Assign) and isinstance(ast.expr,Dict):
@@ -25,4 +29,12 @@ class Functionize():
 				stmtArray += [CallFunc(Name("set_subscript"),[Name(ast.nodes[0].name),key,value],None,None)]
 			return Stmt(stmtArray)
 
+		else: return ast
+
+
+	def replaceWithRuntimeEquivalentMap(self,ast):
+		if isinstance(ast,Name) and ast.name in self.replaceDictionary:
+			return Name(self.replaceDictionary[ast.name])
+		elif isinstance(ast,Printnl):
+			return CallFunc(Name("print_any"),ast.nodes,None,None)
 		else: return ast
