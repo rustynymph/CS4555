@@ -218,7 +218,7 @@ class ArithmeticFlattener():
 		elif isinstance(ast,Let):
 			expr = self.flattenArithmetic(ast.expr,ast.var.name)
 			body = self.flattenArithmetic(ast.body,name)
-			return Stmt([Let(ast.var,expr,body)])
+			return Stmt([expr,body])
 
 		elif isinstance(ast,InjectFrom):
 
@@ -264,18 +264,12 @@ class ArithmeticFlattener():
 				n = Not(Name(name))
 				assign = Assign([AssName(name,'OP_ASSIGN')],n)
 				return Stmt([expr,assign])
-
-
-
-		# elif isinstance(ast,GetTag):
-		# 	stmtArray = []
-		# 	nameNode = Name(name)
-
-		# 	if not isPythonASTLeaf(ast.arg):
-		# 		expr = self.flattenArithmetic(ast.arg,nameNode)
-		# 		gettag = GetTag(nameNode)
-		# 		assign = 
-		# 		stmtArray +=[expr]
+		elif isinstance(ast,GetTag):
+			stmtArray = []
+			nameNode = Name(name)
+			assign = Assign([AssName(name,'OP_ASSIGN')],ast.arg)
+			getTag = GetTag(nameNode)
+			return Stmt([assign,getTag])
 
 
 		else: return Assign([AssName(name,'OP_ASSIGN')],ast)
@@ -308,3 +302,19 @@ class Flatten():
 			else: cluster = [Printnl([ast.nodes[0]],None)]
 			return Stmt(cluster)
 		else: return ast
+
+	@staticmethod
+	def removeUnnecessaryStmt(ast):
+		if isinstance(ast,Module):
+			if not isinstance(ast.node,Stmt):
+				return Module(ast.doc,Stmt([ast.node]))
+			else: return ast
+		elif isinstance(ast,Stmt) and len(ast.nodes) == 1: return ast.nodes[0]
+
+		else: return ast
+
+
+
+
+
+
