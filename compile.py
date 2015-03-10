@@ -13,7 +13,7 @@ from TraverseIR import TraverseIR
 from Namespace import *
 from Orphan import *
 from Functionize import *
-from LivenessAnalysis3 import *
+from LivenessAnalysis import *
 
 pythonFilename = sys.argv[1]
 
