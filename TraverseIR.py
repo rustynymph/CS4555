@@ -3,12 +3,10 @@ class TraverseIR():
 	@staticmethod
 	def map(ast,f,environment=None):
 		#P0 nodes
-		# print ast
 		if isinstance(ast,Module): 
 			module = Module(ast.doc,TraverseIR.map(ast.node,f,environment))
 			return f(environment, module) if environment else f(module)
 		elif isinstance(ast,Stmt):
-
 			stmt = Stmt([TraverseIR.map(n,f,environment) for n in ast.nodes])
 			return f(environment,stmt) if environment else f(stmt)
 		elif isinstance(ast,Printnl):
