@@ -8,7 +8,8 @@ class Functionize():
 
 	@staticmethod
 	def replaceBigPyobjMap(ast):
-		if isinstance(ast,Assign) and isinstance(ast.expr,Dict):
+
+		if isinstance(ast,Assign) and isinstance(ast.expr,Dict) and isinstance(ast.nodes[0],AssName):
 			stmtArray = []
 			createDictionary = Assign(ast.nodes,CallFunc(Name("create_dict"),[],None,None))
 			stmtArray += [createDictionary]
@@ -16,7 +17,7 @@ class Functionize():
 			stmtArray += [CallFunc(Name("set_subscript"),[Name(ast.nodes[0].name),t[0],t[1]],None,None) for t in ast.expr.items]
 
 			return Stmt(stmtArray)
-		elif isinstance(ast,Assign) and isinstance(ast.expr,List):
+		elif isinstance(ast,Assign) and isinstance(ast.expr,List) and isinstance(ast.nodes[0],AssName):
 			stmtArray = []
 
 			length = len(ast.expr.nodes) * 4
