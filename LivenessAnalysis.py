@@ -3,6 +3,7 @@ import copy
 import Queue
 from PythonASTExtension import *
 
+
 class LivenessAnalysis:
 	
 	liveVariables = {}
@@ -61,25 +62,17 @@ class LivenessAnalysis:
 					savenodes = savenodes | LivenessAnalysis.ifExpAnalysis(node,savenodes)
 			else: savenodes = savenodes | LivenessAnalysis.ifExpAnalysis(ast.else_,savenodes)			
 		
-		else: savenodes = savenodes | LivenessAnalysis.ifExpdispatch(ast,savenodes)		
+		else: savenodes = savenodes | LivenessAnalysis.dispatch(ast,savenodes,True)		
 		return savenodes								
-	
+
 	@staticmethod
-	def ifExpdispatch(ast,setname):
-		if isinstance(ast,Assign): return LivenessAnalysis.assignAnalysis(ast,setname)
-		elif isinstance(ast,CallFunc): return LivenessAnalysis.callFuncAnalysis(ast,setname)
-		elif isinstance(ast,GetTag): return LivenessAnalysis.getTagAnalysis(ast,setname)
-		elif isinstance(ast,IfExp): return LivenessAnalysis.ifExpAnalysis(ast,setname)
-		else: raise Exception("Error: Unrecognized node type")		
-	
-	@staticmethod
-	def dispatch(ast,setname):
+	def dispatch(ast,setname,recursion=False):
 		if isinstance(ast,Assign): return LivenessAnalysis.assignAnalysis(ast,setname)
 		elif isinstance(ast,CallFunc): return LivenessAnalysis.callFuncAnalysis(ast,setname)
 		elif isinstance(ast,GetTag): return LivenessAnalysis.getTagAnalysis(ast,setname)
 		elif isinstance(ast,IfExp):
-			savenodes = set()
-			return LivenessAnalysis.ifExpAnalysis(ast,savenodes)
+			if recursion: return LivenessAnalysis.ifExpAnalysis(ast,setname)
+			else: return LivenessAnalysis.ifExpAnalysis(ast,savenodes = set())
 		else: raise Exception("Error: Unrecognized node type")
 					
 	@staticmethod

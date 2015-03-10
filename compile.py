@@ -14,6 +14,7 @@ from Namespace import *
 from Orphan import *
 from Functionize import *
 from LivenessAnalysis import *
+from GraphColoring import *
 
 pythonFilename = sys.argv[1]
 
@@ -43,6 +44,10 @@ print pythonAST
 print("\n")
 liveness = LivenessAnalysis.livenessAnalysis(pythonAST)
 print liveness
+print("\n")
+graph = GraphColoring.createGraph(liveness)
+coloredgraph = GraphColoring.colorGraph(graph)
+print coloredgraph
 #coloredgraph = GraphColoring.
 # flattenedAST = pythonAST
 # x86AST = Translator.pythonASTToAssemblyAST(flattenedAST)
