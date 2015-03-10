@@ -294,19 +294,36 @@ class Flatten():
 	def flattenMap(self,ast):
 		if isinstance(ast,Assign) and isinstance(ast.nodes[0],AssName):
 			return self.arithmeticFlattener.flattenArithmetic(ast.expr,ast.nodes[0].name)
-		# if isinstance(ast,Assign) and isinstance(ast.nodes[0],Subscript):
-		# 	subscription = ast.nodes[0]
-		# 	subscriptionPrefix = self.subscriptionAssignTracker.getNameAndIncrementCounter()
-		# 	if not isPythonASTLeaf(subscription.expr):
-		# 		pyobjName = Name(subscriptionPrefix+"$pyobj")
-		# 		subscriptionStmt = self.arithmeticFlattener.flattenArithmetic(subscription.expr,subscriptionPrefix+"$pyobj")
+		if isinstance(ast,Assign) and isinstance(ast.nodes[0],Subscript):
+			subscription = ast.nodes[0]
+			subscriptionPrefix = self.subscriptionAssignTracker.getNameAndIncrementCounter()
+			subscriptStmtArray = []
+			if not isPythonASTLeaf(subscription.expr):
+				pyobjName = Name(subscriptionPrefix+"$pyobj")
+				pyobjStmt = self.arithmeticFlattener.flattenArithmetic(subscription.expr,pyobjName.name)
+				subscriptStmtArray += [pyobjStmt]
+			else: pyobjName = subscription.expr
 
+			if not isPythonASTLeaf(subscription.subs[0]):
+				subName = Name(subscriptionPrefix+"$sub-0")
+				subStmt = self.arithmeticFlattener.flattenArithmetic(subscription.subs[0],subName.name)
+				subscriptStmtArray += [subStmt]
+			else: subName = subscription.subs[0]
 
+			newSubscription = Subscript(pyobjName,subscription.flags,[subName])
+
+			assignStmtArray = []
 			if not isPythonASTLeaf(ast.expr):
-				assignExprStmt = self.arithmeticFlattener.flattenArithmetic(ast.expr,subscriptionStringName+"$value")
-				assign = Assign(ast.nodes,Name(subscriptionStringName))
-				cluster = [assignExprStmt,assign]
-			else: cluster[ast]
+				assignExprName = Name(subscriptionPrefix+"$value")
+				assignStmt = self.arithmeticFlattener(ast.expr,assignExprName.name)
+				assignStmtArray += [assignStmt]
+			else: assignExprName = ast.expr
+
+			assign = Assign([newSubscription],assignExprName)
+			stmtArray = subscriptStmtArray + assignStmtArray + [assign]
+
+			return Stmt(stmtArray)
+
 		elif isinstance(ast,Printnl):
 			name = self.printTracker.getNameAndIncrementCounter()
 			if not isPythonASTLeaf(ast.nodes[0]):
