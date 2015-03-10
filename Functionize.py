@@ -9,26 +9,33 @@ class Functionize():
 	@staticmethod
 	def replaceBigPyobjMap(ast):
 
-		if isinstance(ast,Assign) and isinstance(ast.expr,Dict) and isinstance(ast.nodes[0],AssName):
-			stmtArray = []
-			createDictionary = Assign(ast.nodes,CallFunc(Name("create_dict"),[],None,None))
-			stmtArray += [createDictionary]
+		if isinstance(ast,Assign):
+			if isinstance(ast.expr,Dict) and isinstance(ast.nodes[0],AssName):
+				stmtArray = []
+				createDictionary = Assign(ast.nodes,CallFunc(Name("create_dict"),[],None,None))
+				stmtArray += [createDictionary]
 
-			stmtArray += [CallFunc(Name("set_subscript"),[Name(ast.nodes[0].name),t[0],t[1]],None,None) for t in ast.expr.items]
+				stmtArray += [CallFunc(Name("set_subscript"),[Name(ast.nodes[0].name),t[0],t[1]],None,None) for t in ast.expr.items]
 
-			return Stmt(stmtArray)
-		elif isinstance(ast,Assign) and isinstance(ast.expr,List) and isinstance(ast.nodes[0],AssName):
-			stmtArray = []
+				return Stmt(stmtArray)
 
-			length = len(ast.expr.nodes) * 4
-			createList = Assign(ast.nodes,CallFunc(Name("create_list"),[Const(length)],None,None))
-			stmtArray += [createList]
+			elif isinstance(ast.expr,List) and isinstance(ast.nodes[0],AssName):
+				stmtArray = []
 
-			for i in range(len(ast.expr.nodes)):
-				key = Const(i * 4)
-				value = ast.expr.nodes[i]
-				stmtArray += [CallFunc(Name("set_subscript"),[Name(ast.nodes[0].name),key,value],None,None)]
-			return Stmt(stmtArray)
+				length = len(ast.expr.nodes) * 4
+				createList = Assign(ast.nodes,CallFunc(Name("create_list"),[Const(length)],None,None))
+				stmtArray += [createList]
+
+				for i in range(len(ast.expr.nodes)):
+					key = Const(i * 4)
+					value = ast.expr.nodes[i]
+					stmtArray += [CallFunc(Name("set_subscript"),[Name(ast.nodes[0].name),key,value],None,None)]
+				return Stmt(stmtArray)
+
+			elif isinstance(ast.nodes[0],Subscript):
+				subscript = ast.nodes[0]
+				return CallFunc(Name("set_subscript"),[subscript.expr,subscript.subs[0],ast.expr],None,None)
+			else: return ast
 
 		else: return ast
 
