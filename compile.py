@@ -43,7 +43,7 @@ print pythonAST
 print("\n")
 liveness = LivenessAnalysis.livenessAnalysis(pythonAST)
 print liveness
-coloredgraph = GraphColoring.
+#coloredgraph = GraphColoring.
 # flattenedAST = pythonAST
 # x86AST = Translator.pythonASTToAssemblyAST(flattenedAST)
 
