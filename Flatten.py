@@ -315,7 +315,7 @@ class Flatten():
 			assignStmtArray = []
 			if not isPythonASTLeaf(ast.expr):
 				assignExprName = Name(subscriptionPrefix+"$value")
-				assignStmt = self.arithmeticFlattener(ast.expr,assignExprName.name)
+				assignStmt = self.arithmeticFlattener.flattenArithmetic(ast.expr,assignExprName.name)
 				assignStmtArray += [assignStmt]
 			else: assignExprName = ast.expr
 
