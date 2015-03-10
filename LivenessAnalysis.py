@@ -83,8 +83,6 @@ class LivenessAnalysis:
 			LivenessAnalysis.liveVariables[i] = set()
 		j = numInstructions-1
 		for instructions in reversed(ir):
-			print("\n")
-			print instructions
 			LivenessAnalysis.liveVariables[j] = LivenessAnalysis.dispatch(instructions,LivenessAnalysis.liveVariables[j+1])	
 			j-=1
 
