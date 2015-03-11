@@ -1,7 +1,6 @@
 from compiler.ast import *
 from AssemblyAST import *
 from PythonASTExtension import *
-#from LivenessAnalysis import*
 
 class Translator:
 	def __init__(self,coloredgraph,liveness):
@@ -53,8 +52,6 @@ class Translator:
 		elif isinstance(ast,Const): return ConstantOperand(DecimalValue(ast.value))
 
 		elif isinstance(ast,AssName):
-			print "AssName"
-			print ast.name
 			self.putVariableInMemory(ast.name)
 			return self.getVariableLocation(ast.name)
 
@@ -95,9 +92,20 @@ class Translator:
 		
 		elif isinstance(ast,GetTag): return AndInstruction(ConstantOperand(DecimalValue(3)),self.getVariableLocation(ast.arg))
 
-		# elif isinstance(ast, Assign):
+		elif isinstance(ast, Assign): return MoveInstruction(ast.expr,self.getVariableLocation(ast.nodes[0]))
 			
-		elif isinstance(ast,Compare): return CompareInstruction()
+		elif isinstance(ast,Compare):
+			leftcmp = self.getVariableLocation(ast.expr)
+			rightcmp = self.getVariableLocation(ast.ops[1])
+			reg = RegisterOperand(Registers32.EAX)
+			if isinstance(leftcmp,MemoryOperand) and isinstance(rightcmp,MemoryOperand):
+				evictInstr = self.evictVariable()
+				moveright = MoveInstruction(rightcmp,reg)
+				compareInstr = CompareInstruction(leftcmp,reg)
+				savecmp = MoveInstruction(reg,rightcmp)
+				unevictInstr = self.unevictVariable()
+				return ClusteredInstruction([evictInstr,moveright,compareInstr,savecmp,unevictInstr])
+			return CompareInstruction(leftcmp,rightcmp)
 		
 		elif isinstance(ast,UnarySub):
 			usub = self.getVariableLocation(ast.expr)
