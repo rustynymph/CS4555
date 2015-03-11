@@ -85,14 +85,14 @@ class NotInstruction(UnaryInstruction):
 		self.operand = operand
 
 	def __repr__(self):
-		return x86InstructionToString(self.__class__.__name__,[self.fromOperand,self.toOperand])
+		return x86InstructionToString(self.__class__.__name__,[self.operand])
 
 	def __str__(self):
-		return x86InstructionToString(self.__class__.__name__,[self.fromOperand,self.toOperand])
+		return x86InstructionToString(self.__class__.__name__,[self.operand])
 
 	def printInstruction(self):
-		size = getMinSizeFromOperands(self.fromOperand,self.toOperand)
-		return printBinaryX86Instruction("not",self.fromOperand,self.toOperand,OperandSize.sizeToString(size))
+		size = self.operand.size
+		return printUnaryX86Instruction("not",self.operand,OperandSize.sizeToString(size))
 
 class ShiftInstruction(BinaryInstruction):
 	__metaclass__ = ABCMeta
@@ -111,7 +111,7 @@ class ShiftRightInstruction(ShiftInstruction):
 
 	def printInstruction(self):
 		size = getMinSizeFromOperands(self.fromOperand,self.toOperand)
-		return printBinaryX86Instruction("shr",self.fromOperand.self.toOperand,OperandSize.sizeToString(size))
+		return printBinaryX86Instruction("shr",self.fromOperand,self.toOperand,OperandSize.sizeToString(size))
 
 class ShiftArithmeticRightInstruction(ShiftRightInstruction):
 	def __init__(self,fromOperand,toOperand):
