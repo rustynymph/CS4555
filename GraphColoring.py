@@ -38,6 +38,7 @@ class GraphColoring:
 				
 		while not(queue.empty()):
 			colors = [Registers32.EAX,Registers32.EBX,Registers32.ECX,Registers32.EDX,Registers32.EDI,Registers32.ESI]
+			colors = [RegisterOperand(r) for r in colors]
 			item = queue.get()
 			interfere_vars = graph[item]
 			availColors = copy.copy(colors)
