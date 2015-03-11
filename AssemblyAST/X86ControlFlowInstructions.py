@@ -64,13 +64,13 @@ class AssemblyFunction(AssemblySection):
 		self.returnOperand = returnOperand
 
 		pushEbp = PushInstruction(RegisterOperand(Registers32.EBP))
-		moveEspIntoEbp = MoveInstruction(Registers32.ESP,Registers32.EBP)
-		createActivationStack = SubtractIntegerInstruction(ConstantOperand(DecimalValue(activationRecordSize)),Registers32.ESP)
+		moveEspIntoEbp = MoveInstruction(RegisterOperand(Registers32.ESP),RegisterOperand(Registers32.EBP))
+		createActivationStack = SubtractIntegerInstruction(ConstantOperand(DecimalValue(activationRecordSize)),RegisterOperand(Registers32.ESP))
 
 		self.functionSetup = ClusteredInstruction([pushEbp,moveEspIntoEbp,createActivationStack])
 
 
-		returnValue = MoveInstruction(returnOperand,Registers32.EAX)
+		returnValue = MoveInstruction(returnOperand,RegisterOperand(Registers32.EAX))
 		leave = LeaveInstruction()
 		ret = ReturnInstruction()
 
