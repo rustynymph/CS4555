@@ -121,9 +121,10 @@ class Translator:
 			
 		elif isinstance(ast,IfExp):
 			test = getVariableLocation(ast.test)
-			return ast
-			
-			# jumpInst = JumpInstruction(test,
+			compareInstr = CompareInstruction(ConstantOperand(DecimalValue(1)),test)
+			jumpInstr = JumpInstruction(test,SIGNEDGREATER)
+			#how are we jumping TO a location?
+			return ClusteredInstruction([compareInstr,jumpInstr])
 			
 		elif isinstance(ast,Add):
 			leftAdd = self.getVariableLocation(ast.left)
