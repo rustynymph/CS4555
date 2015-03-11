@@ -3,6 +3,8 @@ from X86Instructions import *
 class AddIntegerInstruction(BinaryInstruction):
 	def __init__(self,fromOperand,toOperand):
 		BinaryInstruction(fromOperand,toOperand)
+		self.fromOperand = fromOperand
+		self.toOperand = toOperand
 
 	def __repr__(self):
 		return x86InstructionToString(self.__class__.__name__,[self.fromOperand,self.toOperand])
@@ -17,6 +19,8 @@ class AddIntegerInstruction(BinaryInstruction):
 class SubtractIntegerInstruction(BinaryInstruction):
 	def __init__(self,fromOperand,toOperand):
 		BinaryInstruction(fromOperand,toOperand)
+		self.fromOperand = fromOperand
+		self.toOperand = toOperand
 
 	def __repr__(self):
 		return x86InstructionToString(self.__class__.__name__,[self.fromOperand,self.toOperand])
@@ -47,6 +51,8 @@ class NegativeInstruction(UnaryInstruction):
 class AndInstruction(BinaryInstruction):
 	def __init__(self,fromOperand,toOperand):
 		BinaryInstruction(fromOperand,toOperand)
+		self.fromOperand = fromOperand
+		self.toOperand = toOperand
 
 	def __repr__(self):
 		return x86InstructionToString(self.__class__.__name__,[self.fromOperand,self.toOperand])
@@ -61,6 +67,8 @@ class AndInstruction(BinaryInstruction):
 class OrInstruction(BinaryInstruction):
 	def __init__(self,fromOperand,toOperand):
 		BinaryInstruction(fromOperand,toOperand)
+		self.fromOperand = fromOperand
+		self.toOperand = toOperand
 
 	def __repr__(self):
 		return x86InstructionToString(self.__class__.__name__,[self.fromOperand,self.toOperand])
@@ -98,6 +106,8 @@ class ShiftInstruction(BinaryInstruction):
 class ShiftRightInstruction(ShiftInstruction):
 	def __init__(self,fromOperand,toOperand):
 		ShiftInstruction(fromOperand,toOperand)
+		self.fromOperand = fromOperand
+		self.toOperand = toOperand
 
 	def printInstruction(self):
 		size = getMinSizeFromOperands(self.fromOperand,self.toOperand)
@@ -106,6 +116,8 @@ class ShiftRightInstruction(ShiftInstruction):
 class ShiftArithmeticRightInstruction(ShiftRightInstruction):
 	def __init__(self,fromOperand,toOperand):
 		ShiftRightInstruction(fromOperand,toOperand)
+		self.fromOperand = fromOperand
+		self.toOperand = toOperand
 
 	def printInstruction(self):
 		size = getMinSizeFromOperands(self.fromOperand,self.toOperand)
@@ -114,6 +126,8 @@ class ShiftArithmeticRightInstruction(ShiftRightInstruction):
 class ShiftLeftInstruction(ShiftInstruction):
 	def __init__(self,fromOperand,toOperand):
 		ShiftInstruction(fromOperand,toOperand)
+		self.fromOperand = fromOperand
+		self.toOperand = toOperand
 
 	def printInstruction(self):
 		size = getMinSizeFromOperands(self.fromOperand,self.toOperand)
@@ -122,6 +136,8 @@ class ShiftLeftInstruction(ShiftInstruction):
 class ShiftArithmeticLeftInstruction(ShiftLeftInstruction):
 	def __init__(self,fromOperand,toOperand):
 		ShiftLeftInstruction(fromOperand,toOperand)
+		self.fromOperand = fromOperand
+		self.toOperand = toOperand
 
 	def printInstruction(self):
 		size = getMinSizeFromOperands(self.fromOperand,self.toOperand)

@@ -29,19 +29,20 @@ class JumpPredicateEnum():
 	SIGNEDGREATER = JumpPredicate("jg")
 	SIGNEDGREATEROREQUAL = JumpPredicate("jge")
 
-class JumpInstruction(BinaryInstruction):
-	def __init__(self,fromOperand,toOperand,predicate=JumpPredicateEnum.NONE):
+class JumpInstruction(UnaryInstruction):
+	def __init__(self,operand,predicate=JumpPredicateEnum.NONE):
 		if not isinstance(predicate,JumpPredicate):
 			raise Exception("predicate must be JumpPredicate.")
-		BinaryInstruction(fromOperand,toOperand)
+		UnaryInstruction.__init__(self,operand)
 		self.predicate = predicate
+		self.operand = operand
 
 	def __repr__(self):
-		return x86InstructionToString(self.__class__.__name__,[self.predicate,self.fromOperand,self.toOperand])
+		return x86InstructionToString(self.__class__.__name__,[self.predicate,self.operand])
 
 	def __str__(self):
-		return x86InstructionToString(self.__class__.__name__,[self.predicate,self.fromOperand,self.toOperand])
+		return x86InstructionToString(self.__class__.__name__,[self.predicate,self.operand])
 
 	def printInstruction(self):
-		size = getMinSizeFromOperands(self.fromOperand,self.toOperand)
-		return printBinaryX86Instruction(self.predicate.name,self.fromOperand,self.toOperand,OperandSize.sizeToString(size))
+		size = self.operand.size
+		return printUnaryX86Instruction(self.predicate.name,self.fromOperand,self.toOperand,OperandSize.sizeToString(size))

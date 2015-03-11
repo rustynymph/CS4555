@@ -6,6 +6,8 @@ from X86Registers import *
 class CompareInstruction(BinaryInstruction):
 	def __init__(self,fromOperand,toOperand):
 		BinaryInstruction(fromOperand,toOperand)
+		self.fromOperand = fromOperand
+		self.toOperand = toOperand
 
 	def __repr__(self):
 		return x86InstructionToString(self.__class__.__name__,[self.fromOperand,self.toOperand])
@@ -55,6 +57,8 @@ class AssemblyFunction(AssemblySection):
 		if not isinstance(returnOperand,Operand):
 			raise Exception("returnOperand must be a type of Operand.")
 		AssemblySection(sectionHeader,clusteredInstruction)
+		self.sectionHeader = sectionHeader
+		self.clusteredInstruction = clusteredInstruction
 		self.activationRecordSize = activationRecordSize
 		self.returnOperand = returnOperand
 
@@ -81,15 +85,37 @@ class AssemblyFunction(AssemblySection):
 	def printInstruction(self):
 		return self.function.printInstruction()
 
+class AssemblyIf(Instruction):
+	def __init__(self,compare,name,trueSection,falseSection):
+		if not isinstance(compare,CompareInstruction):
+			raise Exception("compare must be of type CompareInstruction.")
+		if not isinstance(name,str):
+			raise Exception("name must be of type str.")
+		if not isinstance(trueSection,AssemblySection):
+			raise Exception("trueSection must be of type AssemblySection.")
+		if not isinstance(falseSection,AssemblySection):
+			raise Exception("falseSection must be of type AssemblySection.")
 
+		self.compare = compare
+		self.name = name
+		self.trueSection = trueSection
+		self.falseSection = falseSection
 
+		falseNameOperand = NameOperand(name+"False")
+		endNameOperand = NameOperand(name+"End")
+		falseJumpInstruction = JumpInstruction(falseNameOperand,JumpPredicateEnum.ZERO)
+		endJumpInstruction = JumpInstruction(endNameOperand)
+		endSection = SectionHeaderInstruction(endNameOperand.name)
 
+		clusteredArray = [self.compare,falseJumpInstruction,self.trueSection,endJumpInstruction,self.falseSection,endSection]
 
+		self.ifInstruction = ClusteredInstruction(clusteredArray)
 
+	def __repr__(self):
+		return x86InstructionToString(self.__class__.__name__,[self.ifInstruction])
 
+	def __str__(self):
+		return x86InstructionToString(self.__class__.__name__,[self.ifInstruction])
 
-
-
-
-
-
+	def printInstruction(self):
+		return self.ifInstruction.printInstruction()

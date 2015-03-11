@@ -90,13 +90,22 @@ class ConstantValue():
 	def __hash__(self):
 		return hash(str(self))
 
+	def __str__(self):
+		pass
+
 	def printValue(self):
 		pass
 
 class DecimalValue(ConstantValue):
 	def __init__(self,value):
-		ConstantValue(value)
+		ConstantValue.__init__(self,value)
 		self.value = value
+
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.value) + ")"
+
+	def __repr__(self):
+		return self.__class__.__name__ + "(" + str(self.value) + ")"
 
 	def printValue(self):
 		return str(self.value)
@@ -105,6 +114,12 @@ class HexaDecimalValue(ConstantValue):
 	def __init__(self,value):
 		ConstantValue(value)
 		self.value = value
+
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.value) + ")"
+
+	def __repr__(self):
+		return self.__class__.__name__ + "(" + str(self.value) + ")"
 
 	def printValue(self):
 		return "0x" + str(self.value)
@@ -121,7 +136,7 @@ class ConstantOperand(Operand):
 		return self.__class__.__name__ + "(" + self.value + "," + OperandSize.sizeToString(self.size) + ")"
 
 	def __str__(self):
-		return self.__class__.__name__ + "(" + self.value + "," + OperandSize.sizeToString(self.size) + ")"
+		return self.__class__.__name__ + "(" + str(self.value) + "," + OperandSize.sizeToString(self.size) + ")"
 
 	def __eq__(self,other):
 		return self.value == other.value

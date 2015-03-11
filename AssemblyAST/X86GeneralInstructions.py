@@ -42,12 +42,14 @@ class AlignInstruction(BinaryInstruction):
 	def __init__(self,fromOperand,toOperand):
 		if not isinstance(fromOperand,ConstantOperand) or not isinstance(toOperand,ConstantOperand):
 			raise Exception("operands for AlignInstruction must be ConstantOperand's")
+		self.fromOperand = fromOperand
+		self.toOperand = toOperand
 
 	def __repr__(self):
-		return x86InstructionToString(self.__class__.__name__,[fromOperand,toOperand])
+		return x86InstructionToString(self.__class__.__name__,[self.fromOperand,self.toOperand])
 
 	def __str__(self):
-		return x86InstructionToString(self.__class__.__name__,[fromOperand,toOperand])
+		return x86InstructionToString(self.__class__.__name__,[self.fromOperand,self.toOperand])
 
 	def printInstruction(self):
 		printBinaryX86Instruction(".align", self.fromOperand, self.toOperand)
@@ -117,6 +119,7 @@ class PopInstruction(UnaryInstruction):
 	def __init__(self,operand):
 		if isinstance(operand,ConstantOperand):
 			raise Exception("Cannot pop to a " + operand.__class__.__name__)
+		self.operand = operand
 
 	def __repr__(self):
 		return x86InstructionToString(self.__class__.__name__,[self.operand])
