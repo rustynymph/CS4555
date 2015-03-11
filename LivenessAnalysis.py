@@ -3,13 +3,12 @@ import copy
 import Queue
 from PythonASTExtension import *
 
-
-class LivenessAnalysis:
+class LivenessAnalysis():
+	def __init__(self,IR):
+		self.liveVariables = {}
+		self.IR = IR.node.nodes
 	
-	liveVariables = {}
-	
-	@staticmethod
-	def assignAnalysis(ast,setname):
+	def assignAnalysis(self,ast,setname):
 		if isinstance(ast.nodes[0],AssName): remove = set((ast.nodes[0].name,))
 		elif isinstance(ast.nodes[0],Subscript): remove = (set((ast.nodes[0].expr.name,)) | set((ast.nodes[0].subs[0].name,)))
 		if isinstance(ast.expr,Name): return (setname - remove) | set((ast.expr.name,))
@@ -35,8 +34,7 @@ class LivenessAnalysis:
 		elif isinstance(ast.expr,ProjectTo): return (setname - remove) | set((ast.expr.arg))				
 		else: raise Exception("Error: Unrecognized node type")												
 		
-	@staticmethod
-	def callFuncAnalysis(ast,setname):
+	def callFuncAnalysis(self,ast,setname):
 		saveVars = set()
 		for x in ast.args:
 			if isinstance(x,Name):
@@ -45,45 +43,41 @@ class LivenessAnalysis:
 				saveVars = saveVars
 		return setname | saveVars		
 	
-	@staticmethod
-	def getTagAnalysis(ast,setname): return setname
+	def getTagAnalysis(self,ast,setname): return setname
 	
-	@staticmethod
-	def ifExpAnalysis(ast,savenodes):
+	def ifExpAnalysis(self,ast,savenodes):
 		if isinstance(ast,IfExp):
 			savenodes = savenodes | set((ast.test.name,))			
 			if isinstance(ast.then,Stmt):
 				for node in ast.then.nodes:
-					savenodes = savenodes | LivenessAnalysis.ifExpAnalysis(node,savenodes)
-			else: savenodes = savenodes | LivenessAnalysis.ifExpAnalysis(ast.then,savenodes)
+					savenodes = savenodes | self.ifExpAnalysis(node,savenodes)
+			else: savenodes = savenodes | self.ifExpAnalysis(ast.then,savenodes)
 				
 			if isinstance(ast.else_,Stmt):
 				for node in ast.else_.nodes:
-					savenodes = savenodes | LivenessAnalysis.ifExpAnalysis(node,savenodes)
-			else: savenodes = savenodes | LivenessAnalysis.ifExpAnalysis(ast.else_,savenodes)			
+					savenodes = savenodes | self.ifExpAnalysis(node,savenodes)
+			else: savenodes = savenodes | self.ifExpAnalysis(ast.else_,savenodes)			
 		
-		else: savenodes = savenodes | LivenessAnalysis.dispatch(ast,savenodes,True)		
+		else: savenodes = savenodes | self.dispatch(ast,savenodes,True)		
 		return savenodes								
 
-	@staticmethod
-	def dispatch(ast,setname,recursion=False):
-		if isinstance(ast,Assign): return LivenessAnalysis.assignAnalysis(ast,setname)
-		elif isinstance(ast,CallFunc): return LivenessAnalysis.callFuncAnalysis(ast,setname)
-		elif isinstance(ast,GetTag): return LivenessAnalysis.getTagAnalysis(ast,setname)
+	def dispatch(self,ast,setname,recursion=False):
+		if isinstance(ast,Assign): return self.assignAnalysis(ast,setname)
+		elif isinstance(ast,CallFunc): return self.callFuncAnalysis(ast,setname)
+		elif isinstance(ast,GetTag): return self.getTagAnalysis(ast,setname)
 		elif isinstance(ast,IfExp):
-			if recursion: return LivenessAnalysis.ifExpAnalysis(ast,setname)
-			else: return LivenessAnalysis.ifExpAnalysis(ast,savenodes = set())
+			if recursion: return self.ifExpAnalysis(ast,setname)
+			else: return self.ifExpAnalysis(ast,savenodes = set())
 		else: raise Exception("Error: Unrecognized node type")
 					
-	@staticmethod
-	def livenessAnalysis(IR):
-		ir = IR.node.nodes
+	def livenessAnalysis(self):
+		ir = self.IR
 		numInstructions = len(ir)
 		for i in range (numInstructions,-1,-1):
-			LivenessAnalysis.liveVariables[i] = set()
+			self.liveVariables[i] = set()
 		j = numInstructions-1
 		for instructions in reversed(ir):
-			LivenessAnalysis.liveVariables[j] = LivenessAnalysis.dispatch(instructions,LivenessAnalysis.liveVariables[j+1])	
+			self.liveVariables[j] = self.dispatch(instructions,self.liveVariables[j+1])	
 			j-=1
 
-		return [LivenessAnalysis.liveVariables[x] for x in LivenessAnalysis.liveVariables]				
+		return [self.liveVariables[x] for x in self.liveVariables]				

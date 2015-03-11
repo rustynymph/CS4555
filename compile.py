@@ -42,7 +42,7 @@ pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
 
 print pythonAST
 print("\n")
-liveness = LivenessAnalysis.livenessAnalysis(pythonAST)
+liveness = LivenessAnalysis.livenessAnalysis(LivenessAnalysis(pythonAST))
 print liveness
 print("\n")
 graph = GraphColoring.createGraph(liveness)
