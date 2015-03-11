@@ -52,7 +52,7 @@ class AlignInstruction(BinaryInstruction):
 		return x86InstructionToString(self.__class__.__name__,[self.fromOperand,self.toOperand])
 
 	def printInstruction(self):
-		return ".align " + str(self.fromOperand.value.value) + ", " + self.toOperand.printOperand()
+		return ".align " + str(self.fromOperand.value.value) + ", " + str(self.toOperand.value.value) + "\n"
 		return printBinaryX86Instruction(".align", self.fromOperand, self.toOperand)
 
 class EntryPointInstruction(UnaryInstruction):
