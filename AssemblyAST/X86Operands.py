@@ -63,7 +63,7 @@ class MemoryOperand(Operand):
 		self.size = size
 
 	def __repr__(self):
-		return self.__class__.__name__ + "(" + self.register.name + "," + str(offset) + "," + OperandSize.sizeToString(self.size) + ")"
+		return self.__class__.__name__ + "(" + self.register.name + "," + str(self.offset) + "," + OperandSize.sizeToString(self.size) + ")"
 
 	def __str__(self):
 		return self.__class__.__name__ + "(" + self.register.name + "," + str(offset) + "," + OperandSize.sizeToString(self.size) + ")"
@@ -133,7 +133,7 @@ class ConstantOperand(Operand):
 		self.size = size
 
 	def __repr__(self):
-		return self.__class__.__name__ + "(" + self.value + "," + OperandSize.sizeToString(self.size) + ")"
+		return self.__class__.__name__ + "(" + str(self.value) + "," + OperandSize.sizeToString(self.size) + ")"
 
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.value) + "," + OperandSize.sizeToString(self.size) + ")"
