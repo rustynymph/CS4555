@@ -83,7 +83,7 @@ class CallInstruction(UnaryInstruction):
 
 	def printInstruction(self):
 		size = self.operand.size
-		return printUnaryX86Instruction("call",self.operand,OperandSize.sizeToString(size))
+		return printUnaryX86Instruction("call",self.operand,"")
 
 class MoveInstruction(BinaryInstruction):
 	def __init__(self,fromOperand,toOperand):
