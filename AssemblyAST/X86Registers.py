@@ -32,19 +32,19 @@ class Register():
 
 class CalleeSavedRegister(Register):
 	def __init__(self,name,size):
-		Register(name,size)
+		Register.__init__(self,name,size)
 		self.name = name
 		self.size = size
 
 class CallerSavedRegister(Register):
 	def __init__(self,name,size):
-		Register(name,size)
+		Register.__init__(self,name,size)
 		self.name = name
 		self.size = size
 
 class ArguementRegister(Register):
 	def __init__(self,name,size):
-		Register(name,size)
+		Register.__init__(self,name,size)
 		self.name = name
 		self.size = size
 
