@@ -13,7 +13,8 @@ class TraverseIR():
 			printnl = Printnl([TraverseIR.map(n,f,environment) for n in ast.nodes],ast.dest)
 			return f(environment,printnl) if environment else f(printnl)
 		elif isinstance(ast,Assign):
-			assign = Assign([TraverseIR.map(n,f,environment) for n in ast.nodes],TraverseIR.map(ast.expr,f,environment))
+			nodes = [TraverseIR.map(n,f,environment) for n in ast.nodes]
+			assign = Assign(nodes,TraverseIR.map(ast.expr,f,environment))
 			return f(environment,assign) if environment else f(assign)
 		elif isinstance(ast,Discard):
 			discard = Discard(TraverseIR.map(ast.expr,f,environment))
