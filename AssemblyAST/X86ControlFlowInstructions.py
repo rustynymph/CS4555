@@ -63,7 +63,7 @@ class AssemblyFunction(AssemblySection):
 		self.activationRecordSize = activationRecordSize
 		self.returnOperand = returnOperand
 
-		pushEbp = PushInstruction(Registers32.EBP)
+		pushEbp = PushInstruction(RegisterOperand(Registers32.EBP))
 		moveEspIntoEbp = MoveInstruction(Registers32.ESP,Registers32.EBP)
 		createActivationStack = SubtractIntegerInstruction(ConstantOperand(DecimalValue(activationRecordSize)),Registers32.ESP)
 

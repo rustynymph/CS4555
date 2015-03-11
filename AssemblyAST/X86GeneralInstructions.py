@@ -33,8 +33,12 @@ class ClusteredInstruction(Instruction):
 		return x86InstructionToString(self.__class__.__name__,[self.nodes])
 
 	def printInstruction(self):
+		print "Cluster"
+		print self
+		print "N's"
 		instructionString = ""
-		for n in nodes:
+		for n in self.nodes:
+			print n
 			instructionString += n.printInstruction()
 		return instructionString
 
@@ -52,7 +56,7 @@ class AlignInstruction(BinaryInstruction):
 		return x86InstructionToString(self.__class__.__name__,[self.fromOperand,self.toOperand])
 
 	def printInstruction(self):
-		printBinaryX86Instruction(".align", self.fromOperand, self.toOperand)
+		return printBinaryX86Instruction(".align", self.fromOperand, self.toOperand)
 
 class EntryPointInstruction(UnaryInstruction):
 	def __init__(self,operand):
@@ -99,6 +103,8 @@ class MoveInstruction(BinaryInstruction):
 
 	def printInstruction(self):
 		size = getMinSizeFromOperands(self.fromOperand,self.toOperand)
+		print "movefjdksl"
+		print self.fromOperand
 		return printBinaryX86Instruction("mov",self.fromOperand,self.toOperand,OperandSize.sizeToString(size))
 
 class PushInstruction(UnaryInstruction):

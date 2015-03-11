@@ -5,3 +5,4 @@ from X86GeneralInstructions import *
 from X86Instructions import *
 from X86JumpInstructions import *
 from X86Registers import *
+from AssemblyASTTests import *
