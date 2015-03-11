@@ -2,6 +2,7 @@ from X86Instructions import *
 from X86JumpInstructions import *
 from X86GeneralInstructions import *
 from X86Registers import *
+from X86ArithmeticInstructions import *
 
 class CompareInstruction(BinaryInstruction):
 	def __init__(self,fromOperand,toOperand):
@@ -52,7 +53,7 @@ class AssemblySection(Instruction):
 
 class AssemblyFunction(AssemblySection):
 	def __init__(self,sectionHeader,clusteredInstruction,activationRecordSize,returnOperand):
-		if activationRecordSize > 0:
+		if activationRecordSize <= 0:
 			raise Exception("activationRecordSize must be less than or equal to 0.")
 		if not isinstance(returnOperand,Operand):
 			raise Exception("returnOperand must be a type of Operand.")
