@@ -13,7 +13,7 @@ class LivenessAnalysis():
 		elif isinstance(ast.nodes[0],Subscript): remove = (set((ast.nodes[0].expr.name,)) | set((ast.nodes[0].subs[0].name,)))
 		if isinstance(ast.expr,Name): return (setname - remove) | set((ast.expr.name,))
 		elif isinstance(ast.expr,Const): return (setname - remove)
-		elif isinstance(ast.expr,CallFunc): return (setname - remove) | LivenessAnalysis.callFuncAnalysis(ast.expr,setname)
+		elif isinstance(ast.expr,CallFunc): return (setname - remove) | self.callFuncAnalysis(ast.expr,setname)
 		elif isinstance(ast.expr,UnarySub): return (setname - remove) | set((ast.expr.expr.name))
 		elif isinstance(ast.expr,Add): return (setname - remove) | set((ast.expr.left.name,)) | set((ast.expr.right.name,))
 		elif isinstance(ast.expr,Subscript): return (setname - remove) | set((ast.expr.expr.name,)) | set((ast.expr.subs[0].name,))

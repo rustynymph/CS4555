@@ -74,8 +74,8 @@ class Translator():
 			return ClusteredInstruction(saveInstr + pushArgsInstr + callInstr + loadInstr)
 					
 		elif isinstance(ast,InjectFrom):
-			location = self.getVariableLocation(ast.arg)
-			tag = ConstantOperand(DecimalValue(ast.typ))
+			location = ast.arg
+			tag = ast.typ
 			if ast.typ != 3:
 				shiftLeftInstr = ShiftLeftInstruction(ConstantOperand(DecimalValue(2)),location)
 				orInstr = OrInstruction(tag,location)
@@ -83,20 +83,22 @@ class Translator():
 			else: return OrInstruction(tag,location)
 			
 		elif isinstance(ast,ProjectTo):
-			location = self.getVariableLocation(ast.arg)
+			location = ast.arg
 			if ast.typ != 3:
 				shiftRightInstr = ShiftArithmeticRightInstruction(ConstantOperand(DecimalValue(2)),location)
 				andInstr = AndInstruction(ConstantOperand(DecimalValue(-4)),location)
 				return ClusteredInstruction([shiftRightInstr,andInstr])
 			else: return AndInstruction(ConstantOperand(DecimalValue(-4)),location)
 		
-		elif isinstance(ast,GetTag): return AndInstruction(ConstantOperand(DecimalValue(3)),self.getVariableLocation(ast.arg))
+		elif isinstance(ast,GetTag): return AndInstruction(ConstantOperand(DecimalValue(3)),ast.arg)
 
 		elif isinstance(ast, Assign): return MoveInstruction(ast.expr,ast.nodes[0])
 			
 		elif isinstance(ast,Compare):
-			leftcmp = self.getVariableLocation(ast.expr)
-			rightcmp = self.getVariableLocation(ast.ops[1])
+			#leftcmp = self.getVariableLocation(ast.expr)
+			#rightcmp = self.getVariableLocation(ast.ops[1])
+			leftcmp = ast.expr
+			rightcmp = ast.ops[1]
 			reg = RegisterOperand(Registers32.EAX)
 			if isinstance(leftcmp,MemoryOperand) and isinstance(rightcmp,MemoryOperand):
 				evictInstr = self.evictVariable()
