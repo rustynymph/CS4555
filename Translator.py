@@ -2,10 +2,9 @@ from compiler.ast import *
 from AssemblyAST import *
 from PythonASTExtension import *
 
-class Translator:
-	def __init__(self,coloredgraph,liveness):
+class Translator():
+	def __init__(self,coloredgraph):
 		self.coloredgraph = coloredgraph
-		self.liveness = liveness
 		self.memory = {}
 	
 	def getInvertedGraph(self,coloredgraph):
@@ -20,7 +19,6 @@ class Translator:
 		if register: return register
 		else: return self.getVariableInMemory(variable)
 
-		
 	def getVariableInMemory(self,variable): return self.memory[variable]
 	
 	def getRegister(self,variable): 
@@ -34,15 +32,15 @@ class Translator:
 	def getActivationRecordSize(self): return 4*(len(self.memory)+1)
 
 	def evictVariable(self):
-		evictedVariable = self.getInvertedGraph(self.coloredgraph)[Registers32.EAX][0]
+		reg = RegisterOperand(Registers32.EAX)
+		evictedVariable = self.getInvertedGraph(self.coloredgraph)[reg][0]
 		evictedVariableMemoryLocation = getVariableInMemory(evictedVariable)
-		return MoveInstruction(Registers32.EAX,evictedVariableMemoryLocation)		
+		return MoveInstruction(reg,evictedVariableMemoryLocation)		
 		
-	def unevictVariable(self): return MoveInstruction(evictedVariableMemoryLocation,Registers32.EAX)
+	def unevictVariable(self): return MoveInstruction(evictedVariableMemoryLocation,RegisterOperand(Registers32.EAX))
 
 	def translateToX86(self,ast):
 		if isinstance(ast,Module):
-			print self.getActivationRecordSize()
 			assFunction = AssemblyFunction(SectionHeaderInstruction("main"),ast.node,self.getActivationRecordSize(),ConstantOperand(DecimalValue(0)))
 			clusteredAssFunction = ClusteredInstruction([assFunction])
 			return AssemblyProgram(EntryPointInstruction(NameOperand("main")),clusteredAssFunction)
@@ -55,26 +53,28 @@ class Translator:
 			self.putVariableInMemory(ast.name)
 			return self.getVariableLocation(ast.name)
 
-		elif isinstance(ast,Name): return self.getVariableLocation(ast.name)
+		elif isinstance(ast,Name):
+			if ast.name in self.memory:	return self.getVariableLocation(ast.name)
+			else: return NameOperand(ast.name)
 
 		elif isinstance(ast,CallFunc):
 			callersavedvariables = []
 			
-			for variable in coloredgraph:
-				if isinstance(coloredgraph[variable],CallerSavedRegister):
+			for variable in self.coloredgraph:
+				if isinstance(self.coloredgraph[variable],CallerSavedRegister):
 					callersavedvariables += [variable]
 					
 			if len(ast.args) > 0:
-				pushArgsInstr = [PushInstruction(getVariableLocation(arg)) for arg in ast.args]
+				pushArgsInstr = [PushInstruction(arg) for arg in ast.args]
 			else: pushArgsInstr = []		
 					
-			saveInstr = [MoveInstruction(getVariableLocation(var),getVariableInMemory(var)) for var in callersavedvariables]
+			saveInstr = [MoveInstruction(self.getVariableLocation(var),self.getVariableInMemory(var)) for var in callersavedvariables]
 			callInstr = [CallInstruction(ast.node)]
-			loadInstr = [MoveInstruction(getVariableInMemory(var),getVariableLocation(var)) for var in callersavedvariables]
+			loadInstr = [MoveInstruction(self.getVariableInMemory(var),self.getVariableLocation(var)) for var in callersavedvariables]
 			return ClusteredInstruction(saveInstr + pushArgsInstr + callInstr + loadInstr)
 					
 		elif isinstance(ast,InjectFrom):
-			location = getVariableLocation(ast.arg)
+			location = self.getVariableLocation(ast.arg)
 			tag = ConstantOperand(DecimalValue(ast.typ))
 			if ast.typ != 3:
 				shiftLeftInstr = ShiftLeftInstruction(ConstantOperand(DecimalValue(2)),location)
@@ -83,7 +83,7 @@ class Translator:
 			else: return OrInstruction(tag,location)
 			
 		elif isinstance(ast,ProjectTo):
-			location = getVariableLocation(ast.arg)
+			location = self.getVariableLocation(ast.arg)
 			if ast.typ != 3:
 				shiftRightInstr = ShiftArithmeticRightInstruction(ConstantOperand(DecimalValue(2)),location)
 				andInstr = AndInstruction(ConstantOperand(DecimalValue(-4)),location)
@@ -92,7 +92,7 @@ class Translator:
 		
 		elif isinstance(ast,GetTag): return AndInstruction(ConstantOperand(DecimalValue(3)),self.getVariableLocation(ast.arg))
 
-		elif isinstance(ast, Assign): return MoveInstruction(ast.expr,self.getVariableLocation(ast.nodes[0]))
+		elif isinstance(ast, Assign): return MoveInstruction(ast.expr,ast.nodes[0])
 			
 		elif isinstance(ast,Compare):
 			leftcmp = self.getVariableLocation(ast.expr)

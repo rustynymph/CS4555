@@ -48,10 +48,12 @@ print("\n")
 graph = GraphColoring.createGraph(liveness)
 coloredgraph = GraphColoring.colorGraph(graph)
 print coloredgraph
-#coloredgraph = GraphColoring.
-# flattenedAST = pythonAST
-# x86AST = Translator.pythonASTToAssemblyAST(flattenedAST)
 
-# x86Filename = sys.argv[1].rsplit(".",1)[0] + ".s"
-# x86File = open(x86Filename,"w")
-# x86File.write(x86AST.printInstruction())
+x86 = TraverseIR.map(pythonAST,Translator.translateToX86,Translator(coloredgraph))
+print x86
+
+'''
+x86Filename = sys.argv[1].rsplit(".",1)[0] + ".s"
+x86File = open(x86Filename,"w")
+x86File.write(x86.printInstruction())
+'''
