@@ -52,8 +52,8 @@ print coloredgraph
 x86 = TraverseIR.map(pythonAST,Translator.translateToX86,Translator(coloredgraph))
 print x86
 
-'''
+
 x86Filename = sys.argv[1].rsplit(".",1)[0] + ".s"
 x86File = open(x86Filename,"w")
 x86File.write(x86.printInstruction())
-'''
+

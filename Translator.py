@@ -120,7 +120,7 @@ class Translator():
 			return NegativeInstruction(usub)
 			
 		elif isinstance(ast,IfExp):
-			test = getVariableLocation(ast.test)
+			test = self.getVariableLocation(ast.test)
 			compareInstr = CompareInstruction(ConstantOperand(DecimalValue(1)),test)
 			jumpInstr = JumpInstruction(test,SIGNEDGREATER)
 			#how are we jumping TO a location?
@@ -130,15 +130,14 @@ class Translator():
 			leftAdd = self.getVariableLocation(ast.left)
 			rightAdd = self.getVariableLocation(ast.right)
 
-			if isinstance(rightAdd,MemoryOperand):
+			if isinstance(leftAdd,MemoryOperand) and isinstance(rightAdd,MemoryOperand):
 				reg = RegisterOperand(Registers32.EAX)
 				evictInstr = self.evictVariable()
 				moveRightAddIntoEAX = MoveInstruction(rightAdd,reg)
-				add = AddInstruction(leftAdd,reg)
-				saveadd = MoveInstruction(reg,rightAdd)
+				add = AddInstruction(reg,leftAdd)
 				unevictInstr = self.unevictVariable()
 
-				return ClusteredInstruction([evictInstr,moveRightAddIntoEAX,add,saveadd,unevictInstr])
-			else: return AddInstruction(leftAdd,rightAdd)
+				return ClusteredInstruction([evictInstr,moveRightAddIntoEAX,add,unevictInstr])
+			else: return AddInstruction(rightAdd,leftAdd)
 		
 		else: return ast
