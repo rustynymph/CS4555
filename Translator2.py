@@ -34,6 +34,12 @@ class Translator:
 	
 	def getActivationRecordSize(self): return 4*(len(self.memory)+1)
 
+	def evictVariable(self):
+		evictedVariable = self.getInvertedGraph(self.coloredgraph)[Registers32.EAX][0]
+		evictedVariableMemoryLocation = getVariableInMemory(evictedVariable)
+		return MoveInstruction(Registers32.EAX,evictedVariableMemoryLocation)		
+		
+	def unevictVariable(self): return MoveInstruction(evictedVariableMemoryLocation,Registers32.EAX)
 
 	def translateToX86(self,ast):
 		if isinstance(ast,Module):
@@ -93,7 +99,17 @@ class Translator:
 			
 		elif isinstance(ast,Compare): return CompareInstruction()
 		
-		elif isinstance(ast,UnarySub): return NegativeInstruction(self.getVariableLocation(ast.arg))
+		elif isinstance(ast,UnarySub):
+			usub = self.getVariableLocation(ast.expr)
+			if isinstance(usub,MemoryOperand):
+				reg = RegisterOperand(Registers32.EAX)
+				evictInstr = self.evictVariable()
+				moveNegIntoEAX = MoveInstruction(usub,reg)
+				negate = NegativeInstruction(reg)
+				saveneg = MoveInstruction(reg,usub)
+				unevictInstr = self.unevictVariable()
+				return ClusteredInstruction([evictInstr,moveNegIntoEAX,negate,saveneg,unevictInstr])
+			return NegativeInstruction(usub)
 			
 		elif isinstance(ast,IfExp):
 			test = getVariableLocation(ast.test)
@@ -102,20 +118,18 @@ class Translator:
 			# jumpInst = JumpInstruction(test,
 			
 		elif isinstance(ast,Add):
-			leftAdd = getVariableLocation(ast.left)
-			rightAdd = getVariableLocation(ast.right)
+			leftAdd = self.getVariableLocation(ast.left)
+			rightAdd = self.getVariableLocation(ast.right)
 
-			if isinstance(leftAdd,MemoryOperand) and isinstance(rightAdd,MemoryOperand):
-				evictedVariable = self.getInvertedGraph(self.coloredgraph)[Registers32.EAX][0]
-				evictedVariableMemoryLocation = getVariableInMemory(evictedVariable)
-				moveEvictedVariableIntoMemory = MoveInstruction(Registers32.EAX,evictedVariableMemoryLocation)
+			if isinstance(rightAdd,MemoryOperand):
+				reg = RegisterOperand(Registers32.EAX)
+				evictInstr = self.evictVariable()
+				moveRightAddIntoEAX = MoveInstruction(rightAdd,reg)
+				add = AddInstruction(leftAdd,reg)
+				saveadd = MoveInstruction(reg,rightAdd)
+				unevictInstr = self.unevictVariable()
 
-				moveRightAddIntoEAX = MoveInstruction(rightAdd,Registers32.EAX)
-				add = AddInstruction(Registers32.EAX,leftAdd)
-
-				unevictVariable = MoveInstruction(evictedVariableMemoryLocation,Registers32.EAX)
-
-				return ClusteredInstruction([moveEvictedVariableIntoMemory,moveRightAddIntoEAX,add,unevictVariable])
-			else: return AddInstruction(rightAdd,leftAdd)
+				return ClusteredInstruction([evictInstr,moveRightAddIntoEAX,add,saveadd,unevictInstr])
+			else: return AddInstruction(leftAdd,rightAdd)
 		
 		else: return ast
