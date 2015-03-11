@@ -2,6 +2,7 @@ from compiler.ast import *
 import copy
 import Queue
 from PythonASTExtension import *
+from AssemblyAST import *
 
 class GraphColoring:
 
@@ -36,7 +37,7 @@ class GraphColoring:
 				queue.put(elem)
 				
 		while not(queue.empty()):
-			colors = ["eax","ebx","ecx","edx","edi","esi"]
+			colors = [Registers32.EAX,Registers32.EBX,Registers32.ECX,Registers32.EDX,Registers32.EDI,Registers32.ESI]
 			item = queue.get()
 			interfere_vars = graph[item]
 			availColors = copy.copy(colors)
@@ -47,6 +48,6 @@ class GraphColoring:
 			if len(availColors) > 0:
 				colored[item] = availColors[0]
 			else:
-				colored[item] = "SPILL"		
+				colored[item] = None	
 
 		return colored
