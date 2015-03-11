@@ -45,9 +45,7 @@ class GraphColoring:
 				if x in colored:
 					if colored[x] in availColors:
 						availColors.remove(colored[x])
-			if len(availColors) > 0:
-				colored[item] = availColors[0]
-			else:
-				colored[item] = None	
+			if len(availColors) > 0: colored[item] = availColors[0]
+			else: colored[item] = None	
 
 		return colored
