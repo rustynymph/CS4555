@@ -58,7 +58,7 @@ class EntryPointInstruction(UnaryInstruction):
 	def __init__(self,operand):
 		if not isinstance(operand,NameOperand):
 			raise Exception("operand must be of type NameOperand.")
-		self.operand
+		self.operand = operand
 
 	def __repr__(self):
 		return x86InstructionToString(self.__class__.__name__,[self.operand])
