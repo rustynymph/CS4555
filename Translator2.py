@@ -1,5 +1,6 @@
 from compiler.ast import *
 from AssemblyAST import *
+from PythonASTExtension import *
 #from LivenessAnalysis import*
 
 class Translator:
@@ -8,42 +9,50 @@ class Translator:
 		self.liveness = liveness
 		self.memory = {}
 	
-	def getVariableLocation(variable):
-		register = getRegister(variable)
+	def getInvertedGraph(self,coloredgraph):
+		invertedgraph = {}
+		for k in coloredgraph: invertedgraph[k] = []
+
+		for k,v in coloredgraph.items(): invertedgraph[k] += [v]
+		return invertedgraph
+
+	def getVariableLocation(self,variable):
+		register = self.getRegister(variable)
 		if register: return register
-		else: return getVariableInMemory(variable)
+		else: return self.getVariableInMemory(variable)
+
 		
-	def getVariableInMemory(variable): return self.memory[variable]
+	def getVariableInMemory(self,variable): return self.memory[variable]
 	
-	def getRegister(variable): return self.coloredgraph[variable]
+	def getRegister(self,variable): 
+		if variable in self.coloredgraph: return self.coloredgraph[variable]
+		else: return None
 	
-	def putVariableInMemory(variable):
+	def putVariableInMemory(self,variable):
 		if variable not in self.memory:
 			self.memory[variable] = MemoryOperand(Registers32.EBP,self.getActivationRecordSize())
 	
 	def getActivationRecordSize(self): return 4*(len(self.memory)+1)
 
-'''	
-	def spill(variable):
-		for x in coloredgraph:
-			if coloredgraph[x] 
-'''
-	
+
 	def translateToX86(self,ast):
 		if isinstance(ast,Module):
+			print self.getActivationRecordSize()
 			assFunction = AssemblyFunction(SectionHeaderInstruction("main"),ast.node,self.getActivationRecordSize(),ConstantOperand(DecimalValue(0)))
 			clusteredAssFunction = ClusteredInstruction([assFunction])
 			return AssemblyProgram(EntryPointInstruction(NameOperand("main")),clusteredAssFunction)
 		
-		if isinstance(ast,Stmt): return ClusteredInstruction(ast.nodes)			
+		elif isinstance(ast,Stmt): return ClusteredInstruction(ast.nodes)			
 		
 		elif isinstance(ast,Const): return ConstantOperand(DecimalValue(ast.value))
 
 		elif isinstance(ast,AssName):
-			putVariableInMemory(ast.name)
-			return getVariableLocation(ast.name)
+			print "AssName"
+			print ast.name
+			self.putVariableInMemory(ast.name)
+			return self.getVariableLocation(ast.name)
 
-		elif isinstance(ast,Name): return getVariableLocation(ast.name)
+		elif isinstance(ast,Name): return self.getVariableLocation(ast.name)
 
 		elif isinstance(ast,CallFunc):
 			callersavedvariables = []
@@ -78,21 +87,35 @@ class Translator:
 				return ClusteredInstruction([shiftRightInstr,andInstr])
 			else: return AndInstruction(ConstantOperand(DecimalValue(-4)),location)
 		
-		elif isinstance(ast,GetTag): return AndInstruction(ConstantOperand(DecimalValue(3)),getVariableInMemory(ast.arg))
+		elif isinstance(ast,GetTag): return AndInstruction(ConstantOperand(DecimalValue(3)),self.getVariableLocation(ast.arg))
 
-		elif isinstance(ast, Assign):
+		# elif isinstance(ast, Assign):
 			
 		elif isinstance(ast,Compare): return CompareInstruction()
 		
-		elif isinstance(ast,UnarySub): return NegativeInstruction(getVariableInMemory(ast.arg))
+		elif isinstance(ast,UnarySub): return NegativeInstruction(self.getVariableLocation(ast.arg))
 			
 		elif isinstance(ast,IfExp):
 			test = getVariableLocation(ast.test)
+			return ast
 			
-			jumpInst = JumpInstruction(test,
+			# jumpInst = JumpInstruction(test,
 			
 		elif isinstance(ast,Add):
 			leftAdd = getVariableLocation(ast.left)
 			rightAdd = getVariableLocation(ast.right)
+
+			if isinstance(leftAdd,MemoryOperand) and isinstance(rightAdd,MemoryOperand):
+				evictedVariable = self.getInvertedGraph(self.coloredgraph)[Registers32.EAX][0]
+				evictedVariableMemoryLocation = getVariableInMemory(evictedVariable)
+				moveEvictedVariableIntoMemory = MoveInstruction(Registers32.EAX,evictedVariableMemoryLocation)
+
+				moveRightAddIntoEAX = MoveInstruction(rightAdd,Registers32.EAX)
+				add = AddInstruction(Registers32.EAX,leftAdd)
+
+				unevictVariable = MoveInstruction(evictedVariableMemoryLocation,Registers32.EAX)
+
+				return ClusteredInstruction([moveEvictedVariableIntoMemory,moveRightAddIntoEAX,add,unevictVariable])
+			else: return AddInstruction(rightAdd,leftAdd)
 		
 		else: return ast
