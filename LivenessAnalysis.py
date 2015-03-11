@@ -3,187 +3,87 @@ import copy
 import Queue
 from PythonASTExtension import *
 
+
 class LivenessAnalysis:
 	
-	__interference = {}
-	__liveVariables = {}
+	liveVariables = {}
 	
 	@staticmethod
-	def livenessAnalysis(IR,environment):
+	def assignAnalysis(ast,setname):
+		if isinstance(ast.nodes[0],AssName): remove = set((ast.nodes[0].name,))
+		elif isinstance(ast.nodes[0],Subscript): remove = (set((ast.nodes[0].expr.name,)) | set((ast.nodes[0].subs[0].name,)))
+		if isinstance(ast.expr,Name): return (setname - remove) | set((ast.expr.name,))
+		elif isinstance(ast.expr,Const): return (setname - remove)
+		elif isinstance(ast.expr,CallFunc): return (setname - remove) | LivenessAnalysis.callFuncAnalysis(ast.expr,setname)
+		elif isinstance(ast.expr,UnarySub): return (setname - remove) | set((ast.expr.expr.name))
+		elif isinstance(ast.expr,Add): return (setname - remove) | set((ast.expr.left.name,)) | set((ast.expr.right.name,))
+		elif isinstance(ast.expr,Subscript): return (setname - remove) | set((ast.expr.expr.name,)) | set((ast.expr.subs[0].name,))
+		elif isinstance(ast.expr,Dict): return (setname - remove) | set([x.name for x in ast.expr.items])
+		elif isinstance(ast.expr,List): return (setname - remove) | set([x.name for x in ast.expr.nodes])
+		elif isinstance(ast.expr,Not): return (setname - remove) | set((ast.expr.expr.name,))
+		elif isinstance(ast.expr,And): return (setname - remove) | set([x.name for x in ast.expr.nodes])
+		elif isinstance(ast.expr,Or): return (setname - remove) | set([x.name for x in ast.expr.nodes])
+		elif isinstance(ast.expr,Compare):
+			savevar = set()
+			savevar2 = set()
+			if isinstance(ast.expr.expr,Name): savevar = set((ast.expr.expr.name,))
+			if isinstance(ast.expr.ops[0][1],Name): savevar2 = set((ast.expr.ops[0][1].name,))				
+			return (setname - remove) | savevar | savevar2
+		elif isinstance(ast.expr,InjectFrom):
+			if isinstance(ast.expr.arg,Name): return (setname - remove) | set((ast.expr.arg.name,))
+			else: return (setname - remove)
+		elif isinstance(ast.expr,ProjectTo): return (setname - remove) | set((ast.expr.arg))				
+		else: raise Exception("Error: Unrecognized node type")												
 		
-		ir = IR.node.nodes
-		environmentMap = environment
+	@staticmethod
+	def callFuncAnalysis(ast,setname):
+		saveVars = set()
+		for x in ast.args:
+			if isinstance(x,Name):
+				saveVars = saveVars | set((x.name,))
+			else:
+				saveVars = saveVars
+		return setname | saveVars		
+	
+	@staticmethod
+	def getTagAnalysis(ast,setname): return setname
+	
+	@staticmethod
+	def ifExpAnalysis(ast,savenodes):
+		if isinstance(ast,IfExp):
+			savenodes = savenodes | set((ast.test.name,))			
+			if isinstance(ast.then,Stmt):
+				for node in ast.then.nodes:
+					savenodes = savenodes | LivenessAnalysis.ifExpAnalysis(node,savenodes)
+			else: savenodes = savenodes | LivenessAnalysis.ifExpAnalysis(ast.then,savenodes)
+				
+			if isinstance(ast.else_,Stmt):
+				for node in ast.else_.nodes:
+					savenodes = savenodes | LivenessAnalysis.ifExpAnalysis(node,savenodes)
+			else: savenodes = savenodes | LivenessAnalysis.ifExpAnalysis(ast.else_,savenodes)			
+		
+		else: savenodes = savenodes | LivenessAnalysis.dispatch(ast,savenodes,True)		
+		return savenodes								
 
-		interference = {}
-		liveVariables = {}
+	@staticmethod
+	def dispatch(ast,setname,recursion=False):
+		if isinstance(ast,Assign): return LivenessAnalysis.assignAnalysis(ast,setname)
+		elif isinstance(ast,CallFunc): return LivenessAnalysis.callFuncAnalysis(ast,setname)
+		elif isinstance(ast,GetTag): return LivenessAnalysis.getTagAnalysis(ast,setname)
+		elif isinstance(ast,IfExp):
+			if recursion: return LivenessAnalysis.ifExpAnalysis(ast,setname)
+			else: return LivenessAnalysis.ifExpAnalysis(ast,savenodes = set())
+		else: raise Exception("Error: Unrecognized node type")
+					
+	@staticmethod
+	def livenessAnalysis(IR):
+		ir = IR.node.nodes
 		numInstructions = len(ir)
 		for i in range (numInstructions,-1,-1):
-			liveVariables[i] = set()
+			LivenessAnalysis.liveVariables[i] = set()
 		j = numInstructions-1
 		for instructions in reversed(ir):
-			if(isinstance(instructions,Assign)):
-				varWritten = instructions.nodes[0].name
-				remove = set((varWritten,))
-				varRead = instructions.expr
-				if(isinstance(varRead,Name)):
-					liveVariables[j] = set((liveVariables[j+1] - remove) | set((varRead)))
-				elif(isinstance(varRead,Or)):
-					if isinstance(varRead.nodes[0],Name) and isinstance(varRead.nodes[1],Name):
-						varRead1 = set((varRead.nodes[0].name,))
-						varRead2 = set((varRead.nodes[1].name,))
-						liveVariables[j] = set(((liveVariables[j+1] - remove)|varRead1)|varRead2)
-					elif isinstance(varRead.nodes[0],Name) and not(isinstance(varRead.nodes[1],Name)):
-						varRead1 = set((varRead.nodes[0].name,))
-						liveVariables[j] = set((liveVariables[j+1] - remove)|varRead1)
-					elif not(isinstance(varRead.nodes[0],Name)) and isinstance(varRead.nodes[1],Name):
-						varRead2 = set((varRead.nodes[1].name,))
-						liveVariables[j] = set((liveVariables[j+1] - remove)|varRead2)	
-					else:
-						liveVariables[j] = set(liveVariables[j+1] - remove)
-				elif(isinstance(varRead,And)):
-					if isinstance(varRead.nodes[0],Name) and isinstance(varRead.nodes[1],Name):
-						varRead1 = set((varRead.nodes[0].name,))
-						varRead2 = set((varRead.nodes[1].name,))
-						liveVariables[j] = set(((liveVariables[j+1] - remove)|varRead1)|varRead2)
-					elif isinstance(varRead.nodes[0],Name) and not(isinstance(varRead.nodes[1],Name)):
-						varRead1 = set((varRead.nodes[0].name,))
-						liveVariables[j] = set((liveVariables[j+1] - remove)|varRead1)
-					elif not(isinstance(varRead.nodes[0],Name)) and isinstance(varRead.nodes[1],Name):
-						varRead2 = set((varRead.nodes[1].name,))
-						liveVariables[j] = set((liveVariables[j+1] - remove)|varRead2)	
-					else:
-						liveVariables[j] = set(liveVariables[j+1] - remove)					
-				elif(isinstance(varRead,Compare)):
-					if isinstance(varRead.expr,Name) and isinstance(varRead.ops[1],Name):
-						varRead1 = set((varRead.expr.name,))
-						varRead2 = set((varRead.ops[1].name,))
-						liveVariables[j] = set(((liveVariables[j+1]-remove)|varRead1)|varRead2)
-					elif isinstance(varRead.expr,Name) and not(isinstance(varRead.ops[1],Name)):
-						varRead1 = set((varRead.expr.name,))
-						liveVariables[j] = set((liveVariables[j+1]-remove)|varRead1)
-					elif not(isinstance(varRead.expr,Name)) and isinstance(varRead.ops[1],Name):
-						varRead2 = set((varRead.ops[1].name,))
-						liveVariables[j] = set((liveVariables[j+1]-remove)|varRead2)
-					else:
-						liveVariables[j] = set(liveVariables[j+1]-remove)						
-				elif(isinstance(varRead,Subscript)):
-					varRead1 = set((varRead.expr,))
-					varRead2 = set((varRead.subs[0],))
-					liveVariables[j] = set(((liveVariables[j+1]-remove)|varRead1)|varRead2)
-				elif(isinstance(varRead,List)):
-					varReadList = set()
-					for node in varRead.nodes:
-						readnode = set((node.name,))
-						varReadList = varReadList|readnode
-					liveVariables[j] = set((liveVariables[j+1]-remove)|varReadList)
-				elif(isinstance(varRead,Dict)):
-					liveVariables[j] = set(liveVariables[j+1]-remove)				
-				elif(isinstance(varRead,Not)):
-					if isinstance(varRead.expr,Name):
-						varRead = varRead.expr.name
-						liveVariables[j] = set((liveVariables[j+1] - remove) | set((varRead,)))
-					elif isinstance(varRead.expr,Const):
-						liveVariables[j] = set(liveVariables[j+1] - remove)
-				elif(isinstance(varRead,UnarySub)):
-					if isinstance(varRead.expr,Name):
-						varRead = varRead.expr.name
-						liveVariables[j] = set((liveVariables[j+1] - remove) | set((varRead,)))
-					elif isinstance(varRead.expr,Const):
-						liveVariables[j] = set(liveVariables[j+1] - remove)
-				elif(isinstance(varRead,Add)):
-					leftnode = varRead.left
-					rightnode = varRead.right
-					if(isinstance(leftnode,Name) and isinstance(rightnode,Name)):
-						liveVariables[j] = set((liveVariables[j+1] - remove) | set((leftnode.name,)) | set((rightnode.name,)))
-					elif(isinstance(leftnode,Name) and not(isinstance(rightnode,Name))):
-						liveVariables[j] = set((liveVariables[j+1] - remove) | set((leftnode.name,)))
-					elif(not(isinstance(leftnode,Name)) and isinstance(rightnode,Name)):
-						liveVariables[j] = set((liveVariables[j+1] - remove) | set((rightnode.name,)))
-					else:
-						liveVariables[j] = set((liveVariables[j+1]) - remove)
-				elif(isinstance(varRead,Const)):
-					liveVariables[j] = set(liveVariables[j+1] - remove)
-				else:
-					liveVariables[j] = set((liveVariables[j+1]) - remove)
-			elif isinstance(instructions,Printnl):
-				varRead = instructions.nodes[0]
-				liveVariables[j] = set(set((varRead))|set(liveVariables[j+1]))
-			elif isinstance(instructions,IfExp):
-				if isinstance(instructions.test,Name):
-					varRead1 = set((instructions.test.name,))
-					#liveVariables[j] = set((set((varRead,))|set(liveVariables[j+1])))
-				if isinstance(instructions.then,Assign):
-					varWritten = instructions.then.nodes[0].name
-					remove1 = set((varWritten,))
-					if isinstance(instructions.then.expr,Name):
-						varRead2 = set((instructions.then.expr.name,))
-					else:
-						varRead2 = set()
-					#liveVariables[j] = set((liveVariables[j+1] - remove) |set((varRead,)))
-				else:
-					remove1 = set() 
-					if isinstance(instructions.then[0].expr,Name):
-						varRead2 = set((instructions.then[0].expr.name,))
-					else:
-						varRead2 = set()
-				if isinstance(instructions.else_,Assign):
-					varWritten = instructions.else_.nodes[0].name
-					remove2 = set((varWritten,))
-					if isinstance(instructions.else_.expr,Name):
-						varRead3 = set((instructions.else_.expr.name,))
-					else:
-						varRead3 = set()
-				liveVariables[j] = set(((((liveVariables[j+1] - remove1) - remove2) |varRead1)|varRead2)|varRead3)
-			else:
-				varRead = instructions.nodes[0]
-				raise Exception("Error: Unrecognized node type")
+			LivenessAnalysis.liveVariables[j] = LivenessAnalysis.dispatch(instructions,LivenessAnalysis.liveVariables[j+1])	
 			j-=1
 
-		return [liveVariables[x] for x in liveVariables]	
-		
-	@staticmethod
-	def createGraph(liveVariables):
-		lv = liveVariables
-		graph = {}
-		for variableSet in lv:
-			for variable in variableSet:
-				edges = [x for x in (variableSet - set((variable,)))]
-				if variable not in graph: graph[variable] = []
-				graph[variable] += edges
-		return graph
-
-	@staticmethod
-	def colorGraph(graph):
-		queue = Queue.Queue()
-		def saturation(graph):
-			saturationGraph = {}
-			for element in graph:
-				length = len(graph[element])
-				if length not in saturationGraph: saturationGraph[length] = []
-				saturationGraph[length] += [element]
-			return saturationGraph
-		satGraph = saturation(graph)
-		satkeys = [x for x in satGraph]
-		colored = {}
-						
-		for key in reversed(satkeys):
-			l = satGraph[key]
-			for elem in l:
-				queue.put(elem)
-				
-		while not(queue.empty()):
-			colors = ["eax","ebx","ecx","edx","edi","esi"]
-			item = queue.get()
-			interfere_vars = graph[item]
-			availColors = copy.copy(colors)
-			for x in interfere_vars:
-				if x in colored:
-					if colored[x] in availColors:
-						availColors.remove(colored[x])
-			if len(availColors) > 0:
-				colored[item] = availColors[0]
-			else:
-				colored[item] = "SPILL"		
-
-		return colored
-				
+		return [LivenessAnalysis.liveVariables[x] for x in LivenessAnalysis.liveVariables]				

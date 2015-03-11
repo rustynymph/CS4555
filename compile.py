@@ -13,6 +13,8 @@ from TraverseIR import TraverseIR
 from Namespace import *
 from Orphan import *
 from Functionize import *
+from LivenessAnalysis import *
+from GraphColoring import *
 
 pythonFilename = sys.argv[1]
 
@@ -37,7 +39,16 @@ pythonAST = TraverseIR.map(pythonAST,Functionize.replaceBigPyobjMap)
 pythonAST = TraverseIR.map(pythonAST,Functionize.replaceWithRuntimeEquivalentMap,Functionize({"input":"input_int"}))
 pythonAST = TraverseIR.map(pythonAST,Flatten.removeNestedStmtMap)
 pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
+
 print pythonAST
+print("\n")
+liveness = LivenessAnalysis.livenessAnalysis(pythonAST)
+print liveness
+print("\n")
+graph = GraphColoring.createGraph(liveness)
+coloredgraph = GraphColoring.colorGraph(graph)
+print coloredgraph
+#coloredgraph = GraphColoring.
 # flattenedAST = pythonAST
 # x86AST = Translator.pythonASTToAssemblyAST(flattenedAST)
 
