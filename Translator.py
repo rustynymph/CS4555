@@ -92,7 +92,20 @@ class Translator():
 		
 		elif isinstance(ast,GetTag): return AndInstruction(ConstantOperand(DecimalValue(3)),ast.arg)
 
-		elif isinstance(ast, Assign): return MoveInstruction(ast.expr,ast.nodes[0])
+		elif isinstance(ast, Assign):
+'''
+			if isinstance(ast.expr,MemoryOperand):
+			elif isinstance(ast.expr,RegisterOperand):
+			elif isinstance(ast.expr,AddInstruction):
+			elif isinstance(ast.expr,AndInstruction):
+			elif isinstance(ast.expr,OrInstruction):
+			elif isinstance(ast.expr,CompareInstruction):
+			elif isinstance(ast.expr,ClusteredInstruction):
+			elif isinstance(ast.expr,NameOperand):
+			elif isinstance(ast.expr,ConstantOperand):
+			elif isinstance(ast.expr,CallFunc): return MoveInstruction(RegisterOperand(Registers32.EAX),ast.nodes[0])
+'''
+			return MoveInstruction(ast.expr,ast.nodes[0])
 			
 		elif isinstance(ast,Compare):
 			#leftcmp = self.getVariableLocation(ast.expr)
