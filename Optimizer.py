@@ -30,6 +30,9 @@ class Optimizer:
 			if isinstance(ast.expr,Const) or isinstance(ast.expr,Boolean):
 				return Boolean(not ast.expr.value)
 			else: return ast
+		elif isinstance(ast,Compare):
+			if (isinstance(ast.expr,Const) or isinstance(ast.expr,Boolean)) and (isinstance(ast.ops[0][1],Const) or isinstance(ast.ops[0][1],Boolean)):
+				return Boolean(ast.expr == ast.ops[0][1])
 		else: return ast
 
 	@staticmethod
