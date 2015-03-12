@@ -6,7 +6,7 @@ from X86ArithmeticInstructions import *
 
 class CompareInstruction(BinaryInstruction):
 	def __init__(self,fromOperand,toOperand):
-		BinaryInstruction(fromOperand,toOperand)
+		#BinaryInstruction(fromOperand,toOperand)
 		self.fromOperand = fromOperand
 		self.toOperand = toOperand
 
@@ -92,8 +92,8 @@ class AssemblyIf(Instruction):
 			raise Exception("compare must be of type CompareInstruction.")
 		if not isinstance(name,str):
 			raise Exception("name must be of type str.")
-		if not isinstance(trueSection,AssemblySection):
-			raise Exception("trueSection must be of type AssemblySection.")
+		if not isinstance(trueSection,ClusteredInstruction):
+			raise Exception("trueSection must be of type ClusteredInstruction.")
 		if not isinstance(falseSection,AssemblySection):
 			raise Exception("falseSection must be of type AssemblySection.")
 
@@ -107,6 +107,8 @@ class AssemblyIf(Instruction):
 		falseJumpInstruction = JumpInstruction(falseNameOperand,JumpPredicateEnum.NOTZERO)
 		endJumpInstruction = JumpInstruction(endNameOperand)
 		endSection = SectionHeaderInstruction(endNameOperand.name)
+		
+		self.falseSection.sectionHeader.operand = falseNameOperand
 
 		clusteredArray = [self.compare,falseJumpInstruction,self.trueSection,endJumpInstruction,self.falseSection,endSection]
 

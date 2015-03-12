@@ -74,16 +74,17 @@ class Translator():
 			callersavedvariables = []
 			
 			for variable in self.coloredgraph:
-				if isinstance(self.coloredgraph[variable].register,CallerSavedRegister):
-					callersavedvariables += [variable]
+				if isinstance(self.coloredgraph[variable],RegisterOperand):
+					if isinstance(self.coloredgraph[variable].register,CallerSavedRegister):
+						callersavedvariables += [variable]
 					
 			if len(ast.args) > 0:
 				pushArgsInstr = [PushInstruction(arg) for arg in reversed(ast.args)]
 			else: pushArgsInstr = []		
 					
-			saveInstr = [MoveInstruction(self.getVariableLocation(var),self.getVariableInMemory(var)) for var in callersavedvariables]
+			saveInstr = [MoveInstruction(self.getVariableLocation(var),self.getVariableInMemory(var)) for var in callersavedvariables if var in self.memory]
 			callInstr = [CallInstruction(ast.node)]
-			loadInstr = [MoveInstruction(self.getVariableInMemory(var),self.getVariableLocation(var)) for var in callersavedvariables]
+			loadInstr = [MoveInstruction(self.getVariableInMemory(var),self.getVariableLocation(var)) for var in callersavedvariables if var in self.memory]
 			return ClusteredInstruction(saveInstr + pushArgsInstr + callInstr + loadInstr)
 					
 		elif isinstance(ast,InjectFrom):
@@ -162,11 +163,20 @@ class Translator():
 		elif isinstance(ast,UnarySub): return NegativeInstruction(ast.expr)
 			
 		elif isinstance(ast,IfExp):
-			test = self.getVariableLocation(ast.test)
-			compareInstr = CompareInstruction(ConstantOperand(DecimalValue(1)),test)
-			jumpInstr = JumpInstruction(test,SIGNEDGREATER)
-			#how are we jumping TO a location?
-			return ClusteredInstruction([compareInstr,jumpInstr])
+			test = ast.test
+			true = ast.then
+			false = ast.else_
+			compare = CompareInstruction(test,ConstantOperand(DecimalValue(1)))
+			name = NameGenerator("branch")
+			name = name.getNameAndIncrementCounter() 
+			
+			if isinstance(ast.then,ClusteredInstruction): trueSection = ast.then
+			else: trueSection = ClusteredInstruction(ast.then)
+			
+			if isinstance(ast.else_,ClusteredInstruction): falseSection = AssemblySection(SectionHeaderInstruction(name),ast.else_)
+			else: falseSection = AssemblySection(SectionHeaderInstruction(name),ClusteredInstruction(ast.else_))
+
+			return AssemblyIf(compare,name,trueSection,falseSection)
 			
 		elif isinstance(ast,Add):
 			leftAdd = ast.left
@@ -180,6 +190,6 @@ class Translator():
 				unevictInstr = self.unevictVariable()
 
 				return ClusteredInstruction([evictInstr,moveRightAddIntoEAX,add,unevictInstr])
-			else: return AddInstruction(rightAdd,leftAdd)
+			else: return AddIntegerInstruction(rightAdd,leftAdd)
 		
 		else: return ast
