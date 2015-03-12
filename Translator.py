@@ -6,6 +6,7 @@ class NameGenerator():
 	def __init__(self,prefix,count=0):
 		self.prefix = prefix
 		self.count = count
+		
 
 	def getName(self):
 		return self.prefix + str(self.count)
@@ -17,6 +18,7 @@ class NameGenerator():
 
 class Translator():
 	def __init__(self,coloredgraph):
+		self.branch = NameGenerator("branch")		
 		self.coloredgraph = coloredgraph
 		self.memory = {}
 	
@@ -92,17 +94,17 @@ class Translator():
 			location = ast.arg
 			tag = ast.typ
 			if ast.typ.value.value != 3:
-				shiftLeftInstr = ShiftLeftInstruction(ConstantOperand(DecimalValue(2)),location)
-				orInstr = OrInstruction(tag,location)
-				return ClusteredInstruction([shiftLeftInstr,orInstr])
+				shiftLeftInstr = [ShiftLeftInstruction(ConstantOperand(DecimalValue(2)),location)]
+				orInstr = [OrInstruction(tag,location)]
+				return ClusteredInstruction(shiftLeftInstr + orInstr)
 			else: return OrInstruction(tag,location)
 			
 		elif isinstance(ast,ProjectTo):
 			location = ast.arg
 			if ast.typ.value.value != 3:
-				shiftRightInstr = ShiftArithmeticRightInstruction(ConstantOperand(DecimalValue(2)),location)
-				andInstr = AndInstruction(ConstantOperand(DecimalValue(-4)),location)
-				return ClusteredInstruction([shiftRightInstr,andInstr])
+				shiftRightInstr = [ShiftArithmeticRightInstruction(ConstantOperand(DecimalValue(2)),location)]
+				andInstr = [AndInstruction(ConstantOperand(DecimalValue(-4)),location)]
+				return ClusteredInstruction(shiftRightInstr + andInstr)
 			else: return AndInstruction(ConstantOperand(DecimalValue(-4)),location)
 		
 		elif isinstance(ast,GetTag): return AndInstruction(ConstantOperand(DecimalValue(3)),ast.arg)
@@ -124,9 +126,9 @@ class Translator():
 				clusteredInstructionBefore = ClusteredInstruction(clusteredArrayBefore)
 				clusteredInstructionAfter = ClusteredInstruction(clusteredArrayAfter)
 			
-				moveInstruction = MoveInstruction(fromOperand,toOperand)
+				moveInstruction = [MoveInstruction(fromOperand,toOperand)]
 			
-				moveCluster = ClusteredInstruction([clusteredArrayBefore,moveInstruction,clusteredArrayAfter])
+				moveCluster = ClusteredInstruction(clusteredArrayBefore + moveInstruction + clusteredArrayAfter)
 				return moveCluster
 				
 			elif isinstance(ast.expr,BinaryInstruction): return ast.expr
@@ -151,13 +153,13 @@ class Translator():
 			rightcmp = ast.ops[0][1]
 			reg = RegisterOperand(Registers32.EAX)
 			if isinstance(leftcmp,MemoryOperand) and isinstance(rightcmp,MemoryOperand):
-				evictInstr = self.evictVariable()
-				moveright = MoveInstruction(rightcmp,reg)
-				compareInstr = CompareInstruction(leftcmp,reg)
+				evictInstr = [self.evictVariable()]
+				moveright = [MoveInstruction(rightcmp,reg)]
+				compareInstr = [CompareInstruction(leftcmp,reg)]
 				#savecmp = MoveInstruction(reg,rightcmp)
-				unevictInstr = self.unevictVariable()
+				unevictInstr = [self.unevictVariable()]
 				#return ClusteredInstruction([evictInstr,moveright,compareInstr,savecmp,unevictInstr])
-				return ClusteredInstruction([evictInstr,moveright,compareInstr,unevictInstr])
+				return ClusteredInstruction(evictInstr + moveright + compareInstr + unevictInstr)
 			return CompareInstruction(leftcmp,rightcmp)
 		
 		elif isinstance(ast,UnarySub): return NegativeInstruction(ast.expr)
@@ -167,8 +169,7 @@ class Translator():
 			true = ast.then
 			false = ast.else_
 			compare = CompareInstruction(test,ConstantOperand(DecimalValue(1)))
-			name = NameGenerator("branch")
-			name = name.getNameAndIncrementCounter() 
+			name = self.branch.getNameAndIncrementCounter() 
 			
 			if isinstance(ast.then,ClusteredInstruction): trueSection = ast.then
 			else: trueSection = ClusteredInstruction(ast.then)
@@ -184,12 +185,12 @@ class Translator():
 
 			if isinstance(leftAdd,MemoryOperand) and isinstance(rightAdd,MemoryOperand):
 				reg = RegisterOperand(Registers32.EAX)
-				evictInstr = self.evictVariable()
-				moveRightAddIntoEAX = MoveInstruction(rightAdd,reg)
-				add = AddInstruction(reg,leftAdd)
-				unevictInstr = self.unevictVariable()
+				evictInstr = [self.evictVariable()]
+				moveRightAddIntoEAX = [MoveInstruction(rightAdd,reg)]
+				add = [AddInstruction(reg,leftAdd)]
+				unevictInstr = [self.unevictVariable()]
 
-				return ClusteredInstruction([evictInstr,moveRightAddIntoEAX,add,unevictInstr])
+				return ClusteredInstruction(evictInstr + moveRightAddIntoEAX + add + unevictInstr)
 			else: return AddIntegerInstruction(rightAdd,leftAdd)
 		
 		else: return ast
