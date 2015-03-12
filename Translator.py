@@ -169,7 +169,7 @@ class Translator():
 			elif (isinstance(leftcmp,MemoryOperand) and isinstance(rightcmp,MemoryOperand)) or (isinstance(leftcmp,MemoryOperand) and isinstance(rightcmp,ConstantOperand)) or (isinstance(leftcmp,ConstantOperand) and isinstance(rightcmp,MemoryOperand)) or (isinstance(leftcmp,ConstantOperand) and isinstance(rightcmp,ConstantOperand)):
 				evict = self.evictVariable()
 				save = evict[0]
-				boolean[1]
+				boolean = evict[1]
 				evictInstr = [save]
 				moveright = [MoveInstruction(rightcmp,reg)]
 				compareInstr = [CompareInstruction(leftcmp,reg)]
@@ -200,7 +200,9 @@ class Translator():
 			
 			elif isinstance(test,ClusteredInstruction):
 				clusteredArray = []
-				#for i in test.nodes:
+				for i in test.nodes:
+					print i
+					#if isinstance(i,CompareInstruction):
 					
 			
 			elif isinstance(test,CompareInstruction): compare = test
