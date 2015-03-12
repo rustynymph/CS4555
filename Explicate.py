@@ -67,6 +67,9 @@ class Explicate:
 
 			intAndBoolIf = IfExp(intAndBoolPredicate,intAndBoolCompare,bigIf)
 
+			letRight = Let(rightName,ast.ops[0][1],intAndBoolIf)
+			letLeft = Let(leftName,ast.expr,letRight)
+			return letLeft
 			return intAndBoolIf
 
 		elif isinstance(ast,UnarySub):
