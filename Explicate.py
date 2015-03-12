@@ -26,10 +26,10 @@ class Explicate:
 
 	def explicateMap(self,ast):
 		#Creates pyobj's
-		if isinstance(ast,Const): return InjectFrom(INT_t,ast)
-		elif isinstance(ast,Boolean): return InjectFrom(BOOL_t,Const(int(ast.value)))
-		elif isinstance(ast,List): return InjectFrom(BIG_t,ast)
-		elif isinstance(ast,Dict): return InjectFrom(BIG_t,ast)
+		if isinstance(ast,Const): return InjectFrom(Const(INT_t),ast)
+		elif isinstance(ast,Boolean): return InjectFrom(Const(BOOL_t),Const(int(ast.value)))
+		elif isinstance(ast,List): return InjectFrom(Const(BIG_t),ast)
+		elif isinstance(ast,Dict): return InjectFrom(Const(BIG_t),ast)
 
 		elif isinstance(ast,Add):
 			leftName = Name("letAdd"+str(self.getAndIncrement()))
