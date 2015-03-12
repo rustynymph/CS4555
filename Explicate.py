@@ -9,8 +9,8 @@ from AssemblyAST import *
 from PythonASTExtension import *
 
 INT_t = 0		#00
-BOOL_t = 1		#01
-BIG_t = 3		#11
+Const(BOOL_t) = 1		#01
+Const(BIG_t) = 3		#11
 MASK = 3		#11
 counter = 1
 
@@ -35,27 +35,27 @@ class Explicate:
 			leftName = Name("letAdd"+str(self.getAndIncrement()))
 			rightName = Name("letAdd"+str(self.getAndIncrement()))
 			#Checks if the left subtree is an int or bool
-			leftPredicate = Or([IsTag(INT_t,leftName),IsTag(BOOL_t,leftName)])
+			leftPredicate = Or([IsTag(Const(INT_t),leftName),IsTag(Const(BOOL_t),leftName)])
 			#Checks if the right subtree is an int or bool
-			rightPredicate = Or([IsTag(INT_t,rightName),IsTag(BOOL_t,rightName)])
+			rightPredicate = Or([IsTag(Const(INT_t),rightName),IsTag(Const(BOOL_t),rightName)])
 			#Checks if both subtrees are an int or a bool
 			predicate = And([leftPredicate,rightPredicate])
 			#Adds ints and bools
-			addIntsAndBools = InjectFrom(INT_t,Add((ProjectTo(INT_t,leftName),ProjectTo(INT_t,rightName))))
+			addIntsAndBools = InjectFrom(Const(INT_t),Add((ProjectTo(Const(INT_t),leftName),ProjectTo(Const(INT_t),rightName))))
 			#Adds bigs
-			add = CallFunc(Name("add"),[ProjectTo(BIG_t,leftName),ProjectTo(BIG_t,rightName)],None,None)
-			addBig = InjectFrom(BIG_t,add)
+			add = CallFunc(Name("add"),[ProjectTo(Const(BIG_t),leftName),ProjectTo(Const(BIG_t),rightName)],None,None)
+			addBig = InjectFrom(Const(BIG_t),add)
 			#Explicated add tree
 			explicatedAdd = IfExp(predicate,addIntsAndBools,addBig)
 
 			return Let(leftName,ast.left,Let(rightName,ast.right,explicatedAdd))
 		elif isinstance(ast,UnarySub):
-			return InjectFrom(INT_t,UnarySub(ProjectTo(INT_t,ast.expr)))
+			return InjectFrom(Const(INT_t),UnarySub(ProjectTo(Const(INT_t),ast.expr)))
 		elif isinstance(ast,CallFunc):
 			#Not sure if we have to do anything here
 			return ast
 		elif isinstance(ast,Not):
-			notexp = ProjectTo(BOOL_t,ast)
+			notexp = ProjectTo(Const(BOOL_t),ast)
 			return notexp
 
 		else: return ast
