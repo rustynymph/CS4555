@@ -9,8 +9,8 @@ from AssemblyAST import *
 from PythonASTExtension import *
 
 INT_t = 0		#00
-Const(BOOL_t) = 1		#01
-Const(BIG_t) = 3		#11
+BOOL_t = 1		#01
+BIG_t = 3		#11
 MASK = 3		#11
 counter = 1
 
