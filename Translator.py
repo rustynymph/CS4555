@@ -65,7 +65,7 @@ class Translator():
 					callersavedvariables += [variable]
 					
 			if len(ast.args) > 0:
-				pushArgsInstr = [PushInstruction(arg) for arg in ast.args]
+				pushArgsInstr = [PushInstruction(arg) for arg in reversed(ast.args)]
 			else: pushArgsInstr = []		
 					
 			saveInstr = [MoveInstruction(self.getVariableLocation(var),self.getVariableInMemory(var)) for var in callersavedvariables]
