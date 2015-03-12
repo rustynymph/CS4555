@@ -55,7 +55,13 @@ class LivenessAnalysis():
 	
 	def ifExpAnalysis(self,ast,savenodes):
 		if isinstance(ast,IfExp):
-			savenodes = savenodes | set((ast.test.name,))			
+			if isinstance(ast.test,Compare):
+				set1 = ()
+				set2 = ()
+				if isinstance(ast.test.expr,Name): set1 = set((ast.test.expr.name,))
+				if isinstance(ast.test.ops[0][1],Name): set2 = set((ast.test.ops[0][1].name,))
+				savenodes = savenodes | set1 | set2
+			else: savenodes = savenodes | set((ast.test.name,))			
 			if isinstance(ast.then,Stmt):
 				for node in ast.then.nodes:
 					savenodes = savenodes | self.ifExpAnalysis(node,savenodes)

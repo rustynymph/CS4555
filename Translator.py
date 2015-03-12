@@ -7,7 +7,6 @@ class NameGenerator():
 		self.prefix = prefix
 		self.count = count
 		
-
 	def getName(self):
 		return self.prefix + str(self.count)
 
@@ -129,7 +128,7 @@ class Translator():
 					save = evict[0]
 					boolean = evict[1]
 					clusteredArrayBefore += [save]
-					clusteredArrayBefore += [MemoryOperand(memory),RegisterOperand(Registers32.EAX)]
+					clusteredArrayBefore += [MoveInstruction(memory,RegisterOperand(Registers32.EAX))]
 			
 					clusteredArrayAfter += [self.unevictVariable(boolean)]
 			
@@ -199,11 +198,11 @@ class Translator():
 			
 			elif isinstance(test,ClusteredInstruction):
 				#I'm assuming if we have a clustered instruction here that it has length 4
-				evict = test.nodes[0]
-				mov = test.nodes[1]
+				evict = [test.nodes[0]]
+				mov = [test.nodes[1]]
 				compare = test.nodes[2]
-				unevict = test.nodes[3]
-				name = self.branch.getNameandIncrementCounter()
+				unevict = [test.nodes[3]]
+				name = self.branch.getNameAndIncrementCounter()
 				trueSection = ClusteredInstruction(unevict + [ast.then])
 				falseSection = ClusteredInstruction(unevict + [ast.else_])
 
