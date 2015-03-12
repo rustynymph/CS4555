@@ -6,7 +6,6 @@ from X86ArithmeticInstructions import *
 
 class CompareInstruction(BinaryInstruction):
 	def __init__(self,fromOperand,toOperand):
-		#BinaryInstruction(fromOperand,toOperand)
 		self.fromOperand = fromOperand
 		self.toOperand = toOperand
 
