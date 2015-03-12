@@ -53,10 +53,12 @@ class Translator():
 		if reg in self.coloredgraph:
 			evictedVariable = self.getInvertedGraph(self.coloredgraph)[reg][0]
 			evictedVariableMemoryLocation = getVariableInMemory(evictedVariable)
-			return MoveInstruction(reg,evictedVariableMemoryLocation)
-		return ClusteredInstruction()		
+			return (MoveInstruction(reg,evictedVariableMemoryLocation),True)
+		return (ClusteredInstruction(),False)		
 		
-	def unevictVariable(self): return MoveInstruction(evictedVariableMemoryLocation,RegisterOperand(Registers32.EAX))
+	def unevictVariable(self,evicted=True):
+		if evicted:	return MoveInstruction(evictedVariableMemoryLocation,RegisterOperand(Registers32.EAX))
+		else: return ClusteredInstruction()
 
 	def translateToX86(self,ast):
 		if isinstance(ast,Module):
@@ -123,10 +125,13 @@ class Translator():
 				if isinstance(fromOperand,MemoryOperand) and isinstance(toOperand,MemoryOperand):
 					memory = fromOperand
 					fromOperand = RegisterOperand(Registers32.EAX)
-					clusteredArrayBefore += [self.evictVariable()]
+					evict = self.evictVariable()
+					save = evict[0]
+					boolean = evict[1]
+					clusteredArrayBefore += [save]
 					clusteredArrayBefore += [MemoryOperand(memory),RegisterOperand(Registers32.EAX)]
 			
-					clusteredArrayAfter += [self.unevictVariable()]
+					clusteredArrayAfter += [self.unevictVariable(boolean)]
 			
 				clusteredInstructionBefore = ClusteredInstruction(clusteredArrayBefore)
 				clusteredInstructionAfter = ClusteredInstruction(clusteredArrayAfter)
@@ -144,10 +149,6 @@ class Translator():
 				assign = ast.nodes[0]
 				clusteredArray = []
 				for i in ast.expr.nodes:
-					print isinstance(i,MoveInstruction) and i.toOperand == assign
-					print i.toOperand if isinstance(i,MoveInstruction) else i
-					print assign
-					print
 					if isinstance(i,CallInstruction):
 						clusteredArray += [i]
 						clusteredArray += [MoveInstruction(RegisterOperand(Registers32.EAX),assign)]
@@ -166,12 +167,13 @@ class Translator():
 			if isinstance(rightcmp,ConstantOperand) and isinstance(leftcmp,RegisterOperand): return CompareInstruction(rightcmp,leftcmp)
 		
 			elif (isinstance(leftcmp,MemoryOperand) and isinstance(rightcmp,MemoryOperand)) or (isinstance(leftcmp,MemoryOperand) and isinstance(rightcmp,ConstantOperand)) or (isinstance(leftcmp,ConstantOperand) and isinstance(rightcmp,MemoryOperand)) or (isinstance(leftcmp,ConstantOperand) and isinstance(rightcmp,ConstantOperand)):
-				evictInstr = [self.evictVariable()]
+				evict = self.evictVariable()
+				save = evict[0]
+				boolean[1]
+				evictInstr = [save]
 				moveright = [MoveInstruction(rightcmp,reg)]
 				compareInstr = [CompareInstruction(leftcmp,reg)]
-				#savecmp = MoveInstruction(reg,rightcmp)
-				unevictInstr = [self.unevictVariable()]
-				#return ClusteredInstruction([evictInstr,moveright,compareInstr,savecmp,unevictInstr])
+				unevictInstr = [self.unevictVariable(boolean)]
 				return ClusteredInstruction(evictInstr + moveright + compareInstr + unevictInstr)
 			return CompareInstruction(leftcmp,rightcmp)
 		
@@ -187,14 +189,26 @@ class Translator():
 			load = []
 			
 			if isinstance(test,MemoryOperand):
-				save = [self.evictVariable()]
+				evictStuff = self.evictVariable()
+				evict = evictStuff[0]
+				boolean = evictStuff[1]
+				save = [evict[0]]
 				movcmp = [MoveInstruction(test,RegisterOperand(Registers32.EAX))]
 				compare = CompareInstruction(ConstantOperand(DecimalValue(1)),RegisterOperand(Registers32.EAX))
-				if isinstance(save,MoveInstruction): load = [self.unevictVariable()]
+				if isinstance(save,MoveInstruction): load = [self.unevictVariable(boolean)]
 				else: load = []
+			
+			elif isinstance(test,ClusteredInstruction):
+				clusteredArray = []
+				#for i in test.nodes:
+					
+			
+			elif isinstance(test,CompareInstruction): compare = test
+				
 			
 			else:
 				compare = CompareInstruction(ConstantOperand(DecimalValue(1)),test)
+			
 			name = self.branch.getNameAndIncrementCounter() 
 			
 			trueSection = ClusteredInstruction(load + [ast.then])
@@ -209,10 +223,13 @@ class Translator():
 
 			if isinstance(leftAdd,MemoryOperand) and isinstance(rightAdd,MemoryOperand):
 				reg = RegisterOperand(Registers32.EAX)
-				evictInstr = [self.evictVariable()]
+				evict = self.evictVariable()
+				save = evict[0]
+				boolean = evict[1]
+				evictInstr = [save]
 				moveRightAddIntoEAX = [MoveInstruction(rightAdd,reg)]
 				add = [AddInstruction(reg,leftAdd)]
-				unevictInstr = [self.unevictVariable()]
+				unevictInstr = [self.unevictVariable(boolean)]
 
 				return ClusteredInstruction(evictInstr + moveRightAddIntoEAX + add + unevictInstr)
 			else: return AddIntegerInstruction(rightAdd,leftAdd)
