@@ -71,13 +71,13 @@ class Translator():
 			saveInstr = [MoveInstruction(self.getVariableLocation(var),self.getVariableInMemory(var)) for var in callersavedvariables]
 			callInstr = [CallInstruction(ast.node)]
 			loadInstr = [MoveInstruction(self.getVariableInMemory(var),self.getVariableLocation(var)) for var in callersavedvariables]
-			print ClusteredInstruction(saveInstr + pushArgsInstr + callInstr + loadInstr)
 			return ClusteredInstruction(saveInstr + pushArgsInstr + callInstr + loadInstr)
 					
 		elif isinstance(ast,InjectFrom):
+
 			location = ast.arg
 			tag = ast.typ
-			if ast.typ.value != 3:
+			if ast.typ.value.value != 3:
 				shiftLeftInstr = ShiftLeftInstruction(ConstantOperand(DecimalValue(2)),location)
 				orInstr = OrInstruction(tag,location)
 				return ClusteredInstruction([shiftLeftInstr,orInstr])
@@ -85,7 +85,7 @@ class Translator():
 			
 		elif isinstance(ast,ProjectTo):
 			location = ast.arg
-			if ast.typ.value != 3:
+			if ast.typ.value.value != 3:
 				shiftRightInstr = ShiftArithmeticRightInstruction(ConstantOperand(DecimalValue(2)),location)
 				andInstr = AndInstruction(ConstantOperand(DecimalValue(-4)),location)
 				return ClusteredInstruction([shiftRightInstr,andInstr])
@@ -120,7 +120,6 @@ class Translator():
 			elif isinstance(ast.expr,UnaryInstruction): return ast.expr					
 								
 			elif isinstance(ast.expr,ClusteredInstruction):
-				print("hi")
 				assign = ast.nodes[0]
 				clusteredArray = []
 				for i in ast.expr.nodes:
