@@ -42,6 +42,7 @@ class Optimizer:
 					print "yeah"
 					return ast.then
 				else: return ast.else_
+			else: return ast
 		elif isinstance(ast,Compare):
 			if (isinstance(ast.expr,Const) or isinstance(ast.expr,Boolean)) and (isinstance(ast.ops[0][1],Const) or isinstance(ast.ops[0][1],Boolean)):
 				return Boolean((ast.expr == ast.ops[0][1]))
