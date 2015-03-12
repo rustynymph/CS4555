@@ -156,10 +156,23 @@ class ArithmeticFlattener():
 			return Stmt(stmtArray + [assign])
 		elif isinstance(ast,IfExp):
 			testName = Name(name+"$test")
-			testExpr = self.flattenArithmetic(ast.test,name+"$test")
-			isTrue = CallFunc(Name("is_true"),[testName],None,None)
-			assignTest = Assign([AssName(testName.name,'OP_ASSIGN')],isTrue)
-			testExpr = Stmt([testExpr,assignTest])
+			print isinstance(ast.test,Compare)
+			if not isinstance(ast.test,Compare):
+
+				testExpr = self.flattenArithmetic(ast.test,name+"$test")
+				isTrue = CallFunc(Name("is_true"),[testName],None,None)
+				assignTest = Assign([AssName(testName.name,'OP_ASSIGN')],isTrue)
+				testExpr = Stmt([testExpr,assignTest])
+			else:
+				print ast.test
+				exprName = Name(name+"$test$Compare$0")
+				opName = Name(name+"$test$Compare$1")
+				flattenExpr = self.flattenArithmetic(ast.test.expr,exprName.name)
+				flattenOp = self.flattenArithmetic(ast.test.ops[0][1],opName.name)
+				testExpr = Stmt([flattenExpr,flattenOp])
+				testName = Compare(exprName,[('==',opName)])
+				print testExpr
+				print testName
 			
 
 			thenExpr = None
@@ -183,6 +196,8 @@ class ArithmeticFlattener():
 
 			else: ifexpr = IfExp(testExpr,thenExpr,elseExpr)
 			stmtArray += [ifexpr]
+			if isinstance(ast.test,Compare):
+				print stmtArray
 			return Stmt(stmtArray)
 
 
