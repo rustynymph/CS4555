@@ -70,10 +70,10 @@ class TraverseIR():
 			gettag = GetTag(TraverseIR.map(ast.arg,f,environment))
 			return f(environment,gettag) if environment else f(gettag)
 		elif isinstance(ast,InjectFrom):
-			injectfrom = InjectFrom(ast.typ,TraverseIR.map(ast.arg,f,environment))
+			injectfrom = InjectFrom(TraverseIR.map(ast.typ,f,environment),TraverseIR.map(ast.arg,f,environment))
 			return f(environment,injectfrom) if environment else f(injectfrom)
 		elif isinstance(ast,ProjectTo):
-			projectto = ProjectTo(ast.typ,TraverseIR.map(ast.arg,f,environment))
+			projectto = ProjectTo(TraverseIR.map(ast.typ),TraverseIR.map(ast.arg,f,environment))
 			return f(environment,projectto) if environment else f(projectto)
 		elif isinstance(ast,Let):
 			let = Let(TraverseIR.map(ast.var,f,environment),TraverseIR.map(ast.expr,f,environment),TraverseIR.map(ast.body,f,environment))
