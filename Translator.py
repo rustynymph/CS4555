@@ -200,10 +200,17 @@ class Translator():
 			
 			elif isinstance(test,ClusteredInstruction):
 				clusteredArray = []
-				for i in test.nodes:
-					print i
-					#if isinstance(i,CompareInstruction):
-					
+				evict = test.nodes[0]
+				mov = test.nodes[1]
+				compare = test.nodes[2]
+				unevict = test.nodes[3]
+				name = self.branch.getNameandIncrementCounter()
+				trueSection = ClusteredInstruction(unevict + [ast.then])
+				falseSection = ClusteredInstruction(unevict + [ast.else_])
+
+				assIf = [AssemblyIf(compare,name,trueSection,falseSection)]
+				return ClusteredInstruction(evict + mov + assIf)				
+									
 			
 			elif isinstance(test,CompareInstruction): compare = test
 				
