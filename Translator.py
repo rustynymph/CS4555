@@ -190,7 +190,7 @@ class Translator():
 			
 			if isinstance(test,MemoryOperand):
 				evictStuff = self.evictVariable()
-				save = evictStuff[0]
+				save = [evictStuff[0]]
 				boolean = evictStuff[1]
 				movcmp = [MoveInstruction(test,RegisterOperand(Registers32.EAX))]
 				compare = CompareInstruction(ConstantOperand(DecimalValue(1)),RegisterOperand(Registers32.EAX))
