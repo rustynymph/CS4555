@@ -40,14 +40,13 @@ pythonAST = TraverseIR.map(pythonAST,Functionize.replaceWithRuntimeEquivalentMap
 pythonAST = TraverseIR.map(pythonAST,Flatten.removeNestedStmtMap)
 pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
 
-print pythonAST
-print("\n")
 liveness = LivenessAnalysis.livenessAnalysis(LivenessAnalysis(pythonAST))
-print liveness
-print("\n")
+
 graph = GraphColoring.createGraph(liveness)
 coloredgraph = GraphColoring.colorGraph(graph)
-print coloredgraph
+
+print pythonAST
+print("\n")
 
 x86 = TraverseIR.map(pythonAST,Translator.translateToX86,Translator(coloredgraph))
 print x86

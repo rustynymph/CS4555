@@ -2,6 +2,19 @@ from compiler.ast import *
 from AssemblyAST import *
 from PythonASTExtension import *
 
+class NameGenerator():
+	def __init__(self,prefix,count=0):
+		self.prefix = prefix
+		self.count = count
+
+	def getName(self):
+		return self.prefix + str(self.count)
+
+	def getNameAndIncrementCounter(self):
+		name = self.getName()
+		self.count += 1
+		return name
+
 class Translator():
 	def __init__(self,coloredgraph):
 		self.coloredgraph = coloredgraph
@@ -65,19 +78,19 @@ class Translator():
 					callersavedvariables += [variable]
 					
 			if len(ast.args) > 0:
-				pushArgsInstr = [PushInstruction(arg) for arg in ast.args]
+				pushArgsInstr = [PushInstruction(arg) for arg in reversed(ast.args)]
 			else: pushArgsInstr = []		
 					
 			saveInstr = [MoveInstruction(self.getVariableLocation(var),self.getVariableInMemory(var)) for var in callersavedvariables]
 			callInstr = [CallInstruction(ast.node)]
 			loadInstr = [MoveInstruction(self.getVariableInMemory(var),self.getVariableLocation(var)) for var in callersavedvariables]
-			print ClusteredInstruction(saveInstr + pushArgsInstr + callInstr + loadInstr)
 			return ClusteredInstruction(saveInstr + pushArgsInstr + callInstr + loadInstr)
 					
 		elif isinstance(ast,InjectFrom):
+
 			location = ast.arg
 			tag = ast.typ
-			if ast.typ.value != 3:
+			if ast.typ.value.value != 3:
 				shiftLeftInstr = ShiftLeftInstruction(ConstantOperand(DecimalValue(2)),location)
 				orInstr = OrInstruction(tag,location)
 				return ClusteredInstruction([shiftLeftInstr,orInstr])
@@ -85,7 +98,7 @@ class Translator():
 			
 		elif isinstance(ast,ProjectTo):
 			location = ast.arg
-			if ast.typ.value != 3:
+			if ast.typ.value.value != 3:
 				shiftRightInstr = ShiftArithmeticRightInstruction(ConstantOperand(DecimalValue(2)),location)
 				andInstr = AndInstruction(ConstantOperand(DecimalValue(-4)),location)
 				return ClusteredInstruction([shiftRightInstr,andInstr])
@@ -120,7 +133,6 @@ class Translator():
 			elif isinstance(ast.expr,UnaryInstruction): return ast.expr					
 								
 			elif isinstance(ast.expr,ClusteredInstruction):
-				print("hi")
 				assign = ast.nodes[0]
 				clusteredArray = []
 				for i in ast.expr.nodes:
@@ -141,9 +153,10 @@ class Translator():
 				evictInstr = self.evictVariable()
 				moveright = MoveInstruction(rightcmp,reg)
 				compareInstr = CompareInstruction(leftcmp,reg)
-				savecmp = MoveInstruction(reg,rightcmp)
+				#savecmp = MoveInstruction(reg,rightcmp)
 				unevictInstr = self.unevictVariable()
-				return ClusteredInstruction([evictInstr,moveright,compareInstr,savecmp,unevictInstr])
+				#return ClusteredInstruction([evictInstr,moveright,compareInstr,savecmp,unevictInstr])
+				return ClusteredInstruction([evictInstr,moveright,compareInstr,unevictInstr])
 			return CompareInstruction(leftcmp,rightcmp)
 		
 		elif isinstance(ast,UnarySub): return NegativeInstruction(ast.expr)
