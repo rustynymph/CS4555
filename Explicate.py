@@ -57,7 +57,7 @@ class Explicate:
 			rightIntAndBoolPredicate = Or([IsTag(Const(INT_t),rightName),IsTag(Const(BOOL_t),rightName)])
 			intAndBoolPredicate = And([leftIntAndBoolPredicate,rightIntAndBoolPredicate])
 
-			intAndBoolCompare = InjectFrom(Const(BOOL_t),Compare(leftName, [('==',rightName)]))
+			intAndBoolCompare = InjectFrom( Const(BOOL_t), Compare(ProjectTo(Const(BOOL_t),leftName), [('==',ProjectTo(Const(BOOL_t),rightName))]))
 
 			bigPredicate = And([IsTag(Const(BIG_t),leftName),IsTag(Const(INT_t),rightName)])
 
