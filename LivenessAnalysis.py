@@ -17,8 +17,11 @@ class LivenessAnalysis():
 		elif isinstance(ast.expr,UnarySub): return (setname - remove) | set((ast.expr.expr.name))
 		elif isinstance(ast.expr,Add): return (setname - remove) | set((ast.expr.left.name,)) | set((ast.expr.right.name,))
 		elif isinstance(ast.expr,Subscript): return (setname - remove) | set((ast.expr.expr.name,)) | set((ast.expr.subs[0].name,))
-		elif isinstance(ast.expr,Dict): return (setname - remove) | set([x.name for x in ast.expr.items])
-		elif isinstance(ast.expr,List): return (setname - remove) | set([x.name for x in ast.expr.nodes])
+		elif isinstance(ast.expr,Dict):
+			savekeys = set([x[0].name for x in ast.expr.items if isinstance(x[0],Name)])
+			savevalues = set([x[1].name for x in ast.expr.items if isinstance(x[1],Name)])
+			return (setname - remove) | savekeys | savevalues
+		elif isinstance(ast.expr,List): return (setname - remove) | set([x.name for x in ast.expr.nodes if isinstance(x,Name)]) 
 		elif isinstance(ast.expr,Not): return (setname - remove) | set((ast.expr.expr.name,))
 		elif isinstance(ast.expr,And): return (setname - remove) | set([x.name for x in ast.expr.nodes])
 		elif isinstance(ast.expr,Or): return (setname - remove) | set([x.name for x in ast.expr.nodes])
