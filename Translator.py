@@ -177,6 +177,8 @@ class Translator():
 			return CompareInstruction(leftcmp,rightcmp)
 		
 		elif isinstance(ast,UnarySub): return NegativeInstruction(ast.expr)
+		
+		elif isinstance(ast,Not): return NotInstruction(ast.expr)
 			
 		elif isinstance(ast,IfExp):
 			test = ast.test
