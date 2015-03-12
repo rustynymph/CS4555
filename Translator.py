@@ -192,11 +192,9 @@ class Translator():
 			else: compare = CompareInstruction(ConstantOperand(DecimalValue(1)),test)
 			name = self.branch.getNameAndIncrementCounter() 
 			
-			if isinstance(ast.then,ClusteredInstruction): trueSection = ast.then
-			else: trueSection = ClusteredInstruction([ast.then])
-			
-			if isinstance(ast.else_,ClusteredInstruction): falseSection = AssemblySection(SectionHeaderInstruction(name),ast.else_)
-			else: falseSection = AssemblySection(SectionHeaderInstruction(name),ClusteredInstruction([ast.else_]))
+			trueSection = ast.then
+			falseSection = ast.else_
+			#AssemblySection(SectionHeaderInstruction(name),ast.else_)
 
 			assIf = [AssemblyIf(compare,name,trueSection,falseSection)]
 			return ClusteredInstruction(save + movcmp + assIf + load)
