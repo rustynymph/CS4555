@@ -199,7 +199,7 @@ class Translator():
 				else: load = []
 			
 			elif isinstance(test,ClusteredInstruction):
-				clusteredArray = []
+				#I'm assuming if we have a clustered instruction here that it has length 4
 				evict = test.nodes[0]
 				mov = test.nodes[1]
 				compare = test.nodes[2]
