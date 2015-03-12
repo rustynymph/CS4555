@@ -93,23 +93,45 @@ class Translator():
 		elif isinstance(ast,GetTag): return AndInstruction(ConstantOperand(DecimalValue(3)),ast.arg)
 
 		elif isinstance(ast, Assign):
-'''
-			if isinstance(ast.expr,MemoryOperand):
-			elif isinstance(ast.expr,RegisterOperand):
-			elif isinstance(ast.expr,AddInstruction):
-			elif isinstance(ast.expr,AndInstruction):
-			elif isinstance(ast.expr,OrInstruction):
-			elif isinstance(ast.expr,CompareInstruction):
+			if isinstance(ast.expr,Operand):
+				fromOperand = ast.expr
+				toOperand = ast.nodes[0]
+				clusteredArrayBefore = []
+				clusteredArrayAfter = []
+				if isinstance(fromOperand,MemoryOperand) and isinstance(toOperand,MemoryOperand):
+					memory = fromOperand
+					fromOperand = RegisterOperand(Registers32.EAX)
+					clusteredArrayBefore += [self.evictVariable()]
+					clusteredArrayBefore += [MemoryOperand(memory),RegisterOperand(Registers32.EAX)]
+			
+					clusteredArrayAfter += [self.unevictVariable()]
+			
+				clusteredInstructionBefore = ClusteredInstruction(clusteredArrayBefore)
+				clusteredInstructionAfter = ClusteredInstruction(clusteredArrayAfter)
+			
+				moveInstruction = MoveInstruction(fromOperand,toOperand)
+			
+				moveCluster = ClusteredInstruction([clusteredArrayBefore,moveInstruction,clusteredArrayAfter])
+				return moveCluster
+				
+			elif isinstance(ast.expr,BinaryInstruction): return ast.expr
+								
+			elif isinstance(ast.expr,UnaryInstruction): return ast.expr					
+								
 			elif isinstance(ast.expr,ClusteredInstruction):
-			elif isinstance(ast.expr,NameOperand):
-			elif isinstance(ast.expr,ConstantOperand):
-			elif isinstance(ast.expr,CallFunc): return MoveInstruction(RegisterOperand(Registers32.EAX),ast.nodes[0])
-'''
-			return MoveInstruction(ast.expr,ast.nodes[0])
+				assign = ast.nodes[0]
+				clusteredArray = []
+				for i in ast.expr.nodes:
+					if isinstance(i,AssemblyFunction):
+						clusteredArray += [i]
+						clusteredArray += [MoveInstruction(RegisterOperand(Registers32.EAX),assign)]
+					elif isinstance(i,MoveInstruction) and i.toOperand == assign: clusteredArray += []
+					else: clusteredArray += [i]
+				return ClusteredInstruction(clusteredArray)
+			
+			else: raise Exception("Error: Unrecognized node type")
 			
 		elif isinstance(ast,Compare):
-			#leftcmp = self.getVariableLocation(ast.expr)
-			#rightcmp = self.getVariableLocation(ast.ops[1])
 			leftcmp = ast.expr
 			rightcmp = ast.ops[1]
 			reg = RegisterOperand(Registers32.EAX)
@@ -122,17 +144,7 @@ class Translator():
 				return ClusteredInstruction([evictInstr,moveright,compareInstr,savecmp,unevictInstr])
 			return CompareInstruction(leftcmp,rightcmp)
 		
-		elif isinstance(ast,UnarySub):
-			usub = self.getVariableLocation(ast.expr)
-			if isinstance(usub,MemoryOperand):
-				reg = RegisterOperand(Registers32.EAX)
-				evictInstr = self.evictVariable()
-				moveNegIntoEAX = MoveInstruction(usub,reg)
-				negate = NegativeInstruction(reg)
-				saveneg = MoveInstruction(reg,usub)
-				unevictInstr = self.unevictVariable()
-				return ClusteredInstruction([evictInstr,moveNegIntoEAX,negate,saveneg,unevictInstr])
-			return NegativeInstruction(usub)
+		elif isinstance(ast,UnarySub): return NegativeInstruction(ast.expr)
 			
 		elif isinstance(ast,IfExp):
 			test = self.getVariableLocation(ast.test)
@@ -142,8 +154,8 @@ class Translator():
 			return ClusteredInstruction([compareInstr,jumpInstr])
 			
 		elif isinstance(ast,Add):
-			leftAdd = self.getVariableLocation(ast.left)
-			rightAdd = self.getVariableLocation(ast.right)
+			leftAdd = ast.left
+			rightAdd = ast.right
 
 			if isinstance(leftAdd,MemoryOperand) and isinstance(rightAdd,MemoryOperand):
 				reg = RegisterOperand(Registers32.EAX)
