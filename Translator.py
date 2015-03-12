@@ -34,7 +34,9 @@ class Translator():
 		if register: return register
 		else: return self.getVariableInMemory(variable)
 
-	def getVariableInMemory(self,variable): return self.memory[variable]
+	def getVariableInMemory(self,variable):
+		if variable not in self.memory: putVariableInMemory(variable)
+		return self.memory[variable]
 	
 	def getRegister(self,variable): 
 		if variable in self.coloredgraph: return self.coloredgraph[variable]
@@ -48,21 +50,24 @@ class Translator():
 
 	def evictVariable(self):
 		reg = RegisterOperand(Registers32.EAX)
-		evictedVariable = self.getInvertedGraph(self.coloredgraph)[reg][0]
-		evictedVariableMemoryLocation = getVariableInMemory(evictedVariable)
-		return MoveInstruction(reg,evictedVariableMemoryLocation)		
+		if reg in self.coloredgraph:
+			evictedVariable = self.getInvertedGraph(self.coloredgraph)[reg][0]
+			evictedVariableMemoryLocation = getVariableInMemory(evictedVariable)
+			return MoveInstruction(reg,evictedVariableMemoryLocation)
+		return ClusteredInstruction()		
 		
 	def unevictVariable(self): return MoveInstruction(evictedVariableMemoryLocation,RegisterOperand(Registers32.EAX))
 
 	def translateToX86(self,ast):
 		if isinstance(ast,Module):
+
 			assFunction = AssemblyFunction(SectionHeaderInstruction("main"),ast.node,self.getActivationRecordSize(),ConstantOperand(DecimalValue(0)))
 			clusteredAssFunction = ClusteredInstruction([assFunction])
 			return AssemblyProgram(EntryPointInstruction(NameOperand("main")),clusteredAssFunction)
 		
 		elif isinstance(ast,Stmt): return ClusteredInstruction(ast.nodes)			
 		
-		elif isinstance(ast,Const): return ConstantOperand(DecimalValue(ast.value))
+		elif isinstance(ast,Const):	return ConstantOperand(DecimalValue(ast.value))
 
 		elif isinstance(ast,AssName):
 			self.putVariableInMemory(ast.name)
@@ -139,12 +144,18 @@ class Translator():
 				assign = ast.nodes[0]
 				clusteredArray = []
 				for i in ast.expr.nodes:
-					if isinstance(i,AssemblyFunction):
+					print isinstance(i,MoveInstruction) and i.toOperand == assign
+					print i.toOperand if isinstance(i,MoveInstruction) else i
+					print assign
+					print
+					if isinstance(i,CallInstruction):
 						clusteredArray += [i]
 						clusteredArray += [MoveInstruction(RegisterOperand(Registers32.EAX),assign)]
 					elif isinstance(i,MoveInstruction) and i.toOperand == assign: clusteredArray += []
 					else: clusteredArray += [i]
 				return ClusteredInstruction(clusteredArray)
+			
+			elif isinstance(ast.expr,Subscript): print("hello")
 			
 			else: raise Exception("Error: Unrecognized node type")
 			
@@ -152,7 +163,9 @@ class Translator():
 			leftcmp = ast.expr
 			rightcmp = ast.ops[0][1]
 			reg = RegisterOperand(Registers32.EAX)
-			if isinstance(leftcmp,MemoryOperand) and isinstance(rightcmp,MemoryOperand):
+			if isinstance(rightcmp,ConstantOperand) and isinstance(leftcmp,RegisterOperand): return CompareInstruction(rightcmp,leftcmp)
+		
+			elif (isinstance(leftcmp,MemoryOperand) and isinstance(rightcmp,MemoryOperand)) or (isinstance(leftcmp,MemoryOperand) and isinstance(rightcmp,ConstantOperand)) or (isinstance(leftcmp,ConstantOperand) and isinstance(rightcmp,MemoryOperand)) or (isinstance(leftcmp,ConstantOperand) and isinstance(rightcmp,ConstantOperand)):
 				evictInstr = [self.evictVariable()]
 				moveright = [MoveInstruction(rightcmp,reg)]
 				compareInstr = [CompareInstruction(leftcmp,reg)]
@@ -168,16 +181,27 @@ class Translator():
 			test = ast.test
 			true = ast.then
 			false = ast.else_
-			compare = CompareInstruction(test,ConstantOperand(DecimalValue(1)))
+			save = []
+			movcmp = []
+			compare = []
+			load = []
+			
+			if isinstance(test,MemoryOperand):
+				save = [self.evictVariable()]
+				movcmp = [MoveInstruction(test,RegisterOperand(Registers32.EAX))]
+				compare = CompareInstruction(ConstantOperand(DecimalValue(1)),RegisterOperand(Registers32.EAX))
+				if isinstance(save,MoveInstruction): load = [self.unevictVariable()]
+				else: load = []
+			
+			else:
+				compare = CompareInstruction(ConstantOperand(DecimalValue(1)),test)
 			name = self.branch.getNameAndIncrementCounter() 
 			
-			if isinstance(ast.then,ClusteredInstruction): trueSection = ast.then
-			else: trueSection = ClusteredInstruction(ast.then)
-			
-			if isinstance(ast.else_,ClusteredInstruction): falseSection = AssemblySection(SectionHeaderInstruction(name),ast.else_)
-			else: falseSection = AssemblySection(SectionHeaderInstruction(name),ClusteredInstruction(ast.else_))
+			trueSection = ClusteredInstruction(load + [ast.then])
+			falseSection = ClusteredInstruction(load + [ast.else_])
 
-			return AssemblyIf(compare,name,trueSection,falseSection)
+			assIf = [AssemblyIf(compare,name,trueSection,falseSection)]
+			return ClusteredInstruction(save + movcmp + assIf + load)
 			
 		elif isinstance(ast,Add):
 			leftAdd = ast.left

@@ -10,27 +10,33 @@ class Functionize():
 	def replaceBigPyobjMap(ast):
 
 		if isinstance(ast,Assign):
-			if isinstance(ast.expr,Dict) and isinstance(ast.nodes[0],AssName):
+			if isinstance(ast.expr,Dict):
 				stmtArray = []
 				createDictionary = Assign(ast.nodes,CallFunc(Name("create_dict"),[],None,None))
-				stmtArray += [createDictionary,Assign(ast.nodes,InjectFrom(Const(3),ast.nodes[0]))]
+				stmtArray += [createDictionary,Assign(ast.nodes,InjectFrom(Const(3),Name(ast.nodes[0]).name))]
 
 				stmtArray += [CallFunc(Name("set_subscript"),[Name(ast.nodes[0].name),t[0],t[1]],None,None) for t in ast.expr.items]
 
 				return Stmt(stmtArray)
 
-			elif isinstance(ast.expr,List) and isinstance(ast.nodes[0],AssName):
+			elif isinstance(ast.expr,List):
 				stmtArray = []
 
 				length = len(ast.expr.nodes) * 4
 				createList = Assign(ast.nodes,CallFunc(Name("create_list"),[Const(length)],None,None))
-				stmtArray += [createList,Assign(ast.nodes,InjectFrom(Const(3),ast.nodes[0]))]
+				stmtArray += [createList,Assign(ast.nodes,InjectFrom(Const(3),Name(ast.nodes[0]).name))]
 
 				for i in range(len(ast.expr.nodes)):
 					key = Const(i * 4)
 					value = ast.expr.nodes[i]
 					stmtArray += [CallFunc(Name("set_subscript"),[Name(ast.nodes[0].name),key,value],None,None)]
 				return Stmt(stmtArray)
+			
+			elif isinstance(ast.expr,Subscript):
+				print "fdjsaklfdjsaklfjdsaklfjdsklajfkldsa"
+				func = CallFunc(Name("get_subscript"),[ast.expr.expr] + ast.expr.subs,None,None)
+				assign = Assign(ast.nodes,func)
+				return assign
 
 			elif isinstance(ast.nodes[0],Subscript):
 				subscript = ast.nodes[0]

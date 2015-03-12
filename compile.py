@@ -32,6 +32,7 @@ pythonAST = TraverseIR.map(pythonAST,Namespace.removeDependenciesMap,Namespace(N
 
 pythonAST = TraverseIR.map(pythonAST,Explicate.explicateMap,Explicate())
 pythonAST = TraverseIR.map(pythonAST,Explicate.shortCircuitMap,Explicate())
+
 pythonAST = TraverseIR.map(pythonAST,Optimizer.explicateFoldingMap)
 pythonAST = TraverseIR.map(pythonAST,Explicate.removeIsTagMap)
 pythonAST = TraverseIR.map(pythonAST,Flatten.flattenMap,Flatten())
@@ -39,17 +40,16 @@ pythonAST = TraverseIR.map(pythonAST,Functionize.replaceBigPyobjMap)
 pythonAST = TraverseIR.map(pythonAST,Functionize.replaceWithRuntimeEquivalentMap,Functionize({"input":"input_int"}))
 pythonAST = TraverseIR.map(pythonAST,Flatten.removeNestedStmtMap)
 pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
-
+print "Final Python AST"
+print pythonAST
 liveness = LivenessAnalysis.livenessAnalysis(LivenessAnalysis(pythonAST))
 
 graph = GraphColoring.createGraph(liveness)
 coloredgraph = GraphColoring.colorGraph(graph)
 
-print pythonAST
-print("\n")
 
 x86 = TraverseIR.map(pythonAST,Translator.translateToX86,Translator(coloredgraph))
-print x86
+# print x86
 
 
 x86Filename = sys.argv[1].rsplit(".",1)[0] + ".s"
