@@ -45,4 +45,4 @@ class JumpInstruction(UnaryInstruction):
 
 	def printInstruction(self):
 		size = self.operand.size
-		return printUnaryX86Instruction(self.predicate.name,self.fromOperand,self.toOperand,"")
+		return printUnaryX86Instruction(self.predicate.name,self.operand,"")
