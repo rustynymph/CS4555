@@ -27,7 +27,7 @@ class Translator():
 	
 	def putVariableInMemory(self,variable):
 		if variable not in self.memory:
-			self.memory[variable] = MemoryOperand(Registers32.EBP,self.getActivationRecordSize())
+			self.memory[variable] = MemoryOperand(Registers32.EBP,-self.getActivationRecordSize())
 	
 	def getActivationRecordSize(self): return 4*(len(self.memory)+1)
 
@@ -61,7 +61,7 @@ class Translator():
 			callersavedvariables = []
 			
 			for variable in self.coloredgraph:
-				if isinstance(self.coloredgraph[variable],CallerSavedRegister):
+				if isinstance(self.coloredgraph[variable].register,CallerSavedRegister):
 					callersavedvariables += [variable]
 					
 			if len(ast.args) > 0:
@@ -71,12 +71,13 @@ class Translator():
 			saveInstr = [MoveInstruction(self.getVariableLocation(var),self.getVariableInMemory(var)) for var in callersavedvariables]
 			callInstr = [CallInstruction(ast.node)]
 			loadInstr = [MoveInstruction(self.getVariableInMemory(var),self.getVariableLocation(var)) for var in callersavedvariables]
+			print ClusteredInstruction(saveInstr + pushArgsInstr + callInstr + loadInstr)
 			return ClusteredInstruction(saveInstr + pushArgsInstr + callInstr + loadInstr)
 					
 		elif isinstance(ast,InjectFrom):
 			location = ast.arg
 			tag = ast.typ
-			if ast.typ != 3:
+			if ast.typ.value != 3:
 				shiftLeftInstr = ShiftLeftInstruction(ConstantOperand(DecimalValue(2)),location)
 				orInstr = OrInstruction(tag,location)
 				return ClusteredInstruction([shiftLeftInstr,orInstr])
@@ -84,7 +85,7 @@ class Translator():
 			
 		elif isinstance(ast,ProjectTo):
 			location = ast.arg
-			if ast.typ != 3:
+			if ast.typ.value != 3:
 				shiftRightInstr = ShiftArithmeticRightInstruction(ConstantOperand(DecimalValue(2)),location)
 				andInstr = AndInstruction(ConstantOperand(DecimalValue(-4)),location)
 				return ClusteredInstruction([shiftRightInstr,andInstr])
@@ -119,6 +120,7 @@ class Translator():
 			elif isinstance(ast.expr,UnaryInstruction): return ast.expr					
 								
 			elif isinstance(ast.expr,ClusteredInstruction):
+				print("hi")
 				assign = ast.nodes[0]
 				clusteredArray = []
 				for i in ast.expr.nodes:
@@ -133,7 +135,7 @@ class Translator():
 			
 		elif isinstance(ast,Compare):
 			leftcmp = ast.expr
-			rightcmp = ast.ops[1]
+			rightcmp = ast.ops[0][1]
 			reg = RegisterOperand(Registers32.EAX)
 			if isinstance(leftcmp,MemoryOperand) and isinstance(rightcmp,MemoryOperand):
 				evictInstr = self.evictVariable()

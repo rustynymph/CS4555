@@ -66,7 +66,7 @@ class MemoryOperand(Operand):
 		return self.__class__.__name__ + "(" + self.register.name + "," + str(self.offset) + "," + OperandSize.sizeToString(self.size) + ")"
 
 	def __str__(self):
-		return self.__class__.__name__ + "(" + self.register.name + "," + str(offset) + "," + OperandSize.sizeToString(self.size) + ")"
+		return self.__class__.__name__ + "(" + self.register.name + "," + str(self.offset) + "," + OperandSize.sizeToString(self.size) + ")"
 
 	def __eq__(self,other):
 		return self.register == other.register and self.offset == other.offset and self.size == other.size
