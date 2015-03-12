@@ -104,7 +104,7 @@ class AssemblyIf(Instruction):
 
 		falseNameOperand = NameOperand(name+"False")
 		endNameOperand = NameOperand(name+"End")
-		falseJumpInstruction = JumpInstruction(falseNameOperand,JumpPredicateEnum.ZERO)
+		falseJumpInstruction = JumpInstruction(falseNameOperand,JumpPredicateEnum.NOTZERO)
 		endJumpInstruction = JumpInstruction(endNameOperand)
 		endSection = SectionHeaderInstruction(endNameOperand.name)
 
