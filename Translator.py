@@ -62,7 +62,7 @@ class Translator():
 		
 		elif isinstance(ast,Stmt): return ClusteredInstruction(ast.nodes)			
 		
-		elif isinstance(ast,Const): return ConstantOperand(DecimalValue(ast.value))
+		elif isinstance(ast,Const):	return ConstantOperand(DecimalValue(ast.value))
 
 		elif isinstance(ast,AssName):
 			self.putVariableInMemory(ast.name)
@@ -152,6 +152,7 @@ class Translator():
 			leftcmp = ast.expr
 			rightcmp = ast.ops[0][1]
 			reg = RegisterOperand(Registers32.EAX)
+			print ast
 			if isinstance(leftcmp,MemoryOperand) and isinstance(rightcmp,MemoryOperand):
 				evictInstr = [self.evictVariable()]
 				moveright = [MoveInstruction(rightcmp,reg)]
