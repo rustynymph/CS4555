@@ -2,6 +2,19 @@ from compiler.ast import *
 from AssemblyAST import *
 from PythonASTExtension import *
 
+class NameGenerator():
+	def __init__(self,prefix,count=0):
+		self.prefix = prefix
+		self.count = count
+
+	def getName(self):
+		return self.prefix + str(self.count)
+
+	def getNameAndIncrementCounter(self):
+		name = self.getName()
+		self.count += 1
+		return name
+
 class Translator():
 	def __init__(self,coloredgraph):
 		self.coloredgraph = coloredgraph
@@ -140,9 +153,10 @@ class Translator():
 				evictInstr = self.evictVariable()
 				moveright = MoveInstruction(rightcmp,reg)
 				compareInstr = CompareInstruction(leftcmp,reg)
-				savecmp = MoveInstruction(reg,rightcmp)
+				#savecmp = MoveInstruction(reg,rightcmp)
 				unevictInstr = self.unevictVariable()
-				return ClusteredInstruction([evictInstr,moveright,compareInstr,savecmp,unevictInstr])
+				#return ClusteredInstruction([evictInstr,moveright,compareInstr,savecmp,unevictInstr])
+				return ClusteredInstruction([evictInstr,moveright,compareInstr,unevictInstr])
 			return CompareInstruction(leftcmp,rightcmp)
 		
 		elif isinstance(ast,UnarySub): return NegativeInstruction(ast.expr)
