@@ -6,7 +6,6 @@ from X86ArithmeticInstructions import *
 
 class CompareInstruction(BinaryInstruction):
 	def __init__(self,fromOperand,toOperand):
-		#BinaryInstruction(fromOperand,toOperand)
 		self.fromOperand = fromOperand
 		self.toOperand = toOperand
 
@@ -49,6 +48,7 @@ class AssemblySection(Instruction):
 		return x86InstructionToString(self.__class__.__name__,[self.clusteredInstruction])
 
 	def printInstruction(self):
+		
 		return self.sectionHeader.printInstruction() + self.clusteredInstruction.printInstruction()
 
 class AssemblyFunction(AssemblySection):
@@ -94,13 +94,13 @@ class AssemblyIf(Instruction):
 			raise Exception("name must be of type str.")
 		if not isinstance(trueSection,ClusteredInstruction):
 			raise Exception("trueSection must be of type ClusteredInstruction.")
-		if not isinstance(falseSection,AssemblySection):
-			raise Exception("falseSection must be of type AssemblySection.")
+		if not isinstance(falseSection,ClusteredInstruction):
+			raise Exception("falseSection must be of type ClusteredInstruction.")
 
 		self.compare = compare
 		self.name = name
 		self.trueSection = trueSection
-		self.falseSection = falseSection
+		
 
 		falseNameOperand = NameOperand(name+"False")
 		endNameOperand = NameOperand(name+"End")
@@ -108,7 +108,7 @@ class AssemblyIf(Instruction):
 		endJumpInstruction = JumpInstruction(endNameOperand)
 		endSection = SectionHeaderInstruction(endNameOperand.name)
 		
-		self.falseSection.sectionHeader.operand = falseNameOperand
+		self.falseSection = AssemblySection(SectionHeaderInstruction(falseNameOperand.name),falseSection)
 
 		clusteredArray = [self.compare,falseJumpInstruction,self.trueSection,endJumpInstruction,self.falseSection,endSection]
 
