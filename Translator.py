@@ -237,7 +237,7 @@ class Translator():
 				boolean = evict[1]
 				evictInstr = [save]
 				moveRightAddIntoEAX = [MoveInstruction(rightAdd,reg)]
-				add = [AddInstruction(reg,leftAdd)]
+				add = [AddIntegerInstruction(reg,leftAdd)]
 				unevictInstr = [self.unevictVariable(boolean)]
 
 				return ClusteredInstruction(evictInstr + moveRightAddIntoEAX + add + unevictInstr)
