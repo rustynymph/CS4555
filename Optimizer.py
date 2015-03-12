@@ -35,11 +35,9 @@ class Optimizer:
 	@staticmethod
 	def explicateFoldingMap(ast):
 		if isinstance(ast,InjectFrom):
-			print ast.arg
 			if isinstance(ast.arg,Const): return Const(ast.arg.value * 4 + ast.typ.value)
 			else: return ast
 		elif isinstance(ast,ProjectTo):
-			print ast.arg
 			if isinstance(ast.arg,Const): return Const(int(ast.arg.value / 4))
 			else: return ast
 		elif isinstance(ast,Let):
