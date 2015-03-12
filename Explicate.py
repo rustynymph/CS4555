@@ -49,6 +49,26 @@ class Explicate:
 			explicatedAdd = IfExp(predicate,addIntsAndBools,addBig)
 
 			return Let(leftName,ast.left,Let(rightName,ast.right,explicatedAdd))
+		elif isinstance(ast,Compare):
+			leftName = Name("letCompare"+str(self.getAndIncrement()))
+			rightName = Name("letCompare"+str(self.getAndIncrement()))
+
+			leftIntAndBoolPredicate = Or([IsTag(Const(INT_t),leftName),IsTag(Const(INT_t),rightName)])
+			rightIntAndBoolPredicate = Or([IsTag(Const(INT_t),rightName),IsTag(Const(BOOL_t),rightName)])
+			intAndBoolPredicate = And([leftIntAndBoolPredicate,rightIntAndBoolPredicate])
+
+			intAndBoolCompare = InjectFrom(Const(BOOL_t),Compare(leftName, [('==',rightName)]))
+
+			bigPredicate = And([IsTag(Const(BIG_t),leftName),IsTag(Const(INT_t),rightName)])
+
+			bigCompare = InjectFrom(Const(BOOL_t),CallFunc(Name("equal"),[leftName,rightName],None,None))
+
+			bigIf = IfExp(bigPredicate,bigCompare,InjectFrom(Const(BOOL_t),Const(0)))
+
+			intAndBoolIf = IfExp(intAndBoolPredicate,intAndBoolCompare,bigIf)
+
+			return intAndBoolIf
+
 		elif isinstance(ast,UnarySub):
 			return InjectFrom(Const(INT_t),UnarySub(ProjectTo(Const(INT_t),ast.expr)))
 		elif isinstance(ast,CallFunc):
@@ -91,5 +111,5 @@ class Explicate:
 	@staticmethod
 	def removeIsTagMap(ast):
 		if isinstance(ast,IsTag):
-			return Compare(GetTag(ast.arg),[('==',Const(ast.typ))])
+			return Compare(GetTag(ast.arg),[('==',ast.typ)])
 		else: return ast
