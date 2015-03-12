@@ -27,14 +27,16 @@ pythonAST = compiler.parseFile(pythonFilename)
 pythonAST = TraverseIR.map(pythonAST,Simplify.removeDiscardMap)
 pythonAST = TraverseIR.map(pythonAST,Simplify.nameToBoolMap)
 pythonAST = TraverseIR.map(pythonAST,Optimizer.constantFoldingMap)
+
 pythonAST = TraverseIR.map(pythonAST,Orphan.findParentMap,Orphan())
 pythonAST = TraverseIR.map(pythonAST,Namespace.removeDependenciesMap,Namespace(Namespace.environmentKeywords + Namespace.reservedKeywords))
 
 pythonAST = TraverseIR.map(pythonAST,Explicate.explicateMap,Explicate())
 pythonAST = TraverseIR.map(pythonAST,Explicate.shortCircuitMap,Explicate())
-
-pythonAST = TraverseIR.map(pythonAST,Optimizer.explicateFoldingMap)
 pythonAST = TraverseIR.map(pythonAST,Explicate.removeIsTagMap)
+pythonAST = TraverseIR.map(pythonAST,Explicate.explicateCompareMap)
+pythonAST = TraverseIR.map(pythonAST,Optimizer.explicateFoldingMap)
+
 pythonAST = TraverseIR.map(pythonAST,Flatten.flattenMap,Flatten())
 pythonAST = TraverseIR.map(pythonAST,Functionize.replaceBigPyobjMap)
 pythonAST = TraverseIR.map(pythonAST,Functionize.replaceWithRuntimeEquivalentMap,Functionize({"input":"input_int"}))
