@@ -110,6 +110,12 @@ class Explicate:
 			return previous
 		else: return ast
 
+	@staticmethod
+	def explicateCompareMap(ast):
+		if isinstance(ast,Compare):
+			return IfExp(ast,Const(5),Const(1))
+		else: return ast
+
 
 	@staticmethod
 	def removeIsTagMap(ast):
