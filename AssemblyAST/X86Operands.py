@@ -46,7 +46,7 @@ class RegisterOperand(Operand):
 		return self.__class__.__name__ + "(" + self.register.name + "," + OperandSize.sizeToString(self.size) + ")"
 
 	def __eq__(self,other):
-		return self.register == other.register and self.size == other.size
+		return isinstance(other,self.__class__) and self.register == other.register and self.size == other.size
 
 	def __hash__(self):
 		return hash(str(self))
@@ -69,7 +69,7 @@ class MemoryOperand(Operand):
 		return self.__class__.__name__ + "(" + self.register.name + "," + str(self.offset) + "," + OperandSize.sizeToString(self.size) + ")"
 
 	def __eq__(self,other):
-		return self.register == other.register and self.offset == other.offset and self.size == other.size
+		return isinstance(other,self.__class__) and self.register == other.register and self.offset == other.offset and self.size == other.size
 
 	def __hash__(self):
 		return hash(str(self))
