@@ -190,9 +190,8 @@ class Translator():
 			
 			if isinstance(test,MemoryOperand):
 				evictStuff = self.evictVariable()
-				evict = evictStuff[0]
+				save = evictStuff[0]
 				boolean = evictStuff[1]
-				save = [evict[0]]
 				movcmp = [MoveInstruction(test,RegisterOperand(Registers32.EAX))]
 				compare = CompareInstruction(ConstantOperand(DecimalValue(1)),RegisterOperand(Registers32.EAX))
 				if isinstance(save,MoveInstruction): load = [self.unevictVariable(boolean)]
