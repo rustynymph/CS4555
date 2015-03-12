@@ -16,7 +16,12 @@ class LivenessAnalysis():
 		elif isinstance(ast.expr,CallFunc): return (setname - remove) | self.callFuncAnalysis(ast.expr,setname)
 		elif isinstance(ast.expr,UnarySub): return (setname - remove) | set((ast.expr.expr.name))
 		elif isinstance(ast.expr,Add): return (setname - remove) | set((ast.expr.left.name,)) | set((ast.expr.right.name,))
-		elif isinstance(ast.expr,Subscript): return (setname - remove) | set((ast.expr.expr.name,)) | set((ast.expr.subs[0].name,))
+		elif isinstance(ast.expr,Subscript):
+			if isinstance(ast.expr.expr,Name): set1 = set((ast.expr.expr.name,))
+			else: set1 = set()
+			if isinstance(ast.expr.subs[0],Name): set2 = set((ast.expr.subs[0].name,))
+			else: set2 = set()
+			return (setname - remove) | set1 | set2
 		elif isinstance(ast.expr,Dict):
 			savekeys = set([x[0].name for x in ast.expr.items if isinstance(x[0],Name)])
 			savevalues = set([x[1].name for x in ast.expr.items if isinstance(x[1],Name)])

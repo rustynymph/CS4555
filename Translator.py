@@ -34,7 +34,9 @@ class Translator():
 		if register: return register
 		else: return self.getVariableInMemory(variable)
 
-	def getVariableInMemory(self,variable): return self.memory[variable]
+	def getVariableInMemory(self,variable):
+		if variable not in self.memory: putVariableInMemory(variable)
+		return self.memory[variable]
 	
 	def getRegister(self,variable): 
 		if variable in self.coloredgraph: return self.coloredgraph[variable]
@@ -148,9 +150,7 @@ class Translator():
 					else: clusteredArray += [i]
 				return ClusteredInstruction(clusteredArray)
 			
-			elif isinstance(ast.expr,CompareInstruction): print("yooo")
-			
-			elif isinstance(ast.expr,Compare): print("bitch")
+			elif isinstance(ast.expr,Subscript): print("hello")
 			
 			else: raise Exception("Error: Unrecognized node type")
 			
@@ -188,13 +188,14 @@ class Translator():
 				compare = CompareInstruction(ConstantOperand(DecimalValue(1)),RegisterOperand(Registers32.EAX))
 				if isinstance(save,MoveInstruction): load = [self.unevictVariable()]
 				else: load = []
-				
-			else: compare = CompareInstruction(ConstantOperand(DecimalValue(1)),test)
+			
+			else:
+				print test
+				compare = CompareInstruction(ConstantOperand(DecimalValue(1)),test)
 			name = self.branch.getNameAndIncrementCounter() 
 			
-			trueSection = ast.then
-			falseSection = ast.else_
-			#AssemblySection(SectionHeaderInstruction(name),ast.else_)
+			trueSection = ClusteredInstruction(load + [ast.then])
+			falseSection = ClusteredInstruction(load + [ast.else_])
 
 			assIf = [AssemblyIf(compare,name,trueSection,falseSection)]
 			return ClusteredInstruction(save + movcmp + assIf + load)
