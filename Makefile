@@ -1,5 +1,11 @@
+#!/bin/bash
 submit:
-	zip  hw.zip compile.py AssemblyAST.py Flatten.py LivenessAnalysis.py Optimizer.py PythonASTExtension.py Explicate.py Simplify.py Parser_hw2.py Translator.py ply/ -j runtime/*
+	mkdir -p "submit"
+	cp -r AssemblyAST submit
+	cp *.py submit
+	cp runtime/* submit
+	zip submit.zip submit/*
+	rm -r submit
 
 clean:
 	find . -type f -name "*.s" -delete
