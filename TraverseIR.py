@@ -82,6 +82,21 @@ class TraverseIR():
 			istag = IsTag(ast.typ,TraverseIR.map(ast.arg,f,environment))
 			return f(environment,istag) if environment else f(istag)
 
+		#P2 nodes
+		elif isinstance(ast,Function):
+			func = Function(ast.decorators,ast.name,ast.argnames,ast.defaults,ast.flags,ast.doc,TraverseIR.map(ast.code,f,environment))
+			return f(environment,func) if environment else f(func)
+		elif isinstance(ast,Lambda):
+			lamb = Lambda(ast.argnames,ast.defaults,ast.flags,TraverseIR.map(ast.code,f,environment))
+			return lamb
+		elif isinstance(ast,Return):
+			ret = Return(TraverseIR.map(ast.value,f,environment))
+			return ret
+		elif isinstance(ast,AssignCallFunc):
+			callfunc = AssignCallFunc(TraverseIR.map(ast.var,f,environment),TraverseIR.map(ast.name,f,environment),[TraverseIR.map(arg,f,environment) for arg in ast.args])
+			return f(environment,callfunc) if environment else f(callfunc)
+
+
 
 		else: raise Exception("map does not currently support the " + ast.__class__.__name__ + " node. (" + str(ast) + ")")
 
