@@ -47,7 +47,7 @@ liveness = LivenessAnalysis.livenessAnalysis(LivenessAnalysis(pythonAST))
 
 graph = GraphColoring.createGraph(liveness)
 coloredgraph = GraphColoring.colorGraph(graph)
-
+print coloredgraph
 
 x86 = TraverseIR.map(pythonAST,Translator.translateToX86,Translator(coloredgraph))
 # print x86
