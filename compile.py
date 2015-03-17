@@ -23,7 +23,6 @@ pythonFilename = sys.argv[1]
 #raise Exception(text_to_parse)
 
 pythonAST = compiler.parseFile(pythonFilename)
-# print pythonAST
 pythonAST = TraverseIR.map(pythonAST,Simplify.removeDiscardMap)
 pythonAST = TraverseIR.map(pythonAST,Simplify.nameToBoolMap)
 pythonAST = TraverseIR.map(pythonAST,Optimizer.constantFoldingMap)

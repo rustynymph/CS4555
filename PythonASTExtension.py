@@ -65,6 +65,17 @@ class Let(Node):
 		
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.expr) + "," + str(self.body) + ")"
+		
+class AssignFunction(Node):
+	def __init__(self,var,name):
+		self.var = var
+		self.name = name
+	
+	def __repr__(self):
+		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.name) + ")"
+		
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.name) + ")"
 	
 def isPythonASTLeaf(ast):
 	return isinstance(ast,Const) or isinstance(ast,Boolean) or isinstance(ast,Name) or isinstance(ast,AssName)
