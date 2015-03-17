@@ -9,6 +9,8 @@ class LivenessAnalysis():
 		self.IR = IR.node.nodes
 	
 	def liveness(self,node):
+		if isinstance(node,Assign): return self.liveness(node.expr)
+		
 		if isinstance(node,AssName): return set([])
 	
 		elif isinstance(node,Subscript): return self.liveness(node.expr) | self.liveness(node.subs[0])		
@@ -24,17 +26,17 @@ class LivenessAnalysis():
 			return save
 	
 		elif isinstance(node,IfExp):
-			save = set() | liveness(node.test)
+			save = self.liveness(node.test)
 			if isinstance(node.then,Stmt):
 				for i in node.then.nodes:
-					save = save | liveness(i)
+					save = save | self.liveness(i)
 			else:
-				save = save | liveness(node.then)
+				save = save | self.liveness(node.then)
 			if isinstance(node.else_,Stmt):
 				for i in node.else_.nodes:
-					save = save | liveness(i)
+					save = save | self.liveness(i)
 			else:
-				save = save | liveness(node.else_)
+				save = save | self.liveness(node.else_)
 			return save
 	
 		elif isinstance(node,UnarySub): return self.liveness(node.expr)
@@ -73,9 +75,17 @@ class LivenessAnalysis():
 	
 		elif isinstance(node,ProjectTo): return self.liveness(node.arg)
 	
-		elif isinstance(node,GetTag): return self.liveness(node.expr)
+		elif isinstance(node,GetTag): return self.liveness(node.arg)
 	
-		elif isinstance(node,AssignFunc): return self.liveness(node.name)
+		elif isinstance(node,AssignCallFunc): return self.liveness(node.name)
+		
+		elif isinstance(node,Function):
+			save = self.liveness(node.name)
+			if isinstance(node.code,Stmt):
+				for i in node.code.nodes:
+					save = save | self.liveness(i)
+			else:
+				save = save | self.liveness(node.code)
 		
 		elif isinstance(node,Lambda):
 			save = set()
@@ -87,6 +97,8 @@ class LivenessAnalysis():
 			return save
 		
 		elif isinstance(node,Return): return self.liveness(node.value)		
+	
+		else: raise Exception("Unsupported node type")
 	
 	def computeLivenessAnalysis(self,ast,j):
 		remove = set()
@@ -104,6 +116,7 @@ class LivenessAnalysis():
 			self.liveVariables[i] = set()
 		j = numInstructions-1
 		for instructions in reversed(ir):
+			print instructions
 			self.liveVariables[j] = self.computeLivenessAnalysis(instructions,j)
 			j-=1
 		return [self.liveVariables[x] for x in self.liveVariables]				
