@@ -9,17 +9,17 @@ class LivenessAnalysis():
 		self.IR = IR.node.nodes
 	
 	def assignAnalysis(self,ast,setname):
-		if isinstance(ast.nodes[0],AssName): remove = set((ast.nodes[0].name,))
-		elif isinstance(ast.nodes[0],Subscript): remove = (set((ast.nodes[0].expr.name,)) | set((ast.nodes[0].subs[0].name,)))
-		if isinstance(ast.expr,Name): return (setname - remove) | set((ast.expr.name,))
+		if isinstance(ast.nodes[0],AssName): remove = set([ast.nodes[0].name])
+		elif isinstance(ast.nodes[0],Subscript): remove = (set([ast.nodes[0].expr.name]) | set([ast.nodes[0].subs[0].name]))
+		if isinstance(ast.expr,Name): return (setname - remove) | set([ast.expr.name])
 		elif isinstance(ast.expr,Const): return (setname - remove)
 		elif isinstance(ast.expr,CallFunc): return (setname - remove) | self.callFuncAnalysis(ast.expr,setname)
-		elif isinstance(ast.expr,UnarySub): return (setname - remove) | set((ast.expr.expr.name))
-		elif isinstance(ast.expr,Add): return (setname - remove) | set((ast.expr.left.name,)) | set((ast.expr.right.name,))
+		elif isinstance(ast.expr,UnarySub): return (setname - remove) | set([ast.expr.expr.name])
+		elif isinstance(ast.expr,Add): return (setname - remove) | set([ast.expr.left.name]) | set([ast.expr.right.name])
 		elif isinstance(ast.expr,Subscript):
-			if isinstance(ast.expr.expr,Name): set1 = set((ast.expr.expr.name,))
+			if isinstance(ast.expr.expr,Name): set1 = set([ast.expr.expr.name])
 			else: set1 = set()
-			if isinstance(ast.expr.subs[0],Name): set2 = set((ast.expr.subs[0].name,))
+			if isinstance(ast.expr.subs[0],Name): set2 = set([ast.expr.subs[0].name])
 			else: set2 = set()
 			return (setname - remove) | set1 | set2
 		elif isinstance(ast.expr,Dict):
@@ -33,20 +33,20 @@ class LivenessAnalysis():
 		elif isinstance(ast.expr,Compare):
 			savevar = set()
 			savevar2 = set()
-			if isinstance(ast.expr.expr,Name): savevar = set((ast.expr.expr.name,))
-			if isinstance(ast.expr.ops[0][1],Name): savevar2 = set((ast.expr.ops[0][1].name,))				
+			if isinstance(ast.expr.expr,Name): savevar = set([ast.expr.expr.name])
+			if isinstance(ast.expr.ops[0][1],Name): savevar2 = set([ast.expr.ops[0][1].name])				
 			return (setname - remove) | savevar | savevar2
 		elif isinstance(ast.expr,InjectFrom):
-			if isinstance(ast.expr.arg,Name): return (setname - remove) | set((ast.expr.arg.name,))
+			if isinstance(ast.expr.arg,Name): return (setname - remove) | set([ast.expr.arg.name])
 			else: return (setname - remove)
-		elif isinstance(ast.expr,ProjectTo): return (setname - remove) | set((ast.expr.arg))				
+		elif isinstance(ast.expr,ProjectTo): return (setname - remove) | set([ast.expr.arg])				
 		else: raise Exception("Error: Unrecognized node type")												
 		
 	def callFuncAnalysis(self,ast,setname):
 		saveVars = set()
 		for x in ast.args:
 			if isinstance(x,Name):
-				saveVars = saveVars | set((x.name,))
+				saveVars = saveVars | set([x.name])
 			else:
 				saveVars = saveVars
 		return setname | saveVars		
@@ -58,10 +58,10 @@ class LivenessAnalysis():
 			if isinstance(ast.test,Compare):
 				set1 = ()
 				set2 = ()
-				if isinstance(ast.test.expr,Name): set1 = set((ast.test.expr.name,))
-				if isinstance(ast.test.ops[0][1],Name): set2 = set((ast.test.ops[0][1].name,))
+				if isinstance(ast.test.expr,Name): set1 = set([ast.test.expr.name])
+				if isinstance(ast.test.ops[0][1],Name): set2 = set([ast.test.ops[0][1].name])
 				savenodes = savenodes | set1 | set2
-			else: savenodes = savenodes | set((ast.test.name,))			
+			else: savenodes = savenodes | set([ast.test.name])			
 			if isinstance(ast.then,Stmt):
 				for node in ast.then.nodes:
 					savenodes = savenodes | self.ifExpAnalysis(node,savenodes)
