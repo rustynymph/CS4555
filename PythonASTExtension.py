@@ -67,15 +67,16 @@ class Let(Node):
 		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.expr) + "," + str(self.body) + ")"
 		
 class AssignCallFunc(Node):
-	def __init__(self,var,name):
+	def __init__(self,var,name,args):
 		self.var = var
 		self.name = name
+		self.args = args
 	
 	def __repr__(self):
-		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.name) + ")"
+		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.name) + str(self.args) + ")"
 		
 	def __str__(self):
-		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.name) + ")"
+		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.name) + str(self.args) + ")"
 	
 def isPythonASTLeaf(ast):
 	return isinstance(ast,Const) or isinstance(ast,Boolean) or isinstance(ast,Name) or isinstance(ast,AssName)
