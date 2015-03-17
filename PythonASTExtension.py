@@ -66,7 +66,7 @@ class Let(Node):
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.expr) + "," + str(self.body) + ")"
 		
-class AssignFunc(Node):
+class AssignCallFunc(Node):
 	def __init__(self,var,name):
 		self.var = var
 		self.name = name
