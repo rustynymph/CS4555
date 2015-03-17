@@ -75,7 +75,18 @@ class LivenessAnalysis():
 	
 		elif isinstance(node,GetTag): return self.liveness(node.expr)
 	
-		elif isinstance(node,AssignFunc): return self.liveness(node.name)		
+		elif isinstance(node,AssignFunc): return self.liveness(node.name)
+		
+		elif isinstance(node,Lambda):
+			save = set()
+			if isinstance(node.code,Stmt):
+				for i in node.code.nodes:
+					save = save | self.liveness(i)
+			else:
+				save = save | self.liveness(node.code)
+			return save
+		
+		elif isinstance(node,Return): return self.liveness(node.value)		
 	
 	def computeLivenessAnalysis(self,ast,j):
 		remove = set()
