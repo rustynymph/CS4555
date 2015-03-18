@@ -13,7 +13,7 @@ class Orphan():
 		if isinstance(ast,Stmt):
 			stmtArray =[]
 			for n in ast.nodes:
-				if (not isinstance(n,Printnl) and not isinstance(n,Function) and not isinstance(n,Return)) or isinstance(n,Assign):
+				if not isinstance(n,Printnl) and not isinstance(n,Function) and not isinstance(n,Return) and not isinstance(n,Assign):
 					stmtArray += [Assign([AssName("orphan"+str(self.getAndIncrement()),'OP_ASSIGN')],n)]
 				else: stmtArray += [n]
 			return Stmt(stmtArray)
