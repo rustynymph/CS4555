@@ -6,7 +6,6 @@ from Flatten import *
 from Translator import *
 from Optimizer import *
 from Explicate import *
-from Parser_hw2 import *
 import compiler
 from Simplify import *
 from TraverseIR import TraverseIR
