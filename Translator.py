@@ -80,19 +80,32 @@ class Translator():
 
 		elif isinstance(ast,CallFunc):
 			callersavedvariables = []
+
+			liveVariables = ast.liveness
 			
-			for variable in self.coloredgraph:
-				if isinstance(self.coloredgraph[variable],RegisterOperand):
-					if isinstance(self.coloredgraph[variable].register,CallerSavedRegister):
-						callersavedvariables += [variable]
-					
+			# for variable in self.coloredgraph:
+			# 	if isinstance(self.coloredgraph[variable],RegisterOperand):
+			# 		if isinstance(self.coloredgraph[variable].register,CallerSavedRegister):
+			# 			callersavedvariables += [variable]	
+
+			liveRegisters = []
+			liveMemory = []
+
+			for variable in liveVariables:
+				variableLocation = self.getVariableLocation(variable)
+				if isinstance(variableLocation,CallerSavedRegister): 
+					liveMemory = [self.getVariableInMemory(variable)]
+					liveRegisters += [variableLocation]
+
 			if len(ast.args) > 0:
 				pushArgsInstr = [PushInstruction(arg) for arg in reversed(ast.args)]
 			else: pushArgsInstr = []		
 					
-			saveInstr = [MoveInstruction(self.getVariableLocation(var),self.getVariableInMemory(var)) for var in callersavedvariables if var in self.memory]
+			# saveInstr = [MoveInstruction(self.getVariableLocation(var),self.getVariableInMemory(var)) for var in callersavedvariables if var in self.memory]
+			saveInstr = [MoveInstruction(liveRegisters[i],liveMemory[i]) for i in range(len(liveRegisters))]
 			callInstr = [CallInstruction(ast.node)]
-			loadInstr = [MoveInstruction(self.getVariableInMemory(var),self.getVariableLocation(var)) for var in callersavedvariables if var in self.memory]
+			# loadInstr = [MoveInstruction(self.getVariableInMemory(var),self.getVariableLocation(var)) for var in callersavedvariables if var in self.memory]
+			loadInstr = [MoveInstruction(liveMemory[i],liveRegisters[i]) for i in range(len(liveRegisters))]
 			return ClusteredInstruction(saveInstr + pushArgsInstr + callInstr + loadInstr)
 					
 		elif isinstance(ast,InjectFrom):
