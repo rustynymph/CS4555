@@ -28,7 +28,9 @@ pythonAST = TraverseIR.map(pythonAST,Simplify.nameToBoolMap)
 pythonAST = TraverseIR.map(pythonAST,Optimizer.constantFoldingMap)
 
 pythonAST = TraverseIR.map(pythonAST,Orphan.findParentMap,Orphan())
-pythonAST = TraverseIR.map(pythonAST,Namespace.removeDependenciesMap,Namespace(Namespace.environmentKeywords + Namespace.reservedKeywords))
+namespace = Namespace(Namespace.environmentKeywords + Namespace.reservedKeywords)
+pythonAST = TraverseIR.map(pythonAST,Namespace.removeDependenciesMap,namespace)
+pythonAST = TraverseIR.map(pythonAST,Namespace.uniquifyMap,namespace)
 
 pythonAST = TraverseIR.map(pythonAST,Explicate.explicateMap,Explicate())
 pythonAST = TraverseIR.map(pythonAST,Explicate.shortCircuitMap,Explicate())
