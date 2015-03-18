@@ -1,10 +1,11 @@
 #!/bin/bash
 submit:
-	mkdir -p "submit"
-	cp -r AssemblyAST submit
+	mkdir -p "submit/AssemblyAST/"
+	ls AssemblyAST
+	cp -r AssemblyAST/* submit/AssemblyAST
 	cp *.py submit
 	cp runtime/* submit
-	zip submit.zip submit/*
+	zip -r submit.zip submit/*
 	rm -r submit
 
 clean:
