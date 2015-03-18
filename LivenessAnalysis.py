@@ -9,21 +9,32 @@ class LivenessAnalysis():
 		self.IR = IR.node.nodes
 	
 	def liveness(self,node):
-		if isinstance(node,Assign): return self.liveness(node.expr)
+		if isinstance(node,Assign):
+			node.liveness = self.liveness(node.expr)
+			return node.liveness
 		
-		if isinstance(node,AssName): return set([])
+		if isinstance(node,AssName):
+			node.liveness = set([])
+			return node.liveness
 	
-		elif isinstance(node,Subscript): return self.liveness(node.expr) | self.liveness(node.subs[0])		
+		elif isinstance(node,Subscript):
+			node.liveness = self.liveness(node.expr) | self.liveness(node.subs[0])
+			return node.liveness		
 	
-		elif isinstance(node,Name): return set([node.name])
+		elif isinstance(node,Name):
+			node.liveness = set([node.name])
+			return node.liveness
 	
-		elif isinstance(node,Const): return set([])
+		elif isinstance(node,Const):
+			node.liveness = set([])
+			return node.liveness
 	
 		elif isinstance(node,CallFunc):
 			save = set()
 			for i in node.args:
 				save = save | self.liveness(i)
-			return save
+			node.liveness = save
+			return node.liveness
 	
 		elif isinstance(node,IfExp):
 			save = self.liveness(node.test)
@@ -37,47 +48,68 @@ class LivenessAnalysis():
 					save = save | self.liveness(i)
 			else:
 				save = save | self.liveness(node.else_)
-			return save
+			node.liveness = save
+			return node.liveness
 	
-		elif isinstance(node,UnarySub): return self.liveness(node.expr)
+		elif isinstance(node,UnarySub):
+			node.liveness = self.liveness(node.expr)
+			return node.liveness
 	
-		elif isinstance(node,Add): return self.liveness(node.left) | self.liveness(node.right)
+		elif isinstance(node,Add):
+			node.liveness = self.liveness(node.left) | self.liveness(node.right)
+			return node.liveness
 	
 		elif isinstance(node,Dict):
 			save = set()
 			for i in node.nodes:
 				save = save | self.liveness(i[0]) | self.liveness(i[1])
-			return save
+			node.liveness = save
+			return node.liveness
 	
 		elif isinstance(node,List):
 			save = set()
 			for i in node.nodes:
 				save = save | self.liveness(i)
-			return save
+			node.liveness = save
+			return node.liveness
 	
-		elif isinstance(node,Not): return self.liveness(node.expr)
+		elif isinstance(node,Not):
+			node.liveness = self.liveness(node.expr)
+			return node.liveness
 	
 		elif isinstance(node,And):
 			save = set()
 			for i in node.nodes:
 				save = save | self.liveness(i)
-			return save
+			node.liveness = save
+			return node.liveness
 	
 		elif isinstance(node,Or):
 			save = set()
 			for i in node.nodes:
 				save = save | self.liveness(i)
-			return save
+			node.liveness = save
+			return node.liveness
 	
-		elif isinstance(node,Compare): return self.liveness(node.expr) | self.liveness(node.ops[0][1])	
+		elif isinstance(node,Compare):
+			node.liveness = self.liveness(node.expr) | self.liveness(node.ops[0][1])	
+			return node.liveness
 	
-		elif isinstance(node,InjectFrom): return self.liveness(node.arg)
+		elif isinstance(node,InjectFrom):
+			node.liveness = self.liveness(node.arg)
+			return node.liveness
 	
-		elif isinstance(node,ProjectTo): return self.liveness(node.arg)
+		elif isinstance(node,ProjectTo):
+			node.liveness = self.liveness(node.arg)
+			return node.liveness
 	
-		elif isinstance(node,GetTag): return self.liveness(node.arg)
+		elif isinstance(node,GetTag):
+			node.liveness = self.liveness(node.arg)
+			return node.liveness
 	
-		elif isinstance(node,AssignCallFunc): return self.liveness(node.name)
+		elif isinstance(node,AssignCallFunc):
+			node.liveness = self.liveness(node.name)
+			return node.liveness
 		
 		elif isinstance(node,Function):
 			save = self.liveness(node.name)
@@ -86,6 +118,8 @@ class LivenessAnalysis():
 					save = save | self.liveness(i)
 			else:
 				save = save | self.liveness(node.code)
+			node.liveness = save
+			return node.liveness
 		
 		elif isinstance(node,Lambda):
 			save = set()
@@ -94,9 +128,18 @@ class LivenessAnalysis():
 					save = save | self.liveness(i)
 			else:
 				save = save | self.liveness(node.code)
-			return save
+			node.liveness = save
+			return node.liveness
 		
-		elif isinstance(node,Return): return self.liveness(node.value)		
+		elif isinstance(node,Return):
+			save = set()
+			if isinstance(node.value,Stmt):
+				for i in node.value.nodes:
+					save = save | self.liveness(i)
+			else:
+				save = save | self.liveness(node.value)
+			node.liveness = save
+			return node.liveness					
 	
 		else: raise Exception("Unsupported node type")
 	
