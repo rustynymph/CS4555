@@ -33,7 +33,6 @@ class Functionize():
 				return Stmt(stmtArray)
 			
 			elif isinstance(ast.expr,Subscript):
-				print "fdjsaklfdjsaklfjdsaklfjdsklajfkldsa"
 				func = CallFunc(Name("get_subscript"),[ast.expr.expr] + ast.expr.subs,None,None)
 				assign = Assign(ast.nodes,func)
 				return assign
