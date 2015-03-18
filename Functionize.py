@@ -13,7 +13,7 @@ class Functionize():
 			if isinstance(ast.expr,Dict):
 				stmtArray = []
 				createDictionary = Assign(ast.nodes,CallFunc(Name("create_dict"),[],None,None))
-				stmtArray += [createDictionary,Assign(ast.nodes,InjectFrom(Const(3),Name(ast.nodes[0]).name))]
+				stmtArray += [createDictionary,Assign(ast.nodes,InjectFrom(Const(3),Name(ast.nodes[0].name)))]
 
 				stmtArray += [CallFunc(Name("set_subscript"),[Name(ast.nodes[0].name),t[0],t[1]],None,None) for t in ast.expr.items]
 
@@ -24,7 +24,7 @@ class Functionize():
 
 				length = len(ast.expr.nodes) * 4
 				createList = Assign(ast.nodes,CallFunc(Name("create_list"),[Const(length)],None,None))
-				stmtArray += [createList,Assign(ast.nodes,InjectFrom(Const(3),Name(ast.nodes[0]).name))]
+				stmtArray += [createList,Assign(ast.nodes,InjectFrom(Const(3),Name(ast.nodes[0].name)))]
 
 				for i in range(len(ast.expr.nodes)):
 					key = Const(i * 4)
