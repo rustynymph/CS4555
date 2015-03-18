@@ -61,7 +61,7 @@ class LivenessAnalysis():
 	
 		elif isinstance(node,Dict):
 			save = set()
-			for i in node.nodes:
+			for i in node.items:
 				save = save | self.liveness(i[0]) | self.liveness(i[1])
 			node.liveness = save
 			return node.liveness
