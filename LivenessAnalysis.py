@@ -8,82 +8,107 @@ class LivenessAnalysis():
 		self.liveVariables = {}
 		self.IR = IR.node.nodes
 	
-	def assignAnalysis(self,ast,setname):
-		if isinstance(ast.nodes[0],AssName): remove = set([ast.nodes[0].name])
-		elif isinstance(ast.nodes[0],Subscript): remove = (set([ast.nodes[0].expr.name]) | set([ast.nodes[0].subs[0].name]))
-		if isinstance(ast.expr,Name): return (setname - remove) | set([ast.expr.name])
-		elif isinstance(ast.expr,Const): return (setname - remove)
-		elif isinstance(ast.expr,CallFunc): return (setname - remove) | self.callFuncAnalysis(ast.expr,setname)
-		elif isinstance(ast.expr,UnarySub): return (setname - remove) | set([ast.expr.expr.name])
-		elif isinstance(ast.expr,Add): return (setname - remove) | set([ast.expr.left.name]) | set([ast.expr.right.name])
-		elif isinstance(ast.expr,Subscript):
-			if isinstance(ast.expr.expr,Name): set1 = set([ast.expr.expr.name])
-			else: set1 = set()
-			if isinstance(ast.expr.subs[0],Name): set2 = set([ast.expr.subs[0].name])
-			else: set2 = set()
-			return (setname - remove) | set1 | set2
-		elif isinstance(ast.expr,Dict):
-			savekeys = set([x[0].name for x in ast.expr.items if isinstance(x[0],Name)])
-			savevalues = set([x[1].name for x in ast.expr.items if isinstance(x[1],Name)])
-			return (setname - remove) | savekeys | savevalues
-		elif isinstance(ast.expr,List): return (setname - remove) | set([x.name for x in ast.expr.nodes if isinstance(x,Name)]) 
-		elif isinstance(ast.expr,Not): return (setname - remove) | set((ast.expr.expr.name,))
-		elif isinstance(ast.expr,And): return (setname - remove) | set([x.name for x in ast.expr.nodes])
-		elif isinstance(ast.expr,Or): return (setname - remove) | set([x.name for x in ast.expr.nodes])
-		elif isinstance(ast.expr,Compare):
-			savevar = set()
-			savevar2 = set()
-			if isinstance(ast.expr.expr,Name): savevar = set([ast.expr.expr.name])
-			if isinstance(ast.expr.ops[0][1],Name): savevar2 = set([ast.expr.ops[0][1].name])				
-			return (setname - remove) | savevar | savevar2
-		elif isinstance(ast.expr,InjectFrom):
-			if isinstance(ast.expr.arg,Name): return (setname - remove) | set([ast.expr.arg.name])
-			else: return (setname - remove)
-		elif isinstance(ast.expr,ProjectTo): return (setname - remove) | set([ast.expr.arg])				
-		else: raise Exception("Error: Unrecognized node type")												
+	def liveness(self,node):
+		if isinstance(node,Assign): return self.liveness(node.expr)
 		
-	def callFuncAnalysis(self,ast,setname):
-		saveVars = set()
-		for x in ast.args:
-			if isinstance(x,Name):
-				saveVars = saveVars | set([x.name])
+		if isinstance(node,AssName): return set([])
+	
+		elif isinstance(node,Subscript): return self.liveness(node.expr) | self.liveness(node.subs[0])		
+	
+		elif isinstance(node,Name): return set([node.name])
+	
+		elif isinstance(node,Const): return set([])
+	
+		elif isinstance(node,CallFunc):
+			save = set()
+			for i in node.args:
+				save = save | self.liveness(i)
+			return save
+	
+		elif isinstance(node,IfExp):
+			save = self.liveness(node.test)
+			if isinstance(node.then,Stmt):
+				for i in node.then.nodes:
+					save = save | self.liveness(i)
 			else:
-				saveVars = saveVars
-		return setname | saveVars		
+				save = save | self.liveness(node.then)
+			if isinstance(node.else_,Stmt):
+				for i in node.else_.nodes:
+					save = save | self.liveness(i)
+			else:
+				save = save | self.liveness(node.else_)
+			return save
 	
-	def getTagAnalysis(self,ast,setname): return setname
+		elif isinstance(node,UnarySub): return self.liveness(node.expr)
 	
-	def ifExpAnalysis(self,ast,savenodes):
-		if isinstance(ast,IfExp):
-			if isinstance(ast.test,Compare):
-				set1 = ()
-				set2 = ()
-				if isinstance(ast.test.expr,Name): set1 = set([ast.test.expr.name])
-				if isinstance(ast.test.ops[0][1],Name): set2 = set([ast.test.ops[0][1].name])
-				savenodes = savenodes | set1 | set2
-			else: savenodes = savenodes | set([ast.test.name])			
-			if isinstance(ast.then,Stmt):
-				for node in ast.then.nodes:
-					savenodes = savenodes | self.ifExpAnalysis(node,savenodes)
-			else: savenodes = savenodes | self.ifExpAnalysis(ast.then,savenodes)
-				
-			if isinstance(ast.else_,Stmt):
-				for node in ast.else_.nodes:
-					savenodes = savenodes | self.ifExpAnalysis(node,savenodes)
-			else: savenodes = savenodes | self.ifExpAnalysis(ast.else_,savenodes)			
+		elif isinstance(node,Add): return self.liveness(node.left) | self.liveness(node.right)
+	
+		elif isinstance(node,Dict):
+			save = set()
+			for i in node.nodes:
+				save = save | self.liveness(i[0]) | self.liveness(i[1])
+			return save
+	
+		elif isinstance(node,List):
+			save = set()
+			for i in node.nodes:
+				save = save | self.liveness(i)
+			return save
+	
+		elif isinstance(node,Not): return self.liveness(node.expr)
+	
+		elif isinstance(node,And):
+			save = set()
+			for i in node.nodes:
+				save = save | self.liveness(i)
+			return save
+	
+		elif isinstance(node,Or):
+			save = set()
+			for i in node.nodes:
+				save = save | self.liveness(i)
+			return save
+	
+		elif isinstance(node,Compare): return self.liveness(node.expr) | self.liveness(node.ops[0][1])	
+	
+		elif isinstance(node,InjectFrom): return self.liveness(node.arg)
+	
+		elif isinstance(node,ProjectTo): return self.liveness(node.arg)
+	
+		elif isinstance(node,GetTag): return self.liveness(node.arg)
+	
+		elif isinstance(node,AssignCallFunc): return self.liveness(node.name)
 		
-		else: savenodes = savenodes | self.dispatch(ast,savenodes,True)		
-		return savenodes								
-
-	def dispatch(self,ast,setname,recursion=False):
-		if isinstance(ast,Assign): return self.assignAnalysis(ast,setname)
-		elif isinstance(ast,CallFunc): return self.callFuncAnalysis(ast,setname)
-		elif isinstance(ast,GetTag): return self.getTagAnalysis(ast,setname)
-		elif isinstance(ast,IfExp):
-			if recursion: return self.ifExpAnalysis(ast,setname)
-			else: return self.ifExpAnalysis(ast,savenodes = set())
-		else: raise Exception("Error: Unrecognized node type")
-					
+		elif isinstance(node,Function):
+			save = self.liveness(node.name)
+			if isinstance(node.code,Stmt):
+				for i in node.code.nodes:
+					save = save | self.liveness(i)
+			else:
+				save = save | self.liveness(node.code)
+		
+		elif isinstance(node,Lambda):
+			save = set()
+			if isinstance(node.code,Stmt):
+				for i in node.code.nodes:
+					save = save | self.liveness(i)
+			else:
+				save = save | self.liveness(node.code)
+			return save
+		
+		elif isinstance(node,Return): return self.liveness(node.value)		
+	
+		else: raise Exception("Unsupported node type")
+	
+	def computeLivenessAnalysis(self,ast,j):
+		remove = set()
+		if isinstance(ast,Assign):
+			remove = self.liveness(ast.nodes[0])
+			new_set = (self.liveVariables[j+1] - remove) | self.liveness(ast.expr)
+		else:
+			new_set = self.liveness(ast)
+		return new_set
+			
 	def livenessAnalysis(self):
 		ir = self.IR
 		numInstructions = len(ir)
@@ -91,7 +116,7 @@ class LivenessAnalysis():
 			self.liveVariables[i] = set()
 		j = numInstructions-1
 		for instructions in reversed(ir):
-			self.liveVariables[j] = self.dispatch(instructions,self.liveVariables[j+1])	
+			print instructions
+			self.liveVariables[j] = self.computeLivenessAnalysis(instructions,j)
 			j-=1
-
 		return [self.liveVariables[x] for x in self.liveVariables]				
