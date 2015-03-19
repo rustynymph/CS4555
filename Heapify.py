@@ -1,14 +1,29 @@
 from compiler.ast import *
 from PythonASTExtension import *
 
-class Heapify(node):
+class FlattenTracker():
+	def __init__(self,prefix,count=0):
+		self.prefix = prefix
+		self.count = count
+
+	def getName(self):
+		return self.prefix + "$" + str(self.count)
+
+	def getNameAndIncrementCounter(self):
+		name = self.getName()
+		self.count += 1
+		return name
+
+class Heapify:
 	
 	def __init__(self,IR):
 		self.freeVariables = {}
 		self.IR = IR
 		self.heapifySet = set()
+		self.renameParameter = FlattenTracker("heapifyParam")
 	
 	def freeVars(self,node):
+		#Const and Name are the base cases
 		if isinstance(node,Const): return set([])
 		elif isinstance(node,Name): return set([node.name])
 		elif isinstance(node,Add): return self.freeVars(node.left) | self.freeVars(node.right)
@@ -67,8 +82,8 @@ class Heapify(node):
 			return save				
 		elif isinstance(node,Let):
 			save = self.freeVars(node.var)
-			if isinstance(node.expr,Let): return save = save | self.freeVars(node.expr)
-			save = save | self.freeVars(node.body)
+			if isinstance(node.expr,Let): save = save | self.freeVars(node.expr)
+			else: save = save | self.freeVars(node.body)
 			return save			
 		elif isinstance(node,InjectFrom): return self.freeVars(node.arg)
 		elif isinstance(node,GetTag): return self.freeVars(node.arg)
@@ -86,14 +101,14 @@ class Heapify(node):
 					if isinstance(x,Lambda): save = save |  self.needHeapification(x)
 					else: save = save | self.freeVars(x)
 				self.heapifySet = self.heapifySet | save
-			elif isinstance(node.code,Lambda): return self.heapifySet = self.heapifySet | self.needHeapification(node.code)
+			elif isinstance(node.code,Lambda): self.heapifySet = self.heapifySet | self.needHeapification(node.code)
 			else: self.heapifySet = self.heapifySet | self.freeVars(node)
 		else: return self.heapifySet
 	
 	def heapify(self,node):
 		#Name and Assign are base cases
 		if isinstance(node,Name):
-			if node.name in self.heapifySet: return Subscript(node.name,FLAGS,[Const(DecimalValue(0))])
+			if node.name in self.heapifySet: return Subscript(node.name,'OP_APPLY',[Const(DecimalValue(0))])
 			else: return node
 		elif isinstance(node,Assign):
 			if isinstance(node.nodes[0],AssName) and isinstance(node.expr,Name):
@@ -105,14 +120,23 @@ class Heapify(node):
 		elif isinstance(node,CallFunc): return CallFunc(node.name,[self.heapify(e) for e in node.args])
 		elif isinstance(node,Lambda):
 			save = []
+			arg_save = []
+			for arg in node.argnames:
+				if arg in self.heapifySet:
+					new_arg = self.renameParamater.getNameAndIncrementCounter()
+					initialize = Assign([AssName(arg,'OP_APPLY')],CallFunc("create_list",[1,0]))
+					assign = Assign(Subscript(arg,'OP_APPLY',[Const(DecimalValue(0))]),Name(new_arg))
+					arg_save += [new_arg]
+					save += [initalize,assign]
+				else: arg_save += [arg]
 			if isinstance(node.code,Stmt):
 				save += [self.heapify(x) for x in node.code.nodes]
 			else: save += self.heapify(node.code)
-			return Lambda(node.argnames,save)
+			return Lambda(arg_save,save)
 		elif isinstance(node,UnarySub): return UnarySub(self.heapify(node.expr))
 		elif isinstance(node,List): return List([self.heapify(e) for e in node.nodes])	
 		elif isinstance(node,Dict): return Dict([(self.heapify(e[0]),self.heapify(e[1])) for e in node.items])
-		elif isinstance(node,Subscript): return Subscript(self.heapify(node.expr),[self.heapify(e) for e in node.subs])
+		elif isinstance(node,Subscript): return Subscript(self.heapify(node.expr), 'OP_APPLY',[self.heapify(e) for e in node.subs])
 		elif isinstance(node,IfExp):
 			savethen = []
 			saveelse = []
@@ -132,3 +156,8 @@ class Heapify(node):
 		elif isinstance(node,Printnl): return Printnl(self.heapify(node.nodes[0]))
 		else: return node
 
+	def heapifyInstructions(self):
+		for instruction in self.IR.node.nodes:
+			self.needHeapification(instruction) 
+		stmt = [self.heapify(i) for i in self.IR.node.nodes]
+		return Module(stmt)
