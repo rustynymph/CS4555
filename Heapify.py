@@ -132,7 +132,3 @@ class Heapify(node):
 		elif isinstance(node,Printnl): return Printnl(self.heapify(node.nodes[0]))
 		else: return node
 
-	def heapifyInstructions(self):
-		self.needHeapification(instruction) for instruction in self.IR.node.nodes
-		stmt = [self.heapify(i) for i in self.IR.node.nodes]
-		return Module(stmt)
