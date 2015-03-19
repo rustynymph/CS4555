@@ -5,31 +5,40 @@ class TraverseIR():
 		#P0 nodes
 		if isinstance(ast,Module): 
 			module = Module(ast.doc,TraverseIR.map(ast.node,f,environment))
+			if hasattr(ast,'liveness'): module.liveness = ast.liveness
 			return f(environment, module) if environment else f(module)
 		elif isinstance(ast,Stmt):
 			stmt = Stmt([TraverseIR.map(n,f,environment) for n in ast.nodes])
+			if hasattr(ast,'liveness'): stmt.liveness = ast.liveness
 			return f(environment,stmt) if environment else f(stmt)
 		elif isinstance(ast,Printnl):
 			printnl = Printnl([TraverseIR.map(n,f,environment) for n in ast.nodes],ast.dest)
+			if hasattr(ast,'liveness'): printnl.liveness = ast.liveness
 			return f(environment,printnl) if environment else f(printnl)
 		elif isinstance(ast,Assign):
 			nodes = [TraverseIR.map(n,f,environment) for n in ast.nodes]
 			assign = Assign(nodes,TraverseIR.map(ast.expr,f,environment))
+			if hasattr(ast,'liveness'): assign.liveness = ast.liveness
 			return f(environment,assign) if environment else f(assign)
 		elif isinstance(ast,Discard):
 			discard = Discard(TraverseIR.map(ast.expr,f,environment))
+			if hasattr(ast,'liveness'): discard.liveness = ast.liveness
 			return f(environment,discard) if environment else f(discard)
 		elif isinstance(ast,Add):
 			lhs = TraverseIR.map(ast.left,f,environment)
 			rhs = TraverseIR.map(ast.right,f,environment)
 			add = Add((lhs,rhs))
+			if hasattr(ast,'liveness'): add.liveness = ast.liveness
 			return f(environment,add) if environment else f(add)
 		elif isinstance(ast,UnarySub):
 			unarysub = UnarySub(TraverseIR.map(ast.expr,f,environment))
+			if hasattr(ast,'liveness'): unarysub.liveness = ast.liveness
 			return f(environment,unarysub) if environment else f(unarysub)
 		elif isinstance(ast,CallFunc):
 			callfunc = CallFunc(TraverseIR.map(ast.node,f,environment),[TraverseIR.map(n,f,environment) for n in ast.args])
-			return f(environment,callfunc) if environment else f(callfunc)
+			if hasattr(ast,'liveness'): callfunc.liveness = ast.liveness
+			newCallFunc =  f(environment,callfunc) if environment else f(callfunc)
+			return newCallFunc
 		elif isinstance(ast,Const):
 			return f(environment,ast) if environment else f(ast)
 		elif isinstance(ast,AssName):
@@ -40,27 +49,35 @@ class TraverseIR():
 		#P1 nodes
 		elif isinstance(ast,List):
 			l = List([TraverseIR.map(n,f,environment) for n in ast.nodes])
+			if hasattr(ast,'liveness'): l.liveness = ast.liveness
 			return f(environment,l) if environment else f(l)
 		elif isinstance(ast,IfExp):
 			ifexp = IfExp(TraverseIR.map(ast.test,f,environment),TraverseIR.map(ast.then,f,environment),TraverseIR.map(ast.else_,f,environment))
+			if hasattr(ast,'liveness'): ifexp.liveness = ast.liveness
 			return f(environment,ifexp) if environment else f(ifexp)
 		elif isinstance(ast,Dict):
 			d = Dict([(TraverseIR.map(t[0],f,environment),TraverseIR.map(t[1],f,environment)) for t in ast.items])
+			if hasattr(ast,'liveness'): d.liveness = ast.liveness
 			return f(environment,d) if environment else f(d)
 		elif isinstance(ast,Or):
 			o = Or([TraverseIR.map(n,f,environment) for n in ast.nodes])
+			if hasattr(ast,'liveness'): o.liveness = ast.liveness
 			return f(environment,o) if environment else f(o)
 		elif isinstance(ast,And):
 			a = And([TraverseIR.map(n,f,environment) for n in ast.nodes])
+			if hasattr(ast,'liveness'): a.liveness = ast.liveness
 			return f(environment,a) if environment else f(a)
 		elif isinstance(ast,Compare):
 			compare = Compare(TraverseIR.map(ast.expr,f,environment),[(t[0],TraverseIR.map(t[1],f,environment)) for t in ast.ops])
+			if hasattr(ast,'liveness'): compare.liveness = ast.liveness
 			return f(environment,compare) if environment else f(compare)
 		elif isinstance(ast,Subscript):
 			subscript = Subscript(TraverseIR.map(ast.expr,f,environment),ast.flags,[TraverseIR.map(n,f,environment) for n in ast.subs])
+			if hasattr(ast,'liveness'): subscript.liveness = ast.liveness
 			return f(environment,subscript) if environment else f(subscript)
 		elif isinstance(ast,Not):
 			n = Not(TraverseIR.map(ast.expr,f,environment))
+			if hasattr(ast,'liveness'): n.liveness = ast.liveness
 			return f(environment,n) if environment else f(n)
 
 		#P1 Extension nodes
@@ -68,32 +85,41 @@ class TraverseIR():
 			return f(environment,ast) if environment else f(ast)
 		elif isinstance(ast,GetTag):
 			gettag = GetTag(TraverseIR.map(ast.arg,f,environment))
+			if hasattr(ast,'liveness'): gettag.liveness = ast.liveness
 			return f(environment,gettag) if environment else f(gettag)
 		elif isinstance(ast,InjectFrom):
 			injectfrom = InjectFrom(TraverseIR.map(ast.typ,f,environment),TraverseIR.map(ast.arg,f,environment))
+			if hasattr(ast,'liveness'): injectfrom.liveness = ast.liveness
 			return f(environment,injectfrom) if environment else f(injectfrom)
 		elif isinstance(ast,ProjectTo):
 			projectto = ProjectTo(TraverseIR.map(ast.typ,f,environment),TraverseIR.map(ast.arg,f,environment))
+			if hasattr(ast,'liveness'): projectto.liveness = ast.liveness
 			return f(environment,projectto) if environment else f(projectto)
 		elif isinstance(ast,Let):
 			let = Let(TraverseIR.map(ast.var,f,environment),TraverseIR.map(ast.expr,f,environment),TraverseIR.map(ast.body,f,environment))
+			if hasattr(ast,'liveness'): let.liveness = ast.liveness
 			return f(environment,let) if environment else f(let)
 		elif isinstance(ast,IsTag):
 			istag = IsTag(ast.typ,TraverseIR.map(ast.arg,f,environment))
+			if hasattr(ast,'liveness'): istag.liveness = ast.liveness
 			return f(environment,istag) if environment else f(istag)
 
 		#P2 nodes
 		elif isinstance(ast,Function):
 			func = Function(ast.decorators,ast.name,ast.argnames,ast.defaults,ast.flags,ast.doc,TraverseIR.map(ast.code,f,environment))
+			if hasattr(ast,'liveness'): func.liveness = ast.liveness
 			return f(environment,func) if environment else f(func)
 		elif isinstance(ast,Lambda):
 			lamb = Lambda(ast.argnames,ast.defaults,ast.flags,TraverseIR.map(ast.code,f,environment))
+			if hasattr(ast,'liveness'): lamb.liveness = ast.liveness
 			return lamb
 		elif isinstance(ast,Return):
 			ret = Return(TraverseIR.map(ast.value,f,environment))
+			if hasattr(ast,'liveness'): ret.liveness = ast.liveness
 			return ret
 		elif isinstance(ast,AssignCallFunc):
 			callfunc = AssignCallFunc(TraverseIR.map(ast.var,f,environment),TraverseIR.map(ast.name,f,environment),[TraverseIR.map(arg,f,environment) for arg in ast.args])
+			if hasattr(ast,'liveness'): callfunc.liveness = ast.liveness
 			return f(environment,callfunc) if environment else f(callfunc)
 
 
@@ -137,7 +163,7 @@ class TraverseIR():
 			argsAcc = nodeAcc
 			for n in ast.args:
 				argsAcc = TraverseIR.foldPostOrderLeft(n,f,argsAcc,environment)
-			return f(environment,callfunc,argsAcc) if environment else f(callfunc,argsAcc)
+			return f(environment,ast,argsAcc) if environment else f(ast,argsAcc)
 		elif isinstance(ast,Const):
 			return f(environment,ast,acc) if environment else f(ast,acc)
 		elif isinstance(ast,AssName):
