@@ -88,9 +88,6 @@ class Translator():
 			# 		if isinstance(self.coloredgraph[variable].register,CallerSavedRegister):
 			# 			callersavedvariables += [variable]	
 
-			print "Translating CallFunc"
-			print ast
-			print liveVariables
 			liveRegisters = []
 			liveMemory = []
 
@@ -99,13 +96,8 @@ class Translator():
 				variableLocation = self.getVariableLocation(variable)
 				print variableLocation
 				if isinstance(variableLocation.register,CallerSavedRegister): 
-					print "hello"
-					print self.getVariableInMemory(variable)
 					liveMemory += [self.getVariableInMemory(variable)]
 					liveRegisters += [variableLocation]
-
-			print "This shit should be live"
-			print liveMemory
 
 			if len(ast.args) > 0:
 				pushArgsInstr = [PushInstruction(arg) for arg in reversed(ast.args)]
@@ -132,8 +124,8 @@ class Translator():
 			location = ast.arg
 			if ast.typ.value.value != 3:
 				shiftRightInstr = [ShiftArithmeticRightInstruction(ConstantOperand(DecimalValue(2)),location)]
-				andInstr = [AndInstruction(ConstantOperand(DecimalValue(-4)),location)]
-				return ClusteredInstruction(shiftRightInstr + andInstr)
+				# andInstr = [AndInstruction(ConstantOperand(DecimalValue(-4)),location)]
+				return ClusteredInstruction(shiftRightInstr )
 			else: return AndInstruction(ConstantOperand(DecimalValue(-4)),location)
 		
 		elif isinstance(ast,GetTag): return AndInstruction(ConstantOperand(DecimalValue(3)),ast.arg)
