@@ -34,6 +34,7 @@ class LivenessAnalysis():
 			for i in node.args:
 				save = save | self.liveness(i)
 			node.liveness = save
+			print save
 			return node.liveness
 	
 		elif isinstance(node,IfExp):
@@ -61,7 +62,7 @@ class LivenessAnalysis():
 	
 		elif isinstance(node,Dict):
 			save = set()
-			for i in node.nodes:
+			for i in node.items:
 				save = save | self.liveness(i[0]) | self.liveness(i[1])
 			node.liveness = save
 			return node.liveness
@@ -149,7 +150,7 @@ class LivenessAnalysis():
 			remove = self.liveness(ast.nodes[0])
 			new_set = (self.liveVariables[j+1] - remove) | self.liveness(ast.expr)
 		else:
-			new_set = self.liveness(ast)
+			new_set = self.liveVariables[j+1] | self.liveness(ast)
 		return new_set
 			
 	def livenessAnalysis(self):
