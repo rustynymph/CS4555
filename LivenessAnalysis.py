@@ -8,149 +8,161 @@ class LivenessAnalysis():
 		self.liveVariables = {}
 		self.IR = IR.node.nodes
 	
-	def liveness(self,node):
+	def liveness(self,node,prevSet):
 		if isinstance(node,Assign):
-			node.liveness = self.liveness(node.expr)
-			return node.liveness
+			finSet = self.liveness(node.expr,prevSet)
+			node.liveness = finSet | prevSet
+			return finSet
 		
 		if isinstance(node,AssName):
-			node.liveness = set([])
-			return node.liveness
+			finSet = set([])
+			node.liveness = finSet | prevSet
+			return finSet
 	
 		elif isinstance(node,Subscript):
-			node.liveness = self.liveness(node.expr) | self.liveness(node.subs[0])
-			return node.liveness		
+			finSet = self.liveness(node.expr)
+			node.liveness = finSet | self.liveness(node.subs[0],prevSet) | prevSet 
+			return finSet	
 	
 		elif isinstance(node,Name):
-			node.liveness = set([node.name])
-			return node.liveness
+			finSet = set([node.name])
+			node.liveness = finSet | prevSet
+			return finSet
 	
 		elif isinstance(node,Const):
-			node.liveness = set([])
-			return node.liveness
+			finSet = set([])
+			node.liveness = finSet | prevSet
+			return finSet
 	
 		elif isinstance(node,CallFunc):
 			save = set()
 			for i in node.args:
-				save = save | self.liveness(i)
-			node.liveness = save
-			print save
-			return node.liveness
+				save = save | self.liveness(i,prevSet)
+			node.liveness = save | prevSet
+			return save
 	
 		elif isinstance(node,IfExp):
-			save = self.liveness(node.test)
+			save = self.liveness(node.test,prevSet)
 			if isinstance(node.then,Stmt):
 				for i in node.then.nodes:
-					save = save | self.liveness(i)
+					save = save | self.liveness(i,prevSet)
 			else:
-				save = save | self.liveness(node.then)
+				save = save | self.liveness(node.then,prevSet)
 			if isinstance(node.else_,Stmt):
 				for i in node.else_.nodes:
-					save = save | self.liveness(i)
+					save = save | self.liveness(i,prevSet)
 			else:
-				save = save | self.liveness(node.else_)
-			node.liveness = save
-			return node.liveness
+				save = save | self.liveness(node.else_,prevSet)
+			node.liveness = save | prevSet
+			return save
 	
 		elif isinstance(node,UnarySub):
-			node.liveness = self.liveness(node.expr)
-			return node.liveness
+			finSet = self.liveness(node.expr,prevSet)
+			node.liveness = finSet | prevSet
+			return finSet
 	
 		elif isinstance(node,Add):
-			node.liveness = self.liveness(node.left) | self.liveness(node.right)
-			return node.liveness
+			finSet = self.liveness(node.left,prevSet) | self.liveness(node.right,prevSet)
+			node.liveness = finSet | prevSet
+			return finSet
 	
 		elif isinstance(node,Dict):
 			save = set()
 			for i in node.items:
-				save = save | self.liveness(i[0]) | self.liveness(i[1])
-			node.liveness = save
-			return node.liveness
+				save = save | self.liveness(i[0],prevSet) | self.liveness(i[1],prevSet)
+			node.liveness = save | prevSet
+			return save
 	
 		elif isinstance(node,List):
 			save = set()
 			for i in node.nodes:
-				save = save | self.liveness(i)
-			node.liveness = save
-			return node.liveness
+				save = save | self.liveness(i,prevSet)
+			node.liveness = save | prevSet
+			return save
 	
 		elif isinstance(node,Not):
-			node.liveness = self.liveness(node.expr)
-			return node.liveness
+			finSet = self.liveness(node.expr,prevSet)
+			node.liveness = finSet | prevSet
+			return finSet
 	
 		elif isinstance(node,And):
 			save = set()
 			for i in node.nodes:
-				save = save | self.liveness(i)
-			node.liveness = save
-			return node.liveness
+				save = save | self.liveness(i,prevSet)
+			node.liveness = save | prevSet
+			return save
 	
 		elif isinstance(node,Or):
 			save = set()
 			for i in node.nodes:
-				save = save | self.liveness(i)
-			node.liveness = save
-			return node.liveness
+				save = save | self.liveness(i,prevSet)
+			node.liveness = save | prevSet
+			return save
 	
 		elif isinstance(node,Compare):
-			node.liveness = self.liveness(node.expr) | self.liveness(node.ops[0][1])	
-			return node.liveness
+			finSet = self.liveness(node.expr,prevSet) | self.liveness(node.ops[0][1],prevSet)	
+			node.liveness = finSet | prevSet
+			return finSet
 	
 		elif isinstance(node,InjectFrom):
-			node.liveness = self.liveness(node.arg)
-			return node.liveness
+			finSet = self.liveness(node.arg,prevSet)
+			node.liveness = finSet | prevSet
+			return finSet
 	
 		elif isinstance(node,ProjectTo):
-			node.liveness = self.liveness(node.arg)
-			return node.liveness
+			finSet = self.liveness(node.arg,prevSet)
+			node.liveness = finSet | prevSet
+			return finSet
 	
 		elif isinstance(node,GetTag):
-			node.liveness = self.liveness(node.arg)
-			return node.liveness
+			finSet = self.liveness(node.arg,prevSet)
+			node.liveness = finSet | prevSet
+			return finSet
 	
 		elif isinstance(node,AssignCallFunc):
-			node.liveness = self.liveness(node.name)
-			return node.liveness
+			finSet = self.liveness(node.name,prevSet)
+			node.liveness = finSet | prevSet
+			return finSet
 		
 		elif isinstance(node,Function):
-			save = self.liveness(node.name)
+			save = self.liveness(node.name,prevSet)
 			if isinstance(node.code,Stmt):
 				for i in node.code.nodes:
-					save = save | self.liveness(i)
+					save = save | self.liveness(i,prevSet)
 			else:
-				save = save | self.liveness(node.code)
-			node.liveness = save
-			return node.liveness
+				save = save | self.liveness(node.code,prevSet)
+			node.liveness = save | prevSet
+			return save
 		
 		elif isinstance(node,Lambda):
 			save = set()
 			if isinstance(node.code,Stmt):
 				for i in node.code.nodes:
-					save = save | self.liveness(i)
+					save = save | self.liveness(i,prevSet)
 			else:
-				save = save | self.liveness(node.code)
-			node.liveness = save
-			return node.liveness
+				save = save | self.liveness(node.code,prevSet)
+			node.liveness = save | prevSet
+			return save
 		
 		elif isinstance(node,Return):
 			save = set()
 			if isinstance(node.value,Stmt):
 				for i in node.value.nodes:
-					save = save | self.liveness(i)
+					save = save | self.liveness(i,prevSet)
 			else:
-				save = save | self.liveness(node.value)
-			node.liveness = save
-			return node.liveness					
+				save = save | self.liveness(node.value,prevSet)
+			node.liveness = save | prevSet
+			return save		
 	
 		else: raise Exception("Unsupported node type")
 	
 	def computeLivenessAnalysis(self,ast,j):
 		remove = set()
 		if isinstance(ast,Assign):
-			remove = self.liveness(ast.nodes[0])
-			new_set = (self.liveVariables[j+1] - remove) | self.liveness(ast.expr)
+			remove = self.liveness(ast.nodes[0],self.liveVariables[j+1])
+			new_set = (self.liveVariables[j+1] - remove) | self.liveness(ast.expr,self.liveVariables[j+1])
 		else:
-			new_set = self.liveVariables[j+1] | self.liveness(ast)
+			new_set = self.liveVariables[j+1] | self.liveness(ast,self.liveVariables[j+1])
 		return new_set
 			
 	def livenessAnalysis(self):
