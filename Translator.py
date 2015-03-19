@@ -34,7 +34,7 @@ class Translator():
 		else: return self.getVariableInMemory(variable)
 
 	def getVariableInMemory(self,variable):
-		if variable not in self.memory: putVariableInMemory(variable)
+		if variable not in self.memory: self.putVariableInMemory(variable)
 		return self.memory[variable]
 	
 	def getRegister(self,variable): 
@@ -88,14 +88,24 @@ class Translator():
 			# 		if isinstance(self.coloredgraph[variable].register,CallerSavedRegister):
 			# 			callersavedvariables += [variable]	
 
+			print "Translating CallFunc"
+			print ast
+			print liveVariables
 			liveRegisters = []
 			liveMemory = []
 
 			for variable in liveVariables:
+				print variable
 				variableLocation = self.getVariableLocation(variable)
-				if isinstance(variableLocation,CallerSavedRegister): 
-					liveMemory = [self.getVariableInMemory(variable)]
+				print variableLocation
+				if isinstance(variableLocation.register,CallerSavedRegister): 
+					print "hello"
+					print self.getVariableInMemory(variable)
+					liveMemory += [self.getVariableInMemory(variable)]
 					liveRegisters += [variableLocation]
+
+			print "This shit should be live"
+			print liveMemory
 
 			if len(ast.args) > 0:
 				pushArgsInstr = [PushInstruction(arg) for arg in reversed(ast.args)]
