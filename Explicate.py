@@ -81,6 +81,15 @@ class Explicate:
 			notexp = ProjectTo(Const(BOOL_t),CallFunc(Name("is_true"),[ast],None,None))
 			return notexp
 
+		elif isinstance(ast,Function):
+			newlambda = Lambda(ast.argnames,ast.defaults,ast.flags,ast.code)
+			assign = Assign([AssName(ast.name,'OP_ASSIGN')],newlambda)
+			return assign
+		
+		elif isinstance(ast,Lambda): return Lambda(ast.argnames,ast.defaults,ast.flags,Return(ast.code))
+		
+		elif isinstance(ast,Return): return ast
+			
 		else: return ast
 
 	def shortCircuitMap(self,ast):

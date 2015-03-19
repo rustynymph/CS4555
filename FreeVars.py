@@ -13,7 +13,7 @@ class FreeVars:
 		elif isinstance(node,CallFunc):
 			fv_args = [FreeVars.freeVarsHelper(e) for e in node.args]
 			free_in_args = reduce(lambda b,a: a|b, fv_args, set([]))
-			return FreeVars.freeVarsHelper(node.node) | free_in_args
+			return free_in_args
 		elif isinstance(node,Lambda):
 			save = set()
 			if isinstance(node.code,Stmt):
