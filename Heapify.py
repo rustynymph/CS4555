@@ -74,8 +74,8 @@ class Heapify(node):
 		elif isinstance(node,GetTag): return self.freeVars(node.arg)
 		elif isinstance(node,ProjectTo): return self.freeVars(node.arg)
 		elif isinstance(node,Not): return self.freeVars(node.expr)
-		elif isinstance(node,Assign):
-		elif isinstance(node,Printnl):
+		elif isinstance(node,Assign): return self.freeVars(node.expr)
+		elif isinstance(node,Printnl): return self.freeVars(node.nodes[0])
 		else: raise Exception("Unsupported node type")
 	
 	def needHeapification(self,node):
