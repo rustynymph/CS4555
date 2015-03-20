@@ -110,8 +110,10 @@ class TraverseIR():
 			if hasattr(ast,'liveness'): func.liveness = ast.liveness
 			return f(environment,func) if environment else f(func)
 		elif isinstance(ast,Lambda):
-			lamb = Lambda(ast.argnames,ast.defaults,ast.flags,TraverseIR.map(ast.code,f,environment))
+			if isinstance(ast.code,Stmt): lamb = Lambda(ast.argnames,ast.defaults,ast.flags,Stmt([TraverseIR.map(i,f,environment) for i in ast.code.nodes]))
+			else: lamb = Lambda(ast.argnames,ast.defaults,ast.flags,TraverseIR.map(ast.code,f,environment))
 			if hasattr(ast,'liveness'): lamb.liveness = ast.liveness
+			if hasattr(ast,'uniqueName'): lamb.uniqueName = ast.uniqueName
 			return lamb
 		elif isinstance(ast,Return):
 			ret = Return(TraverseIR.map(ast.value,f,environment))
@@ -121,8 +123,6 @@ class TraverseIR():
 			callfunc = AssignCallFunc(TraverseIR.map(ast.var,f,environment),TraverseIR.map(ast.name,f,environment),[TraverseIR.map(arg,f,environment) for arg in ast.args])
 			if hasattr(ast,'liveness'): callfunc.liveness = ast.liveness
 			return f(environment,callfunc) if environment else f(callfunc)
-
-
 
 		else: raise Exception("map does not currently support the " + ast.__class__.__name__ + " node. (" + str(ast) + ")")
 

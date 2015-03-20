@@ -16,6 +16,7 @@ from LivenessAnalysis import *
 from GraphColoring import *
 from Heapify import *
 from FreeVars import *
+from ClosureConversion import *
 
 pythonFilename = sys.argv[1]
 
@@ -47,14 +48,14 @@ print "EXPLICATED"
 print pythonAST
 print "\n"
 
-free_vars = FreeVars.freeVars(pythonAST)
-print free_vars
+tup = FreeVars.freeVars(pythonAST)
+free_vars = tup[0]
+env = tup[1]
 
 pythonAST = TraverseIR.map(pythonAST,Heapify.heapify,Heapify(free_vars))
-print "Heapified"
+pythonAST = TraverseIR.map(pythonAST,ClosureConversion.createClosure,ClosureConversion(env))
+print "Closured"
 print pythonAST
-
-#pythonAST = TraverseIR.map(pythonAST,ClosureConversion.createClosure,ClosureConversion(free_vars)
 
 pythonAST = TraverseIR.map(pythonAST,Flatten.flattenMap,Flatten())
 pythonAST = TraverseIR.map(pythonAST,Functionize.replaceBigPyobjMap)

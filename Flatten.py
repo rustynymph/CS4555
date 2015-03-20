@@ -224,6 +224,15 @@ class ArithmeticFlattener():
 			stmtArray += [assign]
 			return Stmt(stmtArray)
 
+		elif isinstance(ast,Lambda):
+			stmt = []
+			if isinstance(ast.code,Stmt):
+				stmt += [self.flattenArithmetic(i,name) for i in ast.code.nodes]
+			else: stmt = self.flattenArithmetic(ast.code,name)
+			return Lambda(ast.argnames,ast.defaults,ast.flags,stmt)
+		
+		elif isinstance(ast,Return): return Return(self.flattenArithmetic(ast.value,name))	
+
 		elif isinstance(ast,Let):
 			expr = self.flattenArithmetic(ast.expr,ast.var.name)
 			body = self.flattenArithmetic(ast.body,name)

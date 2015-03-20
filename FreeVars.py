@@ -2,11 +2,29 @@ from compiler.ast import *
 from PythonASTExtension import *
 
 freeVarsSet = set()
+variableMapping = {}
+
+class nameGenerator():
+
+	def __init__(self,prefix,count=0):
+		self.prefix = prefix
+		self.count = count
+
+	def getName(self):
+		return self.prefix + "$" + str(self.count)
+
+	def getNameAndIncrementCounter(self):
+		name = self.getName()
+		self.count += 1
+		return name
+
+createName = nameGenerator("lammy")
 
 class FreeVars:
 
 	@staticmethod
 	def freeVarsHelper(node):
+		global variableMapping
 		if isinstance(node,Const): return set([])
 		elif isinstance(node,Name): return set([node.name])
 		elif isinstance(node,Add): return FreeVars.freeVarsHelper(node.left) | FreeVars.freeVarsHelper(node.right)
@@ -20,6 +38,8 @@ class FreeVars:
 				for x in node.code.nodes:
 					save = save | FreeVars.freeVarsHelper(x)
 			else: save = save | FreeVars.freeVarsHelper(node.code)
+			node.uniquename = createName.getNameAndIncrementCounter()
+			variableMapping[node.uniquename] = save - set(node.argnames)
 			return save - set(node.argnames)
 		elif isinstance(node,UnarySub): return FreeVars.freeVarsHelper(node.expr)
 		elif isinstance(node,List):
@@ -83,4 +103,4 @@ class FreeVars:
 		for i in IR.node.nodes:
 			print str(i) + "\n"
 			freeVarsSet = freeVarsSet | FreeVars.freeVarsHelper(i)
-		return freeVarsSet
+		return (freeVarsSet,variableMapping)

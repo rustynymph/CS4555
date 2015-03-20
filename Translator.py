@@ -84,11 +84,6 @@ class Translator():
 			callersavedvariables = []
 
 			liveVariables = ast.liveness
-			
-			# for variable in self.coloredgraph:
-			# 	if isinstance(self.coloredgraph[variable],RegisterOperand):
-			# 		if isinstance(self.coloredgraph[variable].register,CallerSavedRegister):
-			# 			callersavedvariables += [variable]	
 
 			liveRegisters = []
 			liveMemory = []
