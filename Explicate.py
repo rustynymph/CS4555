@@ -78,7 +78,7 @@ class Explicate:
 			#Not sure if we have to do anything here
 			return ast
 		elif isinstance(ast,Not):
-			notexp = ProjectTo(Const(BOOL_t),CallFunc(Name("is_true"),[ast],None,None))
+			notexp = ProjectTo(Const(BOOL_t),Not(CallFunc(Name("is_true"),[ast],None,None)))
 			return notexp
 
 		elif isinstance(ast,Function):
