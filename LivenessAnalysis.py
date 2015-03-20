@@ -154,7 +154,7 @@ class LivenessAnalysis():
 			node.liveness = save | prevSet
 			return save		
 	
-		else: raise Exception("Unsupported node type")
+		else: raise Exception(str(node) + " is an unsupported node type")
 	
 	def computeLivenessAnalysis(self,ast,j):
 		remove = set()

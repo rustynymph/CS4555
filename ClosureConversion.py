@@ -1,8 +1,10 @@
 class ClosureConversion(node):
 
-		def __init__(self,IR):
-			self.IR = IR.node.nodes
-			
-		def createClosureHelper(self,ast):
-			
-		def createClosure(self,IR):
+		def __init__(self,freeVars):
+			self.freeVars = freeVars
+
+		def createClosure(self,ast):
+			if isinstance(ast,Lambda):
+				return 
+				
+			else: return ast
