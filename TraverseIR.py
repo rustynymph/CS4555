@@ -113,7 +113,7 @@ class TraverseIR():
 			if isinstance(ast.code,Stmt): lamb = Lambda(ast.argnames,ast.defaults,ast.flags,Stmt([TraverseIR.map(i,f,environment) for i in ast.code.nodes]))
 			else: lamb = Lambda(ast.argnames,ast.defaults,ast.flags,TraverseIR.map(ast.code,f,environment))
 			if hasattr(ast,'liveness'): lamb.liveness = ast.liveness
-			if hasattr(ast,'uniqueName'): lamb.uniqueName = ast.uniqueName
+			if hasattr(ast,'uniquename'): lamb.uniquename = ast.uniquename
 			return lamb
 		elif isinstance(ast,Return):
 			ret = Return(TraverseIR.map(ast.value,f,environment))
