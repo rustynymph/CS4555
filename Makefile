@@ -1,7 +1,6 @@
 #!/bin/bash
 submit:
 	mkdir -p "submit/AssemblyAST/"
-	ls AssemblyAST
 	cp -r AssemblyAST/* submit/AssemblyAST
 	cp *.py submit
 	cp runtime/* submit
