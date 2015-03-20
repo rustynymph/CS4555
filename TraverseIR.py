@@ -123,6 +123,10 @@ class TraverseIR():
 			callfunc = AssignCallFunc(TraverseIR.map(ast.var,f,environment),TraverseIR.map(ast.name,f,environment),[TraverseIR.map(arg,f,environment) for arg in ast.args])
 			if hasattr(ast,'liveness'): callfunc.liveness = ast.liveness
 			return f(environment,callfunc) if environment else f(callfunc)
+		elif isinstance(ast,AugAssign):
+			augassign = AugAssign(TraverseIR.map(ast.node,f,environment),ast.op,TraverseIR.map(ast.expr,f,environment))
+			if hasattr(ast,'liveness'): augassign.liveness = ast.liveness
+			return f(environment,augassign) if environment else f(augassign)
 
 		else: raise Exception("map does not currently support the " + ast.__class__.__name__ + " node. (" + str(ast) + ")")
 
