@@ -21,7 +21,9 @@ class LivenessAnalysis():
 	
 		elif isinstance(node,Subscript):
 			finSet = self.liveness(node.expr)
-			node.liveness = finSet | self.liveness(node.subs[0],prevSet) | prevSet 
+			for i in node.subs:
+				finSet = finSet | self.liveness(i,prevSet)
+			node.liveness = finSet | prevSet 
 			return finSet	
 	
 		elif isinstance(node,Name):
@@ -161,6 +163,7 @@ class LivenessAnalysis():
 		if isinstance(ast,Assign):
 			remove = self.liveness(ast.nodes[0],self.liveVariables[j+1])
 			new_set = (self.liveVariables[j+1] - remove) | self.liveness(ast.expr,self.liveVariables[j+1])
+			ast.liveness = new_set
 		else:
 			new_set = self.liveVariables[j+1] | self.liveness(ast,self.liveVariables[j+1])
 		return new_set

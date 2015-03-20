@@ -48,14 +48,14 @@ print "EXPLICATED"
 print pythonAST
 print "\n"
 
-tup = FreeVars.freeVars(pythonAST)
-free_vars = tup[0]
-env = tup[1]
+#tup = FreeVars.freeVars(pythonAST)
+#free_vars = tup[0]
+#env = tup[1]
 
-pythonAST = TraverseIR.map(pythonAST,Heapify.heapify,Heapify(free_vars))
-pythonAST = TraverseIR.map(pythonAST,ClosureConversion.createClosure,ClosureConversion(env))
-print "Closured"
-print pythonAST
+#pythonAST = TraverseIR.map(pythonAST,Heapify.heapify,Heapify(free_vars))
+#pythonAST = TraverseIR.map(pythonAST,ClosureConversion.createClosure,ClosureConversion(env))
+#print "Closured"
+#print pythonAST
 
 pythonAST = TraverseIR.map(pythonAST,Flatten.flattenMap,Flatten())
 pythonAST = TraverseIR.map(pythonAST,Functionize.replaceBigPyobjMap)
@@ -65,6 +65,7 @@ pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
 print "Final Python AST"
 print pythonAST
 liveness = LivenessAnalysis.livenessAnalysis(LivenessAnalysis(pythonAST))
+print liveness
 #print liveness
 graph = GraphColoring.createGraph(liveness)
 coloredgraph = GraphColoring.colorGraph(graph)
