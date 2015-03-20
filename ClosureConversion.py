@@ -18,7 +18,5 @@ class ClosureConversion:
 			elif isinstance(node,CallFunc):
 				if node.node in self.reservedFunctions: return node
 				else:
-					CallFunc('get_fun_ptr',[node.node])
-					CallFunc('get_free_vars',[node.node])
-					#getfreevars
+					return Stmt([CallFunc('get_fun_ptr',[node.node]),CallFunc('get_free_vars',[node.node])])
 			else: return node
