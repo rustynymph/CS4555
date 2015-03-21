@@ -55,7 +55,6 @@ env = tup[1]
 
 pythonAST = TraverseIR.map(pythonAST,Heapify.heapify,Heapify(free_vars))
 mappings = TraverseIR.foldPostOrderLeft(pythonAST,FunctionLabelMapping.functionLabelMapping,{},FunctionLabelMapping())
-print mappings
 pythonAST = TraverseIR.map(pythonAST,ClosureConversion.createClosure,ClosureConversion(env,mappings))
 print "Closured"
 print pythonAST
@@ -73,7 +72,7 @@ graph = GraphColoring.createGraph(liveness)
 coloredgraph = GraphColoring.colorGraph(graph)
 print coloredgraph
 
-x86 = TraverseIR.map(pythonAST,Translator.translateToX86,Translator(coloredgraph))
+x86 = TraverseIR.map(pythonAST,Translator.translateToX86,Translator(coloredgraph,mappings))
 # print x86
 
 x86Filename = sys.argv[1].rsplit(".",1)[0] + ".s"

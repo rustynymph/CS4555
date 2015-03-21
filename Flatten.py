@@ -316,8 +316,6 @@ class Flatten():
 		else: return ast
 
 	def flattenMap(self,ast):
-		print ast
-		print 
 		if isinstance(ast,Assign) and isinstance(ast.nodes[0],AssName):
 			return self.arithmeticFlattener.flattenArithmetic(ast.expr,ast.nodes[0].name)
 		elif isinstance(ast,Assign) and isinstance(ast.nodes[0],Subscript):
@@ -359,13 +357,12 @@ class Flatten():
 			else: cluster = [Printnl([ast.nodes[0]],None)]
 			return Stmt(cluster)
 		elif isinstance(ast,Return):
-			print "fdsjaklfdsrewjlgfdhksauioria"
 			name = self.returnTracker.getNameAndIncrementCounter()
-			if not isPythonASTLeaf(ast.expr):
-				returnStmt = self.arithmeticFlattener.flattenArithmetic(ast.expr,name)
+			if not isPythonASTLeaf(ast.value):
+				returnStmt = self.arithmeticFlattener.flattenArithmetic(ast.value,name)
 				assign = Return(Name(name))
 				cluster = [returnStmt,assign]
-			else: cluster = [Return(ast.expr)]
+			else: cluster = [Return(ast.value)]
 			return Stmt(cluster)
 		else: return ast
 

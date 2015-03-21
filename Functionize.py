@@ -41,7 +41,6 @@ class Functionize():
 				subscript = ast.nodes[0]
 				return CallFunc(Name("set_subscript"),[subscript.expr,subscript.subs[0],ast.expr],None,None)
 			else: return ast
-
 		else: return ast
 
 

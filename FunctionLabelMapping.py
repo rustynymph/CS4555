@@ -4,9 +4,6 @@ from AssemblyAST import *
 
 class FunctionLabelMapping:
 	
-#	def __init__(self):
-#		self.varsToLambdas = {}
-
 	def functionLabelMapping(self,node,acc):
 		if isinstance(node,Assign):
 			if isinstance(node.expr,Lambda):

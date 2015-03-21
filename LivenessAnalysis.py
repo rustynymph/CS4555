@@ -157,13 +157,16 @@ class LivenessAnalysis():
 			return save		
 	
 		elif isinstance(node,CreateClosure):
-			finSet = self.liveness(node.name)
+			finSet = self.liveness(node.name,prevSet)
 			for i in node.fvs:
-				finSet = finSet | self.liveness(i)
+				finSet = finSet | self.liveness(i,prevSet)
 			node.liveness = finSet | prevSet
-			return 	
+			return 	finSet
 			
 		elif isinstance(node,GetClosure):
+			finSet = self.liveness(node.name,prevSet)
+			node.liveness = finSet | prevSet
+			return finSet
 	
 		else: raise Exception(str(node) + " is an unsupported node type")
 	

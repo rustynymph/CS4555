@@ -12,12 +12,14 @@ class ClosureConversion:
 			self.assignToLambdaMap = lammap
 
 		def createClosure(self,node):
-			if isinstance(node,Lambda):
-				print "whaaat"
-				print self.assignToLambdaMap
-				captured_vars = [Name(var) for var in node.argnames if var in self.variableMapping[node.uniquename]]
-				func_name = Name(self.assignToLambdaMap[node.uniquename])
-				return CreateClosure(func_name,captured_vars)
+			if isinstance(node,Assign):
+				if isinstance(node.expr,Lambda):
+					captured_vars = [Name(var) for var in node.expr.argnames if var in self.variableMapping[node.expr.uniquename]]
+					func_name = Name(self.assignToLambdaMap[node.expr.uniquename])
+					closure = CreateClosure(func_name,captured_vars)
+					assign = Assign(node.nodes,closure)
+					return Stmt([node.expr,assign])
+				else: return node
 			elif isinstance(node,CallFunc):
 				if node.node.name in self.reservedFunctions: return node
 				else: return GetClosure(node.node)
