@@ -129,7 +129,7 @@ class TraverseIR():
 			if hasattr(ast,'liveness'): augassign.liveness = ast.liveness
 			return f(environment,augassign) if environment else f(augassign)
 		elif isinstance(ast,CreateClosure):
-			closure = CreateClosure(TraverseIR.map(ast.name,f,environment),[TraverseIR.map(i,f,environment) for i in ast.fvs])
+			closure = CreateClosure(TraverseIR.map(ast.name,f,environment),List([TraverseIR.map(i,f,environment) for i in ast.fvs.nodes]))
 			if hasattr(ast,'liveness'): closure.liveness = ast.liveness
 			return f(environment,closure) if environment else f(closure)
 		elif isinstance(ast,GetClosure):

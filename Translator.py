@@ -62,6 +62,7 @@ class Translator():
 		else: return ClusteredInstruction()
 
 	def translateToX86(self,ast):
+		print ast
 		if isinstance(ast,Module):
 
 			assFunction = AssemblyFunction(SectionHeaderInstruction("main"),ast.node,self.getActivationRecordSize(),ConstantOperand(DecimalValue(0)))
