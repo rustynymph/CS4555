@@ -298,8 +298,6 @@ class ArithmeticFlattener():
 			fvs_stmt = self.flattenArithmetic(ast.fvs,name+"$fvs")
 			nameNode = Name(name+"$fvs")
 			assign1 = Assign([AssName(name,'OP_ASSIGN')],nameNode)
-			# clos = CreateClosure(ast.name,)
-			# assign2 = [Assign([AssName(name,'OP_ASSIGN')],clos)]
 			return Stmt([fvs_stmt]+[assign1])
 
 		else: return Assign([AssName(name,'OP_ASSIGN')],ast)

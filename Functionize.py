@@ -40,7 +40,20 @@ class Functionize():
 			elif isinstance(ast.nodes[0],Subscript):
 				subscript = ast.nodes[0]
 				return CallFunc(Name("set_subscript"),[subscript.expr,subscript.subs[0],ast.expr],None,None)
+				
+			elif isinstance(ast.expr,CreateClosure): return CallFunc(Name("create_closure"),[ast.expr.name]+[ast.expr.fvs],None,None)	
+				
+			elif isinstance(ast,GetClosure):
+				name1 = ast.nodes[0].name + '$funptr'
+				name2 = ast.nodes[0].name + '$getfvs'
+				func1 = CallFunc(Name("get_fun_ptr"),[ast.name])
+				func2 = CallFunc(Name("get_free_vars"),[ast.name])
+				assign1 = [Assign([AssName(name1,'OP_ASSIGN')],func1)]
+				assign2 = [Assign([AssName(name2,'OP_ASSIGN')],func2)]
+				return Stmt(asign1+assign2)
+
 			else: return ast
+					
 		else: return ast
 
 

@@ -24,5 +24,7 @@ class ClosureConversion:
 				else: return node
 			elif isinstance(node,CallFunc):
 				if node.node.name in self.reservedFunctions: return node
-				else: return GetClosure(node.node)
+				else:
+					new_name = str(node.node)+ '$getclos'
+					return Assign([AssName(new_name,'OP_ASSIGN')],GetClosure(node.node))
 			else: return node
