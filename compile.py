@@ -20,6 +20,7 @@ from ClosureConversion import *
 #from FunctionLabelMapping import *
 from FlattenFunctions import *
 from FunctionRevert import *
+#from FunctionLiveness import *
 
 pythonFilename = sys.argv[1]
 

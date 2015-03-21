@@ -6,7 +6,9 @@ from PythonASTExtension import *
 class LivenessAnalysis():
 	def __init__(self,IR):
 		self.liveVariables = {}
-		self.IR = IR.node.nodes
+		if isinstance(IR,Module): self.IR = IR.node.nodes
+		elif isinstance(IR,Function): self.IR = IR.code.nodes
+		elif isinstance(IR,Stmt): self.IR = IR.nodes
 	
 	def liveness(self,node,prevSet):
 		if isinstance(node,Assign):
@@ -186,6 +188,7 @@ class LivenessAnalysis():
 		for i in range (numInstructions,-1,-1):
 			self.liveVariables[i] = set()
 		j = numInstructions-1
+		
 		for instructions in reversed(ir):
 			self.liveVariables[j] = self.computeLivenessAnalysis(instructions,j)
 			j-=1

@@ -270,10 +270,6 @@ class Translator():
 			return assFunc
 		
 		elif isinstance(ast,CreateClosure):
-			print
-			print "POOPA"
-			print ast
-			print
 			name = self.getVariableLocation(ast.name)
 			fvs_name = self.getVariableLocation(ast.fvs)
 			freeVariables = ast.fvs
