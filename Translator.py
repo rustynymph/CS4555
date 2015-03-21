@@ -96,7 +96,10 @@ class Translator():
 					liveRegisters += [variableLocation]
 
 			if len(ast.args) > 0:
-				pushArgsInstr = [PushInstruction(arg) for arg in reversed(ast.args)]
+				pushArgsInstr = []
+				for arg in reversed(ast.args):
+					if isinstance(arg,NameOperand): pushArgsInstr += [PushInstruction(self.getVariableLocation(arg))]
+					else: pushArgsInstr += [PushInstruction(arg)]
 			else: pushArgsInstr = []		
 					
 			length = len(pushArgsInstr)*4
