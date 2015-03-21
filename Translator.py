@@ -262,7 +262,10 @@ class Translator():
 			code = []
 			if isinstance(ast.code,Stmt): code += [i for i in ast.code.nodes]
 			else: code += [ast.code]
-			assFunc = AssemblyFunction(SectionHeaderInstruction(ast.name),ClusteredInstruction(code),ConstantOperand(DecimalValue(len(ast.argnames))))
+			print "wut wut in the butt"
+			print code
+			print
+			assFunc = AssemblyFunction(SectionHeaderInstruction(ast.name),ClusteredInstruction(code),len(ast.argnames))
 			return assFunc
 		
 		elif isinstance(ast,CreateClosure):

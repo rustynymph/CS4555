@@ -293,7 +293,15 @@ class ArithmeticFlattener():
 			assign = Assign([AssName(name,'OP_ASSIGN')],ast.arg)
 			getTag = GetTag(nameNode)
 			return Stmt([assign,getTag])
-
+			
+		elif isinstance(ast,CreateClosure):
+			fvs = [self.flattenArithmetic(i) for i in ast.fvs.nodes]
+			fvs_stmt = Stmt(fvs)
+			nameNode = Name(name)
+			assign1 = Assign(
+			clos = CreateClosure(ast.name,)
+			assign2 = [Assign([AssName(name,'OP_ASSIGN')],clos)]
+			return Stmt(fvs_stmt+#something)
 
 		else: return Assign([AssName(name,'OP_ASSIGN')],ast)
 
@@ -356,6 +364,7 @@ class Flatten():
 				cluster = [printStmt,assign]
 			else: cluster = [Printnl([ast.nodes[0]],None)]
 			return Stmt(cluster)
+			
 		elif isinstance(ast,Return):
 			name = self.returnTracker.getNameAndIncrementCounter()
 			if not isPythonASTLeaf(ast.value):
@@ -364,6 +373,11 @@ class Flatten():
 				cluster = [returnStmt,assign]
 			else: cluster = [Return(ast.value)]
 			return Stmt(cluster)
+		
+		#elif isinstance(ast,GetClosure):
+		
+		#elif isinstance(ast,Function):
+		
 		else: return ast
 
 	@staticmethod
