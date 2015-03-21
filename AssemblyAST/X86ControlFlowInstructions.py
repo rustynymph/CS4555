@@ -52,7 +52,7 @@ class AssemblySection(Instruction):
 		return self.sectionHeader.printInstruction() + self.clusteredInstruction.printInstruction()
 
 class AssemblyFunction(AssemblySection):
-	def __init__(self,sectionHeader,clusteredInstruction,activationRecordSize,returnOperand):
+	def __init__(self,sectionHeader,clusteredInstruction,activationRecordSize,returnOperand=None):
 		if activationRecordSize <= 0:
 			raise Exception("activationRecordSize must be less than or equal to 0.")
 		if not isinstance(returnOperand,Operand):
@@ -70,7 +70,8 @@ class AssemblyFunction(AssemblySection):
 		self.functionSetup = ClusteredInstruction([pushEbp,moveEspIntoEbp,createActivationStack])
 
 
-		returnValue = MoveInstruction(returnOperand,RegisterOperand(Registers32.EAX))
+		if returnOperand:returnValue = MoveInstruction(returnOperand,RegisterOperand(Registers32.EAX))
+		else returnValue = ClusteredInstruction()
 		leave = LeaveInstruction()
 		ret = ReturnInstruction()
 
