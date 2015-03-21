@@ -16,7 +16,7 @@ class Heapify:
 		elif isinstance(node,Assign):
 			if isinstance(node.nodes[0],AssName):
 				if node.nodes[0].name in self.fvs:
-					listcreate = Assign(node.nodes,List([Const(-7)]))
+					listcreate = Assign(node.nodes,List([Const(0)]))
 					subassign = Assign([Subscript(Name(node.nodes[0].name),'OP_APPLY',[Const(0)])],node.expr)
 					return Stmt([listcreate,subassign])
 			else: return node

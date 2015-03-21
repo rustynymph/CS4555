@@ -300,6 +300,9 @@ class ArithmeticFlattener():
 			assign1 = Assign([AssName(name,'OP_ASSIGN')],nameNode)
 			return Stmt([fvs_stmt]+[assign1])
 
+		#elif isinstance(ast,GetClosure):
+			
+
 		else: return Assign([AssName(name,'OP_ASSIGN')],ast)
 
 
