@@ -55,8 +55,6 @@ class AssemblyFunction(AssemblySection):
 	def __init__(self,sectionHeader,clusteredInstruction,activationRecordSize,returnOperand=None):
 		if activationRecordSize <= 0:
 			raise Exception("activationRecordSize must be less than or equal to 0.")
-		if not isinstance(returnOperand,Operand):
-			raise Exception("returnOperand must be a type of Operand.")
 		AssemblySection(sectionHeader,clusteredInstruction)
 		self.sectionHeader = sectionHeader
 		self.clusteredInstruction = clusteredInstruction

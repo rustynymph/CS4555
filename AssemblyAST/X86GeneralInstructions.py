@@ -72,8 +72,6 @@ class EntryPointInstruction(UnaryInstruction):
 
 class CallInstruction(UnaryInstruction):
 	def __init__(self,operand):
-		if not isinstance(operand,NameOperand): 
-			raise Exception(operand.__class__.__name__ + " is an unsupported class. operand must be of type NameOperand.")
 		self.operand = operand
 
 	def __repr__(self):

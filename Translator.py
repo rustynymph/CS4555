@@ -257,6 +257,13 @@ class Translator():
 				return ClusteredInstruction(evictInstr + moveRightAddIntoEAX + add + unevictInstr)
 			else: return AddIntegerInstruction(rightAdd,leftAdd)
 		
+		elif isinstance(ast,Function):
+			code = []
+			if isinstance(ast.code,Stmt): code += [i for i in ast.code.nodes]
+			else: code += [ast.code]
+			assFunc = AssemblyFunction(SectionHeaderInstruction(ast.name),ClusteredInstruction(code),ConstantOperand(DecimalValue(len(ast.argnames))))
+			return assFunc
+		
 		elif isinstance(ast,CreateClosure):
 			name = self.getVariableLocation(ast.name)
 			freeVariables = ast.fvs
