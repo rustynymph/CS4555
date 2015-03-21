@@ -101,6 +101,5 @@ class FreeVars:
 	def freeVars(IR):
 		global freeVarsSet
 		for i in IR.node.nodes:
-			print str(i) + "\n"
 			freeVarsSet = freeVarsSet | FreeVars.freeVarsHelper(i)
 		return (freeVarsSet,variableMapping)

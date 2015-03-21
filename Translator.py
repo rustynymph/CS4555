@@ -100,10 +100,8 @@ class Translator():
 					
 			length = len(pushArgsInstr)*4
 			addInstr = [AddIntegerInstruction(ConstantOperand(DecimalValue(length)),RegisterOperand(Registers32.ESP))]		
-			# saveInstr = [MoveInstruction(self.getVariableLocation(var),self.getVariableInMemory(var)) for var in callersavedvariables if var in self.memory]
 			saveInstr = [MoveInstruction(liveRegisters[i],liveMemory[i]) for i in range(len(liveRegisters))]
 			callInstr = [CallInstruction(ast.node)]
-			# loadInstr = [MoveInstruction(self.getVariableInMemory(var),self.getVariableLocation(var)) for var in callersavedvariables if var in self.memory]
 			loadInstr = [MoveInstruction(liveMemory[i],liveRegisters[i]) for i in range(len(liveRegisters))]
 			return ClusteredInstruction(saveInstr + pushArgsInstr + callInstr + addInstr + loadInstr)
 					
@@ -121,7 +119,6 @@ class Translator():
 			location = ast.arg
 			if ast.typ.value.value != 3:
 				shiftRightInstr = [ShiftArithmeticRightInstruction(ConstantOperand(DecimalValue(2)),location)]
-				# andInstr = [AndInstruction(ConstantOperand(DecimalValue(-4)),location)]
 				return ClusteredInstruction(shiftRightInstr )
 			else: return AndInstruction(ConstantOperand(DecimalValue(-4)),location)
 		

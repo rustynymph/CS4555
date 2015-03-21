@@ -231,10 +231,15 @@ class ArithmeticFlattener():
 			else: stmt = self.flattenArithmetic(ast.code,name)
 			return Lambda(ast.argnames,ast.defaults,ast.flags,stmt)
 		
-		elif isinstance(ast,Return): return Return(self.flattenArithmetic(ast.value,name))	
+		elif isinstance(ast,Return): 
+			
+			return Return(self.flattenArithmetic(ast.value,name))	
 
 		elif isinstance(ast,Let):
-			expr = self.flattenArithmetic(ast.expr,ast.var.name)
+			if isinstance(ast.var,Name):
+				expr = self.flattenArithmetic(ast.expr,ast.var.name)
+			else:
+				expr = self.flattenArithmetic(ast.expr,ast.var.expr.name)
 			body = self.flattenArithmetic(ast.body,name)
 			return Stmt([expr,body])
 
@@ -297,6 +302,7 @@ class Flatten():
 	def __init__(self):
 		self.count = 0
 		self.printTracker = FlattenTracker("print")
+		self.returnTracker = FlattenTracker("return")
 		self.subscriptionAssignTracker = FlattenTracker("subscription")
 		self.arithmeticFlattener = ArithmeticFlattener()
 
@@ -310,9 +316,11 @@ class Flatten():
 		else: return ast
 
 	def flattenMap(self,ast):
+		print ast
+		print 
 		if isinstance(ast,Assign) and isinstance(ast.nodes[0],AssName):
 			return self.arithmeticFlattener.flattenArithmetic(ast.expr,ast.nodes[0].name)
-		if isinstance(ast,Assign) and isinstance(ast.nodes[0],Subscript):
+		elif isinstance(ast,Assign) and isinstance(ast.nodes[0],Subscript):
 			subscription = ast.nodes[0]
 			subscriptionPrefix = self.subscriptionAssignTracker.getNameAndIncrementCounter()
 			subscriptStmtArray = []
@@ -349,6 +357,15 @@ class Flatten():
 				assign = Printnl([Name(name)],None)
 				cluster = [printStmt,assign]
 			else: cluster = [Printnl([ast.nodes[0]],None)]
+			return Stmt(cluster)
+		elif isinstance(ast,Return):
+			print "fdsjaklfdsrewjlgfdhksauioria"
+			name = self.returnTracker.getNameAndIncrementCounter()
+			if not isPythonASTLeaf(ast.expr):
+				returnStmt = self.arithmeticFlattener.flattenArithmetic(ast.expr,name)
+				assign = Return(Name(name))
+				cluster = [returnStmt,assign]
+			else: cluster = [Return(ast.expr)]
 			return Stmt(cluster)
 		else: return ast
 

@@ -4,11 +4,12 @@ from AssemblyAST import *
 
 class FunctionLabelMapping:
 	
-	def __init__(self):
-		self.varsToLambdas = {}
+#	def __init__(self):
+#		self.varsToLambdas = {}
 
-	def functionLabelMapping(self,node):
+	def functionLabelMapping(self,node,acc):
 		if isinstance(node,Assign):
 			if isinstance(node.expr,Lambda):
-				self.varsToLambdas[node.expr.uniquename] = node.nodes[0].name
-		else: return node
+				acc[node.expr.uniquename] = node.nodes[0].name
+				
+		return acc

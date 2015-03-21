@@ -16,8 +16,8 @@ from LivenessAnalysis import *
 from GraphColoring import *
 from Heapify import *
 from FreeVars import *
+from ClosureConversion import *
 from FunctionLabelMapping import *
-from CreateMapping import *
 
 pythonFilename = sys.argv[1]
 
@@ -54,7 +54,8 @@ free_vars = tup[0]
 env = tup[1]
 
 pythonAST = TraverseIR.map(pythonAST,Heapify.heapify,Heapify(free_vars))
-mappings = TraverseIR.map(pythonAST,FunctionLabelMapping.functionLabelMapping,FunctionLabelMapping())
+mappings = TraverseIR.foldPostOrderLeft(pythonAST,FunctionLabelMapping.functionLabelMapping,{},FunctionLabelMapping())
+print mappings
 pythonAST = TraverseIR.map(pythonAST,ClosureConversion.createClosure,ClosureConversion(env,mappings))
 print "Closured"
 print pythonAST
@@ -67,8 +68,7 @@ pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
 print "Final Python AST"
 print pythonAST
 liveness = LivenessAnalysis.livenessAnalysis(LivenessAnalysis(pythonAST))
-print liveness
-#print liveness
+
 graph = GraphColoring.createGraph(liveness)
 coloredgraph = GraphColoring.colorGraph(graph)
 print coloredgraph
