@@ -167,3 +167,17 @@ class NameOperand(Operand):
 
 	def printOperand(self):
 		return self.name
+
+class DereferenceOperand(Operand):
+
+	def __init__(self,operand):
+		self.operand =operand
+
+	def __repr__(self):
+		return self.__class__.__name__ + "(" + str(self.operand) + ")"
+
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.operand) + ")"
+
+	def printOperand(self):
+		return "*" + self.operand.printOperand()
