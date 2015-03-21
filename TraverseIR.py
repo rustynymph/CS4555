@@ -6,9 +6,9 @@ class TraverseIR():
 		if isinstance(ast,Module): 
 			module = Module(ast.doc,TraverseIR.map(ast.node,f,environment))
 			if hasattr(ast,'liveness'): module.liveness = ast.liveness
-			if hasattr(ast,'varsToLambdas'): module.varsToLambdas = ast.varsToLambdas
 			return f(environment, module) if environment else f(module)
 		elif isinstance(ast,Stmt):
+			#print ast
 			stmt = Stmt([TraverseIR.map(n,f,environment) for n in ast.nodes])
 			if hasattr(ast,'liveness'): stmt.liveness = ast.liveness
 			return f(environment,stmt) if environment else f(stmt)
@@ -109,6 +109,7 @@ class TraverseIR():
 		elif isinstance(ast,Function):
 			func = Function(ast.decorators,ast.name,ast.argnames,ast.defaults,ast.flags,ast.doc,TraverseIR.map(ast.code,f,environment))
 			if hasattr(ast,'liveness'): func.liveness = ast.liveness
+			if hasattr(ast,'uniquename'): func.uniquename = ast.uniquename
 			return f(environment,func) if environment else f(func)
 		elif isinstance(ast,Lambda):
 			lamb = Lambda(ast.argnames,ast.defaults,ast.flags,TraverseIR.map(ast.code,f,environment))

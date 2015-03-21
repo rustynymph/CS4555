@@ -127,7 +127,7 @@ class LivenessAnalysis():
 			return finSet
 		
 		elif isinstance(node,Function):
-			save = self.liveness(node.name,prevSet)
+			save = set([node.name])
 			if isinstance(node.code,Stmt):
 				for i in node.code.nodes:
 					save = save | self.liveness(i,prevSet)

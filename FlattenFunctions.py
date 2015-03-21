@@ -1,4 +1,3 @@
-from compiler.ast import *
 from PythonASTExtension import *
 from AssemblyAST import *
 
@@ -7,19 +6,22 @@ class FlattenFunctions:
 	
 	@staticmethod
 	def flattenFunctions(node):
-		if isinstance(node,Lambda):
+		if isinstance(node,Function):
 			flattenCode = []
 			print node
 			for c in node.code:
 				if isinstance(c,Stmt): flattenCode += c.nodes
-				else: flattenCode += c
+				else: flattenCode += [c]
 			
 			functions = []
 			newCode = []
 			for c in flattenCode:
-				if isinstance(c,Lambda) or isinstance(c,Function): funcs += c
-				else: newCode += c
-			
-			functionDefinition = Lambda(node.argnames,node.defaults,node.flags,newCode)
+				if isinstance(c,Lambda) or isinstance(c,Function): functions += [c]
+				else: newCode += [c]
+			print functions
+			print newCode
+			functionDefinition = Function(node.decorators,node.name,node.argnames,node.defaults,node.flags,node.doc,Stmt(newCode))
 			functionDefinition.uniquename = node.uniquename
 			return Stmt(functions + [functionDefinition])
+		else:
+			return node

@@ -16,11 +16,10 @@ class NameGenerator():
 		return name
 
 class Translator():
-	def __init__(self,coloredgraph,lammap):
+	def __init__(self,coloredgraph):
 		self.branch = NameGenerator("branch")		
 		self.coloredgraph = coloredgraph
 		self.memory = {}
-		self.lambdaMapping = lammap
 	
 	def getInvertedGraph(self,coloredgraph):
 		invertedgraph = {}
