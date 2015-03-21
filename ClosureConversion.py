@@ -15,7 +15,7 @@ class ClosureConversion:
 			if isinstance(node,Assign):
 				if isinstance(node.expr,Lambda):
 					captured_vars = [Name(var) for var in node.expr.argnames if var in self.variableMapping[node.expr.uniquename]]
-					func_name = Name(self.assignToLambdaMap[node.expr.uniquename])
+					func_name = self.assignToLambdaMap[node.expr.uniquename]
 					closure = CreateClosure(func_name,captured_vars)
 					assign = Assign(node.nodes,closure)
 					return Stmt([node.expr,assign])

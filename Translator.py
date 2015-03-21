@@ -258,10 +258,10 @@ class Translator():
 				return ClusteredInstruction(evictInstr + moveRightAddIntoEAX + add + unevictInstr)
 			else: return AddIntegerInstruction(rightAdd,leftAdd)
 		
-		elif isinstance(ast,CreateClosure):
+		#elif isinstance(ast,CreateClosure):
 			
-		elif isinstance(ast,GetClosure):
+		#elif isinstance(ast,GetClosure):
 			
-		elif isinstance(ast,Return):
+		#elif isinstance(ast,Return):
 		
 		else: return ast

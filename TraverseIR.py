@@ -156,9 +156,12 @@ class TraverseIR():
 			return f(environment,ast,subAcc) if environment else f(ast,subAcc)
 		elif isinstance(ast,Assign):
 			nodesAcc = acc
+			print ast
 			for n in ast.nodes:
+				print n
 				nodesAcc = TraverseIR.foldPostOrderLeft(n,f,nodesAcc,environment)
 			exprAcc = TraverseIR.foldPostOrderLeft(ast.expr,f,nodesAcc,environment)
+			print
 			return f(environment,ast,exprAcc) if environment else f(ast,exprAcc)
 		elif isinstance(ast,Discard):
 			discardAcc = TraverseIR.foldPostOrderLeft(ast.expr,f,acc,environment)
@@ -218,6 +221,7 @@ class TraverseIR():
 				compareNAcc = TraverseIR.foldPostOrderLeft(t[1],f,compareNAcc,environment)
 			return f(environment,ast,compareNAcc) if environment else f(ast,compareNAcc)
 		elif isinstance(ast,Subscript):
+			print ast
 			exprAcc = TraverseIR.foldPostOrderLeft(ast.expr,f,acc,environment)
 			subsAcc = exprAcc
 			for n in ast.subs:
@@ -272,4 +276,6 @@ class TraverseIR():
 			nameAcc = TraverseIR.foldPostOrderLeft(ast.name,f,acc,environment)
 			return f(environment,ast,nameAcc) if environment else f(ast,nameAcc)	
 			
-		else: raise Exception("foldPostOrderLeft does not currently support the " + ast.__class__.__name__ + " node.")
+		else:
+			print str(ast)
+			raise Exception("foldPostOrderLeft does not currently support the " + ast.__class__.__name__ + " node.")

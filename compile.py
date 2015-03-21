@@ -18,6 +18,7 @@ from Heapify import *
 from FreeVars import *
 from ClosureConversion import *
 from FunctionLabelMapping import *
+from FlattenFunctions import *
 
 pythonFilename = sys.argv[1]
 
@@ -26,6 +27,7 @@ pythonFilename = sys.argv[1]
 #raise Exception(text_to_parse)
 
 pythonAST = compiler.parseFile(pythonFilename)
+print pythonAST
 pythonAST = TraverseIR.map(pythonAST,Simplify.removeDiscardMap)
 pythonAST = TraverseIR.map(pythonAST,Simplify.nameToBoolMap)
 pythonAST = TraverseIR.map(pythonAST,Optimizer.constantFoldingMap)
@@ -54,9 +56,15 @@ free_vars = tup[0]
 env = tup[1]
 
 pythonAST = TraverseIR.map(pythonAST,Heapify.heapify,Heapify(free_vars))
+print "Heapified"
+print pythonAST
 mappings = TraverseIR.foldPostOrderLeft(pythonAST,FunctionLabelMapping.functionLabelMapping,{},FunctionLabelMapping())
 pythonAST = TraverseIR.map(pythonAST,ClosureConversion.createClosure,ClosureConversion(env,mappings))
 print "Closured"
+print pythonAST
+
+pythonAST = TraverseIR.map(pythonAST,FlattenFunctions.flattenFunctions)
+print "Flattened Functions"
 print pythonAST
 
 pythonAST = TraverseIR.map(pythonAST,Flatten.flattenMap,Flatten())
