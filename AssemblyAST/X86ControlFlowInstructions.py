@@ -71,7 +71,7 @@ class AssemblyFunction(AssemblySection):
 
 
 		if returnOperand:returnValue = MoveInstruction(returnOperand,RegisterOperand(Registers32.EAX))
-		else returnValue = ClusteredInstruction()
+		else: returnValue = ClusteredInstruction()
 		leave = LeaveInstruction()
 		ret = ReturnInstruction()
 
