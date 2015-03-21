@@ -6,6 +6,7 @@ class TraverseIR():
 		if isinstance(ast,Module): 
 			module = Module(ast.doc,TraverseIR.map(ast.node,f,environment))
 			if hasattr(ast,'liveness'): module.liveness = ast.liveness
+			if hasattr(ast,'varsToLambdas'): module.varsToLambdas = ast.varsToLambdas
 			return f(environment, module) if environment else f(module)
 		elif isinstance(ast,Stmt):
 			stmt = Stmt([TraverseIR.map(n,f,environment) for n in ast.nodes])
@@ -110,15 +111,14 @@ class TraverseIR():
 			if hasattr(ast,'liveness'): func.liveness = ast.liveness
 			return f(environment,func) if environment else f(func)
 		elif isinstance(ast,Lambda):
-			if isinstance(ast.code,Stmt): lamb = Lambda(ast.argnames,ast.defaults,ast.flags,Stmt([TraverseIR.map(i,f,environment) for i in ast.code.nodes]))
-			else: lamb = Lambda(ast.argnames,ast.defaults,ast.flags,TraverseIR.map(ast.code,f,environment))
+			lamb = Lambda(ast.argnames,ast.defaults,ast.flags,TraverseIR.map(ast.code,f,environment))
 			if hasattr(ast,'liveness'): lamb.liveness = ast.liveness
 			if hasattr(ast,'uniquename'): lamb.uniquename = ast.uniquename
-			return lamb
+			return f(environment,lamb) if environment else f(lamb)
 		elif isinstance(ast,Return):
 			ret = Return(TraverseIR.map(ast.value,f,environment))
 			if hasattr(ast,'liveness'): ret.liveness = ast.liveness
-			return ret
+			return f(environment,ret) if environment else f(ret)
 		elif isinstance(ast,AssignCallFunc):
 			callfunc = AssignCallFunc(TraverseIR.map(ast.var,f,environment),TraverseIR.map(ast.name,f,environment),[TraverseIR.map(arg,f,environment) for arg in ast.args])
 			if hasattr(ast,'liveness'): callfunc.liveness = ast.liveness
@@ -127,6 +127,14 @@ class TraverseIR():
 			augassign = AugAssign(TraverseIR.map(ast.node,f,environment),ast.op,TraverseIR.map(ast.expr,f,environment))
 			if hasattr(ast,'liveness'): augassign.liveness = ast.liveness
 			return f(environment,augassign) if environment else f(augassign)
+		elif isinstance(ast,CreateClosure):
+			closure = CreateClosure(TraverseIR.map(ast.name,f,environment),[TraverseIR.map(i,f,environment) for i in ast.fvs])
+			if hasattr(ast,'liveness'): closure.liveness = ast.liveness
+			return f(environment,closure) if environment else f(closure)
+		elif isinstance(ast,GetClosure):
+			closure = GetClosure(TraverseIR.map(ast.name,f,environment))
+			if hasattr(ast,'liveness'): closure.liveness = ast.liveness
+			return f(environment,closure) if environment else f(closure)
 
 		else: raise Exception("map does not currently support the " + ast.__class__.__name__ + " node. (" + str(ast) + ")")
 
@@ -239,4 +247,29 @@ class TraverseIR():
 		elif isinstance(ast,IsTag):
 			argAcc = TraverseIR.foldPostOrderLeft(ast.arg,f,acc,environment)
 			return f(environment,ast,argAcc) if environment else f(ast,argAcc)
+			
+		#P2 nodes
+		elif isinstance(ast,Lambda):
+			codeAcc = TraverseIR.foldPostOrderLeft(ast.code,f,acc,environment)
+			return f(environment,ast,codeAcc) if environment else f(ast,codeAcc)
+			
+		elif isinstance(ast,Function):
+			codeAcc = TraverseIR.foldPostOrderLeft(ast.code,f,acc,environment)
+			return f(environment,ast,codeAcc) if environment else f(ast,codeAcc)
+			
+		elif isinstance(ast,Return):
+			valAcc = TraverseIR.foldPostOrderLeft(ast.value,f,acc,environment)
+			return f(environment,ast,valAcc) if environment else f(ast,valAcc)
+			
+		elif isinstance(ast,CreateClosure):
+			nameAcc = TraverseIR.foldPostOrderLeft(ast.name,f,acc,environment)
+			fvsAcc = nameAcc
+			for n in ast.fvs:
+				fvsAcc = TraverseIR.foldPostOrderLeft(n,f,fvsAcc,environment)
+			return f(environment,ast,fvsAcc) if environment else f(ast,fvsAcc)
+			
+		elif isinstance(ast,GetClosure):
+			nameAcc = TraverseIR.foldPostOrderLeft(ast.name,f,acc,environment)
+			return f(environment,ast,nameAcc) if environment else f(ast,nameAcc)	
+			
 		else: raise Exception("foldPostOrderLeft does not currently support the " + ast.__class__.__name__ + " node.")

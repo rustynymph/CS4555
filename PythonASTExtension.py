@@ -77,6 +77,27 @@ class AssignCallFunc(Node):
 		
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.name) + str(self.args) + ")"
+
+class CreateClosure(Node):
+	def __init__(self,name,fvs):
+		self.name = name
+		self.fvs = fvs
+		
+	def __repr__(self):
+		return self.__class__.__name__ + "(" + str(self.name) + "," + str(self.fvs) + ")"
+		
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.name) + "," + str(self.fvs) + ")"
+
+class GetClosure(Node):
+	def __init__(self,name):
+		self.name = name
+		
+	def __repr__(self):
+		return self.__class__.__name__ + "(" + str(self.name) + ")"
+		
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.name) +  ")"
 	
 def isPythonASTLeaf(ast):
 	return isinstance(ast,Const) or isinstance(ast,Boolean) or isinstance(ast,Name) or isinstance(ast,AssName)

@@ -82,6 +82,8 @@ class Explicate:
 			return notexp
 
 		elif isinstance(ast,Function):
+			print "test"
+			print ast.code
 			newlambda = Lambda(ast.argnames,ast.defaults,ast.flags,ast.code)
 			assign = Assign([AssName(ast.name,'OP_ASSIGN')],newlambda)
 			return assign

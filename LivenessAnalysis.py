@@ -156,6 +156,15 @@ class LivenessAnalysis():
 			node.liveness = save | prevSet
 			return save		
 	
+		elif isinstance(node,CreateClosure):
+			finSet = self.liveness(node.name)
+			for i in node.fvs:
+				finSet = finSet | self.liveness(i)
+			node.liveness = finSet | prevSet
+			return 	
+			
+		elif isinstance(node,GetClosure):
+	
 		else: raise Exception(str(node) + " is an unsupported node type")
 	
 	def computeLivenessAnalysis(self,ast,j):
@@ -175,7 +184,6 @@ class LivenessAnalysis():
 			self.liveVariables[i] = set()
 		j = numInstructions-1
 		for instructions in reversed(ir):
-			print instructions
 			self.liveVariables[j] = self.computeLivenessAnalysis(instructions,j)
 			j-=1
 		return [self.liveVariables[x] for x in self.liveVariables]				
