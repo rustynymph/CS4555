@@ -295,13 +295,12 @@ class ArithmeticFlattener():
 			return Stmt([assign,getTag])
 			
 		elif isinstance(ast,CreateClosure):
-			fvs = [self.flattenArithmetic(i) for i in ast.fvs.nodes]
-			fvs_stmt = Stmt(fvs)
-			nameNode = Name(name)
-			assign1 = Assign(
-			clos = CreateClosure(ast.name,)
-			assign2 = [Assign([AssName(name,'OP_ASSIGN')],clos)]
-			return Stmt(fvs_stmt+#something)
+			fvs_stmt = self.flattenArithmetic(ast.fvs,name+"$fvs")
+			nameNode = Name(name+"$fvs")
+			assign1 = Assign([AssName(name,'OP_ASSIGN')],nameNode)
+			# clos = CreateClosure(ast.name,)
+			# assign2 = [Assign([AssName(name,'OP_ASSIGN')],clos)]
+			return Stmt([fvs_stmt]+[assign1])
 
 		else: return Assign([AssName(name,'OP_ASSIGN')],ast)
 
