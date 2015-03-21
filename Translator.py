@@ -257,10 +257,30 @@ class Translator():
 				return ClusteredInstruction(evictInstr + moveRightAddIntoEAX + add + unevictInstr)
 			else: return AddIntegerInstruction(rightAdd,leftAdd)
 		
-		#elif isinstance(ast,CreateClosure):
+		elif isinstance(ast,CreateClosure):
+			name = self.getVariableLocation(ast.name)
+			freeVariables = ast.fvs
+			pushInstr1 = [PushInstruction(name)]
+			pushInstr2 = [PushInstruction(ast.fvs)]
+			callInstr = [CallInstruction(NameOperand('create_closure'))]
+			return ClusteredInstruction(pushInstr1 + pushInstr2 + callInstr)
 			
-		#elif isinstance(ast,GetClosure):
+		elif isinstance(ast,GetClosure):
+			#need a save instruction
+			name = self.getVariableLocation(ast.name)
+			pushInstr1 = [PushInstruction(name)]
+			getFunPtr = [CallInstruction(NameOperand('get_fun_ptr'))]
+			movInstr1 = [MoveInstruction(RegisterOperand(Registers32.EAX),RegisterOperand(Registers32.EBX))]
+			pushInstr2 = [PushInstruction(name)]
+			getFvs = [CallInstruction(NameOperand('get_free_vars'))]
+			movInstr2 = [MoveInstruction(RegisterOperand(Registers32.EAX),RegisterOperand(Registers32.ECX))]
+			indirectCall = [CallInstruction(*RegisterOperand(Registers32.ECX))]
+			return ClusteredInstruction(pushInstr1+getFunPtr+movInstr1+pushInstr2+getFvs+movInstr2+indirectCall)
 			
-		#elif isinstance(ast,Return):
+		elif isinstance(ast,Return):
+			val = ast.value
+			movInstr = [MoveInstruction(val,RegisterOperand(Registers32.EAX))]
+			retInstr = [ReturnInstruction()]
+			return ClusteredInstruction(movInstr + retInstr)
 		
 		else: return ast
