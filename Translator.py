@@ -128,6 +128,7 @@ class Translator():
 		elif isinstance(ast, Assign):
 			if isinstance(ast.expr,Operand):
 				fromOperand = ast.expr
+				if isinstance(fromOperand,NameOperand): fromOperand = self.getVariableLocation(fromOperand)
 				toOperand = ast.nodes[0]
 				clusteredArrayBefore = []
 				clusteredArrayAfter = []
