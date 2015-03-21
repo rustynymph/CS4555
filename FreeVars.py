@@ -3,6 +3,7 @@ from PythonASTExtension import *
 
 freeVarsSet = set()
 variableMapping = {}
+varToLambda = {}
 
 class nameGenerator():
 
@@ -25,6 +26,7 @@ class FreeVars:
 	@staticmethod
 	def freeVarsHelper(node):
 		global variableMapping
+		global varToLambda
 		if isinstance(node,Const): return set([])
 		elif isinstance(node,Name): return set([node.name])
 		elif isinstance(node,Add): return FreeVars.freeVarsHelper(node.left) | FreeVars.freeVarsHelper(node.right)
@@ -92,14 +94,16 @@ class FreeVars:
 		elif isinstance(node,GetTag): return FreeVars.freeVarsHelper(node.arg)
 		elif isinstance(node,ProjectTo): return FreeVars.freeVarsHelper(node.arg)
 		elif isinstance(node,Not): return FreeVars.freeVarsHelper(node.expr)
-		elif isinstance(node,Assign):return FreeVars.freeVarsHelper(node.expr)
+		elif isinstance(node,Assign): return FreeVars.freeVarsHelper(node.expr)
 		elif isinstance(node,Printnl): return FreeVars.freeVarsHelper(node.nodes[0])
 		elif isinstance(node,Return): return FreeVars.freeVarsHelper(node.value)			
 		else: raise Exception(str(node) + " is an unsupported node type")
-	
+
+
 	@staticmethod
 	def freeVars(IR):
 		global freeVarsSet
 		for i in IR.node.nodes:
 			freeVarsSet = freeVarsSet | FreeVars.freeVarsHelper(i)
 		return (freeVarsSet,variableMapping)
+
