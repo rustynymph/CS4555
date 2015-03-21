@@ -172,6 +172,7 @@ class DereferenceOperand(Operand):
 
 	def __init__(self,operand):
 		self.operand =operand
+		self.size = operand.size
 
 	def __repr__(self):
 		return self.__class__.__name__ + "(" + str(self.operand) + ")"
