@@ -99,6 +99,18 @@ class GetClosure(Node):
 		
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.name) +  "," + str(self.args) + ")"
+
+class IndirectFuncCall(Node):
+	def __init__(self,name,args,fvs):
+		self.name = name
+		self.args = args
+		self.fvs = fvs
+		
+	def __repr__(self):
+		return self.__class__.__name__ + "(" + str(self.name) + "," + str(self.args) + "," + str(self.fvs) +  ")"
+		
+	def __str__(self):
+		return self.__class__.__name__ + "(" + str(self.name) +  "," + str(self.args) +  "," + str(self.fvs) +  ")"		
 	
 def isPythonASTLeaf(ast):
 	return isinstance(ast,Const) or isinstance(ast,Boolean) or isinstance(ast,Name) or isinstance(ast,AssName)

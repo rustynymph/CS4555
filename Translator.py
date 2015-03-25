@@ -297,4 +297,10 @@ class Translator():
 			retInstr = [ReturnInstruction()]
 			return ClusteredInstruction(movInstr + retInstr)
 		
+		elif isinstance(ast,IndirectFuncCall):
+			name = self.getVariableLocation(ast.name)
+			pushInstr = [PushInstruction(self.getVariableLocation(i)) for i in ast.args]
+			indirectCall = [CallInstruction(DereferenceOperand(name))]
+			return ClusteredInstruction(pushInstr + indirectCall)
+		
 		else: return ast

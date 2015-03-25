@@ -300,7 +300,15 @@ class ArithmeticFlattener():
 			assign1 = Assign([AssName(name,'OP_ASSIGN')],nameNode)
 			return Stmt([fvs_stmt]+[assign1])
 
-		#elif isinstance(ast,GetClosure):
+		elif isinstance(ast,GetClosure):
+			print "AHOY MATEY"
+			print ast.args
+			fptrname = ast.name.name + '$fptr'
+			fvsname = ast.name.name + '$fvs'
+			assign1 = Assign([AssName(fptrname,'OP_ASSIGN')],CallFunc(Name("get_fun_ptr"),[ast.name]))
+			assign2 = Assign([AssName(fvsname,'OP_ASSIGN')],CallFunc(Name("get_free_vars"),[ast.name]))
+			assign3 = Assign([AssName(name,'OP_ASSIGN')],IndirectFuncCall(Name(fptrname),ast.args,Name(fvsname)))
+			return Stmt([assign1,assign2,assign3])
 			
 
 		else: return Assign([AssName(name,'OP_ASSIGN')],ast)
@@ -374,8 +382,8 @@ class Flatten():
 			else: cluster = [Return(ast.value)]
 			return Stmt(cluster)
 		
-		#elif isinstance(ast,GetClosure):
-		
+
+			
 		#elif isinstance(ast,Function):
 		
 		else: return ast
