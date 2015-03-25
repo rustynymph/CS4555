@@ -92,12 +92,13 @@ class CreateClosure(Node):
 class GetClosure(Node):
 	def __init__(self,name):
 		self.name = name
+		self.args = args
 		
 	def __repr__(self):
-		return self.__class__.__name__ + "(" + str(self.name) + ")"
+		return self.__class__.__name__ + "(" + str(self.name) + "," + str(self.args) + ")"
 		
 	def __str__(self):
-		return self.__class__.__name__ + "(" + str(self.name) +  ")"
+		return self.__class__.__name__ + "(" + str(self.name) +  "," + str(self.args) + ")"
 	
 def isPythonASTLeaf(ast):
 	return isinstance(ast,Const) or isinstance(ast,Boolean) or isinstance(ast,Name) or isinstance(ast,AssName)
