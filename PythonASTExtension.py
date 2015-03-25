@@ -90,7 +90,7 @@ class CreateClosure(Node):
 		return self.__class__.__name__ + "(" + str(self.name) + "," + str(self.fvs) + ")"
 
 class GetClosure(Node):
-	def __init__(self,name):
+	def __init__(self,name,args):
 		self.name = name
 		self.args = args
 		

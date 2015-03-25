@@ -234,7 +234,7 @@ class TraverseIR():
 			TraverseIR.transferAttributes(closure,newClosure)
 			return newClosure
 		elif isinstance(ast,GetClosure):
-			closure = GetClosure(TraverseIR.map(ast.name,f,environment))
+			closure = GetClosure(TraverseIR.map(ast.name,f,environment),[TraverseIR.map(i,f,environment) for i in ast.args])
 			# if hasattr(ast,'liveness'): closure.liveness = ast.liveness
 			TraverseIR.transferAttributes(ast,closure)
 			newClosure = f(environment,closure) if environment else f(closure)
