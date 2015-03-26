@@ -20,7 +20,7 @@ from ClosureConversion import *
 #from FunctionLabelMapping import *
 from FlattenFunctions import *
 from FunctionRevert import *
-#from FunctionLiveness import *
+from SeparateFunctions import *
 
 pythonFilename = sys.argv[1]
 
@@ -87,6 +87,7 @@ coloredgraph = GraphColoring.colorGraph(graph)
 print coloredgraph
 
 x86 = TraverseIR.map(pythonAST,Translator.translateToX86,Translator(coloredgraph))
+x86 = SeparateFunctions.move(x86)
 # print x86
 
 x86Filename = sys.argv[1].rsplit(".",1)[0] + ".s"

@@ -169,6 +169,13 @@ class LivenessAnalysis():
 			finSet = self.liveness(node.name,prevSet)
 			node.liveness = finSet | prevSet
 			return finSet
+			
+		elif isinstance(node,IndirectFuncCall):
+			finSet = self.liveness(node.name,prevSet) | self.liveness(node.fvs,prevSet)
+			for i in node.args:
+				finSet = finSet | self.liveness(i,prevSet)
+			node.liveness = finSet | prevSet
+			return finSet
 	
 		else: raise Exception(str(node) + " is an unsupported node type")
 	

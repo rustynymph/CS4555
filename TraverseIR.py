@@ -233,12 +233,18 @@ class TraverseIR():
 			TraverseIR.transferAttributes(closure,newClosure)
 			return newClosure
 		elif isinstance(ast,GetClosure):
-			closure = GetClosure(TraverseIR.map(ast.name,f,environment))
+			closure = GetClosure(TraverseIR.map(ast.name,f,environment),[TraverseIR.map(i,f,environment) for i in ast.args])
 			# if hasattr(ast,'liveness'): closure.liveness = ast.liveness
 			TraverseIR.transferAttributes(ast,closure)
 			newClosure = f(environment,closure) if environment else f(closure)
 			TraverseIR.transferAttributes(closure,newClosure)
 			return newClosure
+		elif isinstance(ast,IndirectFuncCall):
+			ifc = IndirectFuncCall(TraverseIR.map(ast.name,f,environment),[TraverseIR.map(i,f,environment) for i in ast.args],TraverseIR.map(ast.fvs,f,environment))
+			TraverseIR.transferAttributes(ast,ifc)
+			newIfc = f(environment,ifc) if environment else f(ifc)
+			TraverseIR.transferAttributes(ifc,newIfc)
+			return newIfc
 
 		else: raise Exception("map does not currently support the " + ast.__class__.__name__ + " node. (" + str(ast) + ")")
 
