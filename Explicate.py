@@ -50,36 +50,57 @@ class Explicate:
 
 			return Let(leftName,ast.left,Let(rightName,ast.right,explicatedAdd))
 		elif isinstance(ast,Compare):
-			leftName = Name("letCompare"+str(self.getAndIncrement()))
-			rightName = Name("letCompare"+str(self.getAndIncrement()))
+			if ast.ops[0][0] == "==":
+				leftName = Name("letCompare"+str(self.getAndIncrement()))
+				rightName = Name("letCompare"+str(self.getAndIncrement()))
 
-			leftIntAndBoolPredicate = Or([IsTag(Const(INT_t),leftName),IsTag(Const(INT_t),rightName)])
-			rightIntAndBoolPredicate = Or([IsTag(Const(INT_t),rightName),IsTag(Const(BOOL_t),rightName)])
-			intAndBoolPredicate = And([leftIntAndBoolPredicate,rightIntAndBoolPredicate])
+				leftIntAndBoolPredicate = Or([IsTag(Const(INT_t),leftName),IsTag(Const(INT_t),rightName)])
+				rightIntAndBoolPredicate = Or([IsTag(Const(INT_t),rightName),IsTag(Const(BOOL_t),rightName)])
+				intAndBoolPredicate = And([leftIntAndBoolPredicate,rightIntAndBoolPredicate])
 
-			intAndBoolCompare = InjectFrom( Const(BOOL_t), Compare(ProjectTo(Const(BOOL_t),leftName), [('==',ProjectTo(Const(BOOL_t),rightName))]))
+				intAndBoolCompare = InjectFrom( Const(BOOL_t), Compare(ProjectTo(Const(BOOL_t),leftName), [('==',ProjectTo(Const(BOOL_t),rightName))]))
 
-			bigPredicate = And([IsTag(Const(BIG_t),leftName),IsTag(Const(INT_t),rightName)])
+				bigPredicate = And([IsTag(Const(BIG_t),leftName),IsTag(Const(INT_t),rightName)])
 
-			bigCompare = InjectFrom(Const(BOOL_t),CallFunc(Name("equal"),[leftName,rightName],None,None))
+				bigCompare = InjectFrom(Const(BOOL_t),CallFunc(Name("equal"),[leftName,rightName],None,None))
 
-			bigIf = IfExp(bigPredicate,bigCompare,InjectFrom(Const(BOOL_t),Const(0)))
+				bigIf = IfExp(bigPredicate,bigCompare,InjectFrom(Const(BOOL_t),Const(0)))
 
-			intAndBoolIf = IfExp(intAndBoolPredicate,intAndBoolCompare,bigIf)
+				intAndBoolIf = IfExp(intAndBoolPredicate,intAndBoolCompare,bigIf)
 
-			letRight = Let(rightName,ast.ops[0][1],intAndBoolIf)
-			letLeft = Let(leftName,ast.expr,letRight)
-			return letLeft
-			return intAndBoolIf
+				letRight = Let(rightName,ast.ops[0][1],intAndBoolIf)
+				letLeft = Let(leftName,ast.expr,letRight)
+				return letLeft
+			elif ast.ops[0][0] == "!=":
+				leftName = Name("letCompare"+str(self.getAndIncrement()))
+				rightName = Name("letCompare"+str(self.getAndIncrement()))
+
+				leftIntAndBoolPredicate = Or([IsTag(Const(INT_t),leftName),IsTag(Const(INT_t),rightName)])
+				rightIntAndBoolPredicate = Or([IsTag(Const(INT_t),rightName),IsTag(Const(BOOL_t),rightName)])
+				intAndBoolPredicate = And([leftIntAndBoolPredicate,rightIntAndBoolPredicate])
+
+				intAndBoolCompare = InjectFrom( Const(BOOL_t), Not(Compare(ProjectTo(Const(BOOL_t),leftName), [('==',ProjectTo(Const(BOOL_t),rightName))])))
+
+				bigPredicate = And([IsTag(Const(BIG_t),leftName),IsTag(Const(INT_t),rightName)])
+
+				bigCompare = InjectFrom(Const(BOOL_t),Not(CallFunc(Name("equal"),[leftName,rightName],None,None)))
+
+				bigIf = IfExp(bigPredicate,bigCompare,InjectFrom(Const(BOOL_t),Const(0)))
+
+				intAndBoolIf = IfExp(intAndBoolPredicate,intAndBoolCompare,bigIf)
+
+				letRight = Let(rightName,ast.ops[0][1],intAndBoolIf)
+				letLeft = Let(leftName,ast.expr,letRight)
+				return letLeft
+			else: return ast
+
+			# return intAndBoolIf
 
 		elif isinstance(ast,UnarySub):
 			return InjectFrom(Const(INT_t),UnarySub(ProjectTo(Const(INT_t),ast.expr)))
 		elif isinstance(ast,CallFunc):
 			#Not sure if we have to do anything here
 			return ast
-		elif isinstance(ast,Not):
-			notexp = ProjectTo(Const(BOOL_t),Not(CallFunc(Name("is_true"),[ast],None,None)))
-			return notexp
 
 		elif isinstance(ast,Function):
 			newlambda = Lambda(ast.argnames,ast.defaults,ast.flags,ast.code)
@@ -130,4 +151,13 @@ class Explicate:
 	def removeIsTagMap(ast):
 		if isinstance(ast,IsTag):
 			return Compare(GetTag(ast.arg),[('==',ast.typ)])
+		else: return ast
+
+	@staticmethod
+	def removeNot(ast):
+		if isinstance(ast,Not):
+			return Compare(CallFunc(Name("is_true"),[ast.expr],None,None),[('==',Const(0))])
+
+			notexp = InjectFrom(Const(BOOL_t),Not(CallFunc(Name("is_true"),[ast.expr],None,None)))
+			return notexp
 		else: return ast
