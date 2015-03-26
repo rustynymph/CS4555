@@ -6,6 +6,9 @@ from AssemblyAST import *
 
 class GraphColoring:
 
+	def __init__(self,ignore):
+		self.ignore = ignore
+
 	@staticmethod
 	def createGraph(liveVariables):
 		lv = liveVariables
@@ -50,3 +53,20 @@ class GraphColoring:
 			else: colored[item] = None	
 
 		return colored
+
+	@staticmethod
+	def getRuntimeFunctions():
+		runtime = []
+
+
+	def createGraphFolding(self,ast,acc):
+		liveVariables = set([x for x in ast.liveness if x not in self.ignore])
+		graph = acc
+		for variable in liveVariables:
+
+			if variable not in self.ignore:
+				edges = [x for x in (liveVariables - set([variable]))]
+				if variable not in graph: graph[variable] = []
+				graph[variable] += edges
+		return graph
+
