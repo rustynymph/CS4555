@@ -29,6 +29,8 @@ class Optimizer:
 		elif isinstance(ast,Not):
 			if isinstance(ast.expr,Const) or isinstance(ast.expr,Boolean):
 				return Boolean(not ast.expr.value)
+			elif isinstance(ast.expr,List):
+				return Boolean(not len(ast.expr.nodes))
 			else: return ast
 		
 		elif isinstance(ast,IfExp):
@@ -46,6 +48,28 @@ class Optimizer:
 				elif ast.ops[0][0] == "!=": return Boolean((ast.expr.value != ast.ops[0][1].value))
 				elif ast.ops[0][0] == "is": return Boolean((ast.expr.value is ast.ops[0][1].value))
 				else: return ast
+			elif isinstance(ast.expr,List) and isinstance(ast.ops[0][1],List):
+				if ast.ops[0][0] == "==":
+					if len(ast.expr.nodes) == len(ast.ops[0][1].nodes):
+						for i in range(len(ast.expr.nodes)):
+							leftSub = ast.expr.nodes[i]
+							rightSub = ast.ops[0][1].nodes[i]
+							if not (isinstance(leftSub,Name) or isinstance(leftSub,Const)): return ast
+							if not (isinstance(rightSub,Name) or isinstance(rightSub,Const)): return ast
+
+						for i in range(len(ast.expr.nodes)):
+							leftSub = ast.expr.nodes[i]
+							rightSub = ast.ops[0][1].nodes[i]
+							if isinstance(leftSub,rightSub.__class__):
+								if isinstance(leftSub,Name) and leftSub.name != rightSub.name: return Boolean(leftSub.name == rightSub.name)
+								elif isinstance(leftSub,Const) and leftSub.value != rightSub.value: return Boolean(leftSub.value == rightSub.value)
+							else: return Boolean(False)
+
+						return Boolean(True)
+
+					else: return ast
+				return ast
+
 			else: return ast
 		else: return ast
 
