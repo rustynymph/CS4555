@@ -8,7 +8,6 @@ class FlattenFunctions:
 	def flattenFunctions(node):
 		if isinstance(node,Function):
 			flattenCode = []
-			print node
 			for c in node.code:
 				if isinstance(c,Stmt): flattenCode += c.nodes
 				else: flattenCode += [c]
@@ -18,8 +17,6 @@ class FlattenFunctions:
 			for c in flattenCode:
 				if isinstance(c,Lambda) or isinstance(c,Function): functions += [c]
 				else: newCode += [c]
-			print functions
-			print newCode
 			functionDefinition = Function(node.decorators,node.name,node.argnames,node.defaults,node.flags,node.doc,Stmt(newCode))
 			functionDefinition.uniquename = node.uniquename
 			return Stmt(functions + [functionDefinition])
