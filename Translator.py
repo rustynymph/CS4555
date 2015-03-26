@@ -62,7 +62,6 @@ class Translator():
 		else: return ClusteredInstruction()
 
 	def translateToX86(self,ast):
-		print ast
 		if isinstance(ast,Module):
 
 			assFunction = AssemblyFunction(SectionHeaderInstruction("main"),ast.node,self.getActivationRecordSize(),ConstantOperand(DecimalValue(0)))
@@ -175,7 +174,6 @@ class Translator():
 			else: raise Exception("Error: Unrecognized node type")
 			
 		elif isinstance(ast,Compare):
-			print ast
 			leftcmp = ast.expr
 			rightcmp = ast.ops[0][1]
 			reg = RegisterOperand(Registers32.EAX)
@@ -194,6 +192,20 @@ class Translator():
 			return CompareInstruction(leftcmp,rightcmp)
 		
 		elif isinstance(ast,UnarySub): return NegativeInstruction(ast.expr)
+
+		elif isinstance(ast,AugAssign):
+			if isinstance(ast.node,MemoryOperand) and isinstance(ast.expr,MemoryOperand):
+				evicted = self.evictVariable()
+				evictedMemoryLocation = evicted[2]
+				evictInstructions = evicted[0]
+				unevictInstructions = self.unevictVariable(True,evictedMemoryLocation)
+
+				moveIntoRegister = MoveInstruction(ast.expr,RegisterOperand(Registers32.EAX))
+				add = AddIntegerInstruction(RegisterOperand(Registers32.EAX),ast.node)
+				return ClusteredInstruction([evictInstructions,moveIntoRegister,add,unevictInstructions])
+			else:
+				return AddIntegerInstruction(ast.expr,ast.node)
+
 		
 		elif isinstance(ast,Not): return NotInstruction(ast.expr)
 			
