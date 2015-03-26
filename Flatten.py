@@ -45,7 +45,8 @@ class ArithmeticFlattener():
 			else:
 				#Checks to see if name has been assigned its initial value and responses accordingly
 				if isInitial: leftFlattenedExpression = Assign([AssName(name,'OP_ASSIGN')],ast.left)
-				else: leftFlattenedExpression = Assign([AssName(name,'OP_ASSIGN')],Add((Name(name),ast.left)))
+				else: leftFlattenedExpression = AugAssign(Name(name),'+=',ast.left)
+				# else: leftFlattenedExpression = Assign([AssName(name,'OP_ASSIGN')],Add((Name(name),ast.left)))
 
 			#Assigning value for right name
 			#Initially assigns rightName = name
@@ -61,10 +62,12 @@ class ArithmeticFlattener():
 				#Recurses down the right subtree and returns a Stmt
 				rightFlattenedExpression = self.flattenArithmetic(ast.right,rightName,False)
 				#Adds the right and left subtrees and sets it equal to name
-				assign = Assign([AssName(name,'OP_ASSIGN')],Add((Name(name),Name(rightName))))
+				# assign = Assign([AssName(name,'OP_ASSIGN')],Add((Name(name),Name(rightName))))
+				assign = AugAssign(Name(name),'+=',Name(rightName))
 			else:
 				#Adds the right leaf with name
-				rightFlattenedExpression = Assign([AssName(name,'OP_ASSIGN')],Add((Name(name),ast.right)))
+				# rightFlattenedExpression = Assign([AssName(name,'OP_ASSIGN')],Add((Name(name),ast.right)))
+				rightFlattenedExpression = AugAssign(Name(name),'+=',ast.right)
 
 			#Creates a list for a Stmt node
 			stmtArray = [leftFlattenedExpression,rightFlattenedExpression]
