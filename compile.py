@@ -18,7 +18,7 @@ from GraphColoring import *
 from Heapify import *
 from FreeVars import *
 from ClosureConversion import *
-#from FunctionLabelMapping import *
+from FunctionLabelMapping import *
 from FlattenFunctions import *
 from FunctionRevert import *
 from SeparateFunctions import *
@@ -47,6 +47,7 @@ print "\n"
 pythonAST = TraverseIR.map(pythonAST,Explicate.explicateMap,Explicate())
 pythonAST = TraverseIR.map(pythonAST,Explicate.shortCircuitMap,Explicate())
 pythonAST = TraverseIR.map(pythonAST,Explicate.removeIsTagMap)
+pythonAST = TraverseIR.map(pythonAST,Explicate.removeNot)
 pythonAST = TraverseIR.map(pythonAST,Explicate.explicateCompareMap)
 pythonAST = TraverseIR.map(pythonAST,Optimizer.explicateFoldingMap)
 
@@ -61,7 +62,7 @@ env = tup[1]
 pythonAST = TraverseIR.map(pythonAST,Heapify.heapify,Heapify(free_vars,env))
 print "Heapified"
 print pythonAST
-#mappings = TraverseIR.foldPostOrderLeft(pythonAST,FunctionLabelMapping.functionLabelMapping,{},FunctionLabelMapping())
+mappings = TraverseIR.foldPostOrderLeft(pythonAST,FunctionLabelMapping.functionLabelMapping,{},FunctionLabelMapping())
 pythonAST = TraverseIR.map(pythonAST,ClosureConversion.createClosure,ClosureConversion(env))
 print "Closured"
 print pythonAST
