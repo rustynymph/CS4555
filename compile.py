@@ -12,7 +12,8 @@ from TraverseIR import TraverseIR
 from Namespace import *
 from Orphan import *
 from Functionize import *
-from LivenessAnalysis import *
+# from LivenessAnalysis import *
+from LivenessAnalysis2 import *
 from GraphColoring import *
 from Heapify import *
 from FreeVars import *
@@ -80,9 +81,11 @@ pythonAST = TraverseIR.map(pythonAST,Flatten.removeNestedStmtMap)
 pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
 print "Final Python AST"
 print pythonAST
-liveness = LivenessAnalysis.livenessAnalysis(LivenessAnalysis(pythonAST))
 
-graph = GraphColoring.createGraph(liveness)
+liveness = TraverseIR.foldPostOrderRight(pythonAST,LivenessAnalysis2.livenessFolding,set([]),LivenessAnalysis2(["input_int","print_any","set_subscript","is_true","get_subscript","add","equal","not_equal","create_list","create_dict"]))
+
+# graph = GraphColoring.createGraph(liveness)
+graph = TraverseIR.foldPostOrderRight(pythonAST,GraphColoring.createGraphFolding,{},GraphColoring(["input_int","print_any","set_subscript","is_true","get_subscript","add"]))
 coloredgraph = GraphColoring.colorGraph(graph)
 print coloredgraph
 
