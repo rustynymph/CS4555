@@ -24,7 +24,6 @@ class TraverseIR():
 			TraverseIR.transferAttributes(module,newmodule)
 			return newmodule
 		elif isinstance(ast,Stmt):
-			#print ast
 			stmt = Stmt([TraverseIR.map(n,f,environment) for n in ast.nodes])
 			# if hasattr(ast,'liveness'): stmt.liveness = ast.liveness
 			TraverseIR.transferAttributes(ast,stmt)
@@ -261,12 +260,9 @@ class TraverseIR():
 			return f(environment,ast,subAcc) if environment else f(ast,subAcc)
 		elif isinstance(ast,Assign):
 			nodesAcc = acc
-			print ast
 			for n in ast.nodes:
-				print n
 				nodesAcc = TraverseIR.foldPostOrderLeft(n,f,nodesAcc,environment)
 			exprAcc = TraverseIR.foldPostOrderLeft(ast.expr,f,nodesAcc,environment)
-			print
 			return f(environment,ast,exprAcc) if environment else f(ast,exprAcc)
 		elif isinstance(ast,Discard):
 			discardAcc = TraverseIR.foldPostOrderLeft(ast.expr,f,acc,environment)
@@ -326,7 +322,6 @@ class TraverseIR():
 				compareNAcc = TraverseIR.foldPostOrderLeft(t[1],f,compareNAcc,environment)
 			return f(environment,ast,compareNAcc) if environment else f(ast,compareNAcc)
 		elif isinstance(ast,Subscript):
-			print ast
 			exprAcc = TraverseIR.foldPostOrderLeft(ast.expr,f,acc,environment)
 			subsAcc = exprAcc
 			for n in ast.subs:
@@ -380,7 +375,155 @@ class TraverseIR():
 		elif isinstance(ast,GetClosure):
 			nameAcc = TraverseIR.foldPostOrderLeft(ast.name,f,acc,environment)
 			return f(environment,ast,nameAcc) if environment else f(ast,nameAcc)	
+
+		elif isinstance(ast,AugAssign):
+			nodeAcc = TraverseIR.foldPostOrderLeft(ast.node,f,acc,environment)
+			exprAcc = TraverseIR.foldPostOrderLeft(ast.expr,f,nodeAcc,environment)
+			return f(environment,ast,exprAcc) if environment else f(ast,exprAcc)
 			
 		else:
-			print str(ast)
 			raise Exception("foldPostOrderLeft does not currently support the " + ast.__class__.__name__ + " node.")
+
+
+	@staticmethod
+	def foldPostOrderRight(ast,f,acc,environment=None):
+		#P0 nodes
+		if isinstance(ast,Module): 
+			subAcc = TraverseIR.foldPostOrderRight(ast.node,f,acc,environment)
+			return f(environment, ast,subAcc) if environment else f(ast,subAcc)
+		elif isinstance(ast,Stmt):
+			subAcc = acc
+			for n in reversed(ast.nodes):
+				subAcc = TraverseIR.foldPostOrderRight(n,f,subAcc,environment)
+			return f(environment,ast,subAcc) if environment else f(ast,subAcc)
+		elif isinstance(ast,Printnl):
+			subAcc = acc
+			for n in reversed(ast.nodes):
+				subAcc = TraverseIR.foldPostOrderRight(n,f,subAcc,environment)
+			return f(environment,ast,subAcc) if environment else f(ast,subAcc)
+		elif isinstance(ast,Assign):
+			nodesAcc = acc
+			for n in reversed(ast.nodes):
+				nodesAcc = TraverseIR.foldPostOrderRight(n,f,nodesAcc,environment)
+			exprAcc = TraverseIR.foldPostOrderRight(ast.expr,f,nodesAcc,environment)
+			return f(environment,ast,exprAcc) if environment else f(ast,exprAcc)
+		elif isinstance(ast,Discard):
+			discardAcc = TraverseIR.foldPostOrderRight(ast.expr,f,acc,environment)
+			return f(environment,ast,discardAcc) if environment else f(ast,discardAcc)
+		elif isinstance(ast,Add):
+			rhsAcc = TraverseIR.foldPostOrderRight(ast.right,f,acc,environment)
+			lhsAcc = TraverseIR.foldPostOrderRight(ast.left,f,rhsAcc,environment)
+			return f(environment,ast,lhsAcc) if environment else f(ast,lhsAcc)
+		elif isinstance(ast,UnarySub):
+			exprAcc = TraverseIR.foldPostOrderRight(ast.expr,f,acc,environment)
+			return f(environment,ast,exprAcc) if environment else f(ast,exprAcc)
+		elif isinstance(ast,CallFunc):
+			nodeAcc = TraverseIR.foldPostOrderRight(ast.node,f,acc,environment)
+			argsAcc = nodeAcc
+			for n in reversed(ast.args):
+				argsAcc = TraverseIR.foldPostOrderRight(n,f,argsAcc,environment)
+			return f(environment,ast,argsAcc) if environment else f(ast,argsAcc)
+		elif isinstance(ast,Const):
+			return f(environment,ast,acc) if environment else f(ast,acc)
+		elif isinstance(ast,AssName):
+			return f(environment,ast,acc) if environment else f(ast,acc)
+		elif isinstance(ast,Name):
+			return f(environment,ast,acc) if environment else f(ast,acc)
+
+		#P1 nodes
+		elif isinstance(ast,List):
+			listAcc = acc
+			for n in reversed(ast.nodes):
+				listAcc = TraverseIR.foldPostOrderRight(n,f,listAcc,environment)
+			return f(environment,ast,listAcc) if environment else f(ast,listAcc)
+		elif isinstance(ast,IfExp):
+			elseAcc = TraverseIR.foldPostOrderRight(ast.else_,f,acc,environment)
+			thenAcc = TraverseIR.foldPostOrderRight(ast.then,f,elseAcc,environment)
+			testAcc = TraverseIR.foldPostOrderRight(ast.test,f,thenAcc,environment)
+			return f(environment,ast,thenAcc) if environment else f(ast,thenAcc)
+		elif isinstance(ast,Dict):
+			dictAcc = acc
+			for t in reversed(ast.items):
+				valueAcc = TraverseIR.foldPostOrderRight(t[1],f,dictAcc,environment)
+				keyAcc = TraverseIR.foldPostOrderRight(t[0],f,valueAcc,environment)
+				dictAcc = keyAcc
+			return f(environment,ast,dictAcc) if environment else f(ast,dictAcc)
+		elif isinstance(ast,Or):
+			orAcc = acc
+			for n in reversed(ast.nodes):
+				orAcc = TraverseIR.foldPostOrderRight(n,f,orAcc,environment)
+			return f(environment,ast,orAcc) if environment else f(ast,orAcc)
+		elif isinstance(ast,And):
+			andAcc = acc
+			for n in reversed(ast.nodes):
+				andAcc = TraverseIR.foldPostOrderRight(n,f,andAcc,environment)
+			return f(environment,ast,andAcc) if environment else f(ast,andAcc)
+		elif isinstance(ast,Compare):
+			compareNAcc = acc
+			for t in ast.ops:
+				compareNAcc = TraverseIR.foldPostOrderRight(t[1],f,compareNAcc,environment)
+
+			compare0Acc = TraverseIR.foldPostOrderRight(ast.expr,f,compareNAcc,environment)
+			return f(environment,ast,compare0Acc) if environment else f(ast,compare0Acc)
+		elif isinstance(ast,Subscript):
+			subsAcc = acc
+			for n in ast.subs:
+				subsAcc = TraverseIR.foldPostOrderRight(n,f,subsAcc,environment)
+			exprAcc = TraverseIR.foldPostOrderRight(ast.expr,f,subsAcc,environment)
+			return f(environment,ast,exprAcc) if environment else f(ast,exprAcc)
+		elif isinstance(ast,Not):
+			notAcc = TraverseIR.foldPostOrderRight(ast.expr,f,acc,environment)
+			return f(environment,ast,notAcc) if environment else f(ast,notAcc)
+
+		#P1 Extension nodes
+		elif isinstance(ast,Boolean):
+			return f(environment,ast,acc) if environment else f(ast,acc)
+		elif isinstance(ast,GetTag):
+			argAcc = TraverseIR.foldPostOrderRight(ast.arg,f,acc,environment)
+			return f(environment,ast,argAcc) if environment else f(ast,argAcc)
+		elif isinstance(ast,InjectFrom):
+			argAcc = TraverseIR.foldPostOrderRight(ast.arg,f,acc,environment)
+			return f(environment,ast,argAcc) if environment else f(ast,argAcc)
+		elif isinstance(ast,ProjectTo):
+			argAcc = TraverseIR.foldPostOrderRight(ast.arg,f,acc,environment)
+			return f(environment,ast,argAcc) if environment else f(ast,argAcc)
+		elif isinstance(ast,Let):
+			bodyAcc = TraverseIR.foldPostOrderRight(ast.body,f,acc,environment)
+			exprAcc = TraverseIR.foldPostOrderRight(ast.expr,f,bodyAcc,environment)
+			varAcc = TraverseIR.foldPostOrderRight(ast.var,f,exprAcc,environment)
+			return f(environment,ast,exprAcc) if environment else f(ast,exprAcc)
+		elif isinstance(ast,IsTag):
+			argAcc = TraverseIR.foldPostOrderRight(ast.arg,f,acc,environment)
+			return f(environment,ast,argAcc) if environment else f(ast,argAcc)
+			
+		#P2 nodes
+		elif isinstance(ast,Lambda):
+			codeAcc = TraverseIR.foldPostOrderRight(ast.code,f,acc,environment)
+			return f(environment,ast,codeAcc) if environment else f(ast,codeAcc)
+			
+		elif isinstance(ast,Function):
+			codeAcc = TraverseIR.foldPostOrderRight(ast.code,f,acc,environment)
+			return f(environment,ast,codeAcc) if environment else f(ast,codeAcc)
+			
+		elif isinstance(ast,Return):
+			valAcc = TraverseIR.foldPostOrderRight(ast.value,f,acc,environment)
+			return f(environment,ast,valAcc) if environment else f(ast,valAcc)
+			
+		elif isinstance(ast,CreateClosure):
+			fvsAcc = acc
+			for n in reversed(ast.fvs):
+				fvsAcc = TraverseIR.foldPostOrderRight(n,f,fvsAcc,environment)
+			nameAcc = TraverseIR.foldPostOrderRight(ast.name,f,acc,environment)
+			return f(environment,ast,nameAcc) if environment else f(ast,nameAcc)
+			
+		elif isinstance(ast,GetClosure):
+			nameAcc = TraverseIR.foldPostOrderRight(ast.name,f,acc,environment)
+			return f(environment,ast,nameAcc) if environment else f(ast,nameAcc)
+
+		elif isinstance(ast,AugAssign):
+			exprAcc = TraverseIR.foldPostOrderLeft(ast.expr,f,acc,environment)
+			nodeAcc = TraverseIR.foldPostOrderLeft(ast.node,f,exprAcc,environment)
+			return f(environment,ast,nodeAcc) if environment else f(ast,nodeAcc)	
+			
+		else:
+			raise Exception("foldPostOrderRight does not currently support the " + ast.__class__.__name__ + " node.")
