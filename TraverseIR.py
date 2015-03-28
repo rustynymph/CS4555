@@ -382,10 +382,18 @@ class TraverseIR():
 			nameAcc = TraverseIR.foldPostOrderLeft(ast.name,f,acc,environment)
 			return f(environment,ast,nameAcc) if environment else f(ast,nameAcc)	
 
+
 		elif isinstance(ast,AugAssign):
-			nodeAcc = TraverseIR.foldPostOrderLeft(ast.node,f,acc,environment)
-			exprAcc = TraverseIR.foldPostOrderLeft(ast.expr,f,nodeAcc,environment)
-			return f(environment,ast,exprAcc) if environment else f(ast,exprAcc)
+			exprAcc = TraverseIR.foldPostOrderLeft(ast.expr,f,acc,environment)
+			nodeAcc = TraverseIR.foldPostOrderLeft(ast.node,f,exprAcc,environment)
+			return f(environment,ast,nodeAcc) if environment else f(ast,nodeAcc)	
+
+		elif isinstance(ast,IndirectFuncCall):
+			nameAcc = TraverseIR.foldPostOrderLeft(ast.name,f,acc,environment)
+			argsAcc = TraverseIR.foldPostOrderLeft(ast.args,f,nameAcc,environment)
+			fvsAcc = TraverseIR.foldPostOrderLeft(ast.fvs,f,argsAcc,environment)
+			return f(environment,ast,fvsAcc) if environment else f(ast,nodeAcc)
+
 			
 		else:
 			raise Exception("foldPostOrderLeft does not currently support the " + ast.__class__.__name__ + " node.")
@@ -527,9 +535,15 @@ class TraverseIR():
 			return f(environment,ast,nameAcc) if environment else f(ast,nameAcc)
 
 		elif isinstance(ast,AugAssign):
-			exprAcc = TraverseIR.foldPostOrderLeft(ast.expr,f,acc,environment)
-			nodeAcc = TraverseIR.foldPostOrderLeft(ast.node,f,exprAcc,environment)
+			exprAcc = TraverseIR.foldPostOrderRight(ast.expr,f,acc,environment)
+			nodeAcc = TraverseIR.foldPostOrderRight(ast.node,f,exprAcc,environment)
 			return f(environment,ast,nodeAcc) if environment else f(ast,nodeAcc)	
+
+		elif isinstance(ast,IndirectFuncCall):
+			nameAcc = TraverseIR.foldPostOrderRight(ast.name,f,acc,environment)
+			argsAcc = TraverseIR.foldPostOrderRight(ast.args,f,nameAcc,environment)
+			fvsAcc = TraverseIR.foldPostOrderRight(ast.fvs,f,argsAcc,environment)
+			return f(environment,ast,fvsAcc) if environment else f(ast,nodeAcc)
 			
 		else:
 			raise Exception("foldPostOrderRight does not currently support the " + ast.__class__.__name__ + " node.")
