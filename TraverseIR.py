@@ -408,11 +408,11 @@ class TraverseIR():
 				subAcc = TraverseIR.foldPostOrderRight(n,f,subAcc,environment)
 			return f(environment,ast,subAcc) if environment else f(ast,subAcc)
 		elif isinstance(ast,Assign):
-			nodesAcc = acc
+			exprAcc = TraverseIR.foldPostOrderRight(ast.expr,f,acc,environment)
+			nodesAcc = exprAcc
 			for n in reversed(ast.nodes):
 				nodesAcc = TraverseIR.foldPostOrderRight(n,f,nodesAcc,environment)
-			exprAcc = TraverseIR.foldPostOrderRight(ast.expr,f,nodesAcc,environment)
-			return f(environment,ast,exprAcc) if environment else f(ast,exprAcc)
+			return f(environment,ast,nodesAcc) if environment else f(ast,nodesAcc)
 		elif isinstance(ast,Discard):
 			discardAcc = TraverseIR.foldPostOrderRight(ast.expr,f,acc,environment)
 			return f(environment,ast,discardAcc) if environment else f(ast,discardAcc)
