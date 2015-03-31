@@ -8,7 +8,8 @@ class FunctionRevert:
 		if isinstance(node,Assign):
 			if isinstance(node.expr,Lambda):
 				if isinstance(node.nodes[0],AssName):
-					funny = Function(None,node.nodes[0].name,node.expr.argnames,(),0,None,node.expr.code) 
+					funny = Function(None,node.nodes[0].name,node.expr.argnames,(),0,None,node.expr.code)
+					print node.expr
 					funny.uniquename = node.expr.uniquename
 					return funny
 				elif isinstance(node.nodes[0],Subscript):

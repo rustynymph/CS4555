@@ -14,6 +14,7 @@ class LivenessAnalysis2:
 			if ast.name not in self.ignore: return acc | set([ast.name])
 			else: return acc
 		elif isinstance(ast,Function) or isinstance(ast,Lambda):
+			print acc
 			if len(acc) > 0: raise Exception("Functions must not have any live variables outside of the function definition.")
 			ast.liveness = acc
 			return acc

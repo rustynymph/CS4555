@@ -53,8 +53,9 @@ class AssemblySection(Instruction):
 
 class AssemblyFunction(AssemblySection):
 	def __init__(self,sectionHeader,clusteredInstruction,activationRecordSize,returnOperand=None):
-		if activationRecordSize <= 0:
-			raise Exception("activationRecordSize must be less than or equal to 0.")
+		print activationRecordSize
+		if activationRecordSize < 0:
+			raise Exception("activationRecordSize must be grater than or equal to 0.")
 		AssemblySection(sectionHeader,clusteredInstruction)
 		self.sectionHeader = sectionHeader
 		self.clusteredInstruction = clusteredInstruction
@@ -73,7 +74,8 @@ class AssemblyFunction(AssemblySection):
 		leave = LeaveInstruction()
 		ret = ReturnInstruction()
 
-		self.functionCleanup = ClusteredInstruction([returnValue,leave,ret])
+		if returnOperand: self.functionCleanup = ClusteredInstruction([returnValue,leave,ret])
+		else: self.functionCleanup = ClusteredInstruction()
 		self.function = ClusteredInstruction([sectionHeader,self.functionSetup,clusteredInstruction,self.functionCleanup])
 
 	def __repr__(self):

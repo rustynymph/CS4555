@@ -63,3 +63,10 @@ class Functionize():
 		elif isinstance(ast,Printnl):
 			return CallFunc(Name("print_any"),ast.nodes,None,None)
 		else: return ast
+
+
+	@staticmethod
+	def assignCallFuncMap(ast):
+		if isinstance(ast,Assign) and isinstance(ast.expr,CallFunc):
+			return AssignCallFunc(ast.nodes[0],ast.expr.node,ast.expr.args)
+		else: return ast

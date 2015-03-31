@@ -310,7 +310,7 @@ class ArithmeticFlattener():
 			fvsname = ast.name.name + '$fvs'
 			assign1 = Assign([AssName(fptrname,'OP_ASSIGN')],CallFunc(Name("get_fun_ptr"),[ast.name]))
 			assign2 = Assign([AssName(fvsname,'OP_ASSIGN')],CallFunc(Name("get_free_vars"),[ast.name]))
-			assign3 = Assign([AssName(name,'OP_ASSIGN')],IndirectFuncCall(Name(fptrname),ast.args,Name(fvsname)))
+			assign3 = Assign([AssName(name,'OP_ASSIGN')],IndirectFuncCall(Name(fptrname),ast.args+[Name(fvsname)]))
 			return Stmt([assign1,assign2,assign3])
 			
 
@@ -382,6 +382,8 @@ class Flatten():
 				returnStmt = self.arithmeticFlattener.flattenArithmetic(ast.value,name)
 				assign = Return(Name(name))
 				cluster = [returnStmt,assign]
+				print "return flattened"
+				print cluster
 			else: cluster = [Return(ast.value)]
 			return Stmt(cluster)
 		

@@ -22,6 +22,9 @@ from FunctionLabelMapping import *
 from FlattenFunctions import *
 from FunctionRevert import *
 from SeparateFunctions import *
+from MemoryAssignment import *
+from StrayCatcher import *
+from RuntimeFunctions import *
 
 pythonFilename = sys.argv[1]
 
@@ -69,8 +72,11 @@ print pythonAST
 
 pythonAST = TraverseIR.map(pythonAST,FunctionRevert.revert)
 print pythonAST
-pythonAST = TraverseIR.map(pythonAST,Flatten.removeNestedStmtMap)
-pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
+# pythonAST = TraverseIR.map(pythonAST,Flatten.removeNestedStmtMap)
+# pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
+pythonAST = TraverseIR.map(pythonAST,StrayCatcher.catchStray)
+print "hello"
+print pythonAST
 pythonAST = TraverseIR.map(pythonAST,FlattenFunctions.flattenFunctions)
 print "Flattened Functions"
 print pythonAST
@@ -83,16 +89,23 @@ pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
 print "Final Python AST"
 print pythonAST
 
-liveness = TraverseIR.foldPostOrderRight(pythonAST,LivenessAnalysis2.livenessFolding,set([]),LivenessAnalysis2(["input_int","print_any","set_subscript","is_true","get_subscript","add","equal","not_equal","create_list","create_dict"]))
+def getFunctionNames(ast,acc):
+	if isinstance(ast,Function):
+		return acc + [ast.name]
+	else: return acc
+
+functions = TraverseIR.foldPostOrderRight(pythonAST,getFunctionNames,RuntimeFunctions.runtimeFunctions)
+
+liveness = TraverseIR.foldPostOrderRight(pythonAST,LivenessAnalysis2.livenessFolding,set([]),LivenessAnalysis2(functions))
 
 # graph = GraphColoring.createGraph(liveness)
-graph = TraverseIR.foldPostOrderRight(pythonAST,GraphColoring.createGraphFolding,{},GraphColoring(["input_int","print_any","set_subscript","is_true","get_subscript","add"]))
+graph = TraverseIR.foldPostOrderRight(pythonAST,GraphColoring.createGraphFolding,{},GraphColoring(functions))
 coloredgraph = GraphColoring.colorGraph(graph)
 print coloredgraph
+pythonAST = TraverseIR.map(pythonAST,MemoryAssignment.assignMemoryLocationMap,MemoryAssignment(coloredgraph))
 
 x86 = TraverseIR.map(pythonAST,Translator.translateToX86,Translator(coloredgraph))
-x86 = SeparateFunctions.move(x86)
-# print x86
+print x86
 
 x86Filename = sys.argv[1].rsplit(".",1)[0] + ".s"
 x86File = open(x86Filename,"w")

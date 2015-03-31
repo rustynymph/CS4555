@@ -240,7 +240,7 @@ class TraverseIR():
 			TraverseIR.transferAttributes(closure,newClosure)
 			return newClosure
 		elif isinstance(ast,IndirectFuncCall):
-			ifc = IndirectFuncCall(TraverseIR.map(ast.name,f,environment),[TraverseIR.map(i,f,environment) for i in ast.args],TraverseIR.map(ast.fvs,f,environment))
+			ifc = IndirectFuncCall(TraverseIR.map(ast.name,f,environment),[TraverseIR.map(i,f,environment) for i in ast.args])
 			TraverseIR.transferAttributes(ast,ifc)
 			newIfc = f(environment,ifc) if environment else f(ifc)
 			TraverseIR.transferAttributes(ifc,newIfc)
@@ -390,9 +390,10 @@ class TraverseIR():
 
 		elif isinstance(ast,IndirectFuncCall):
 			nameAcc = TraverseIR.foldPostOrderLeft(ast.name,f,acc,environment)
-			argsAcc = TraverseIR.foldPostOrderLeft(ast.args,f,nameAcc,environment)
-			fvsAcc = TraverseIR.foldPostOrderLeft(ast.fvs,f,argsAcc,environment)
-			return f(environment,ast,fvsAcc) if environment else f(ast,nodeAcc)
+			argsAcc = nameAcc
+			for n in ast.args:
+				argsAcc = TraverseIR.foldPostOrderLeft(n,f,argsAcc,environment)
+			return f(environment,ast,argsAcc) if environment else f(ast,argsAcc)
 
 			
 		else:
@@ -540,10 +541,14 @@ class TraverseIR():
 			return f(environment,ast,nodeAcc) if environment else f(ast,nodeAcc)	
 
 		elif isinstance(ast,IndirectFuncCall):
-			nameAcc = TraverseIR.foldPostOrderRight(ast.name,f,acc,environment)
-			argsAcc = TraverseIR.foldPostOrderRight(ast.args,f,nameAcc,environment)
-			fvsAcc = TraverseIR.foldPostOrderRight(ast.fvs,f,argsAcc,environment)
-			return f(environment,ast,fvsAcc) if environment else f(ast,nodeAcc)
+			# nameAcc = TraverseIR.foldPostOrderRight(ast.name,f,acc,environment)
+			# argsAcc = TraverseIR.foldPostOrderRight(ast.args,f,nameAcc,environment)
+			# fvsAcc = TraverseIR.foldPostOrderRight(ast.fvs,f,argsAcc,environment)
+			argsAcc = acc
+			for n in ast.args:
+				argsAcc = TraverseIR.foldPostOrderRight(n,f,argsAcc,environment)
+			nameAcc = TraverseIR.foldPostOrderRight(ast.name,f,argsAcc,environment)
+			return f(environment,ast,nameAcc) if environment else f(ast,nameAcc)
 			
 		else:
 			raise Exception("foldPostOrderRight does not currently support the " + ast.__class__.__name__ + " node.")
