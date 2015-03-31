@@ -64,9 +64,9 @@ class Translator():
 	def translateToX86(self,ast):
 		if isinstance(ast,Module):
 
-			assFunction = AssemblyFunction(SectionHeaderInstruction("main"),ast.node,self.getActivationRecordSize(),ConstantOperand(DecimalValue(0)))
-			clusteredAssFunction = ClusteredInstruction([assFunction])
-			return AssemblyProgram(EntryPointInstruction(NameOperand("main")),clusteredAssFunction)
+			# assFunction = AssemblyFunction(SectionHeaderInstruction("main"),ast.node,self.getActivationRecordSize(),ConstantOperand(DecimalValue(0)))
+			# clusteredAssFunction = ClusteredInstruction([assFunction])
+			return AssemblyProgram(EntryPointInstruction(NameOperand("main")),ast.node)
 		
 		elif isinstance(ast,Stmt): return ClusteredInstruction(ast.nodes)			
 		
@@ -276,9 +276,9 @@ class Translator():
 		
 		elif isinstance(ast,Function):
 			code = []
-			if isinstance(ast.code,Stmt): code += [i for i in ast.code.nodes]
+			if isinstance(ast.code,Stmt): code += ast.code.nodes
 			else: code += [ast.code]
-			assFunc = AssemblyFunction(SectionHeaderInstruction(ast.name),ClusteredInstruction(code),len(ast.argnames)*4)
+			assFunc = AssemblyFunction(SectionHeaderInstruction(ast.name),ClusteredInstruction(code),(len(ast.memory))*4)
 			return assFunc
 		
 		elif isinstance(ast,CreateClosure):
@@ -306,7 +306,7 @@ class Translator():
 		elif isinstance(ast,Return):
 			val = ast.value
 			movInstr = [MoveInstruction(val,RegisterOperand(Registers32.EAX))]
-			retInstr = [ReturnInstruction()]
+			retInstr = [LeaveInstruction(),ReturnInstruction()]
 			return ClusteredInstruction(movInstr + retInstr)
 		
 		elif isinstance(ast,IndirectFuncCall):
