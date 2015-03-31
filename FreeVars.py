@@ -94,7 +94,8 @@ class FreeVars:
 		elif isinstance(node,Not): return FreeVars.freeVarsHelper(node.expr)
 		elif isinstance(node,Assign): return FreeVars.freeVarsHelper(node.expr)
 		elif isinstance(node,Printnl): return FreeVars.freeVarsHelper(node.nodes[0])
-		elif isinstance(node,Return): return FreeVars.freeVarsHelper(node.value)			
+		elif isinstance(node,Return): return FreeVars.freeVarsHelper(node.value)
+		elif isinstance(node,NoReturn): return set()			
 		else: raise Exception(str(node) + " is an unsupported node type")
 
 	@staticmethod
