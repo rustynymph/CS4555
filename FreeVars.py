@@ -15,13 +15,13 @@ class nameGenerator():
 		self.count += 1
 		return name
 
-
+createName = nameGenerator("lammy")	
 
 class FreeVars:
 
 	freeVarsSet = set()
 	variableMapping = {}
-	createName = nameGenerator("lammy")	
+
 
 	@staticmethod
 	def freeVarsHelper(node):
