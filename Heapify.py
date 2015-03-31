@@ -11,20 +11,24 @@ class Heapify:
 
 	def heapify(self,node):
 		if isinstance(node,Name):
-			if node.name in self.fvs:	return Subscript(Name(node.name),'OP_APPLY',[Const(0)])
+			if node.name in self.fvs: return Subscript(Name(node.name),'OP_APPLY',[Const(0)])
 			else: return node
 		elif isinstance(node,Assign):
 			if isinstance(node.nodes[0],AssName):
-				if node.nodes[0].name in self.fvs:
-					listcreate = Assign(node.nodes,List([Const(0)]))
-					subassign = Assign([Subscript(Name(node.nodes[0].name),'OP_APPLY',[Const(0)])],node.expr)
-					return Stmt([listcreate,subassign])
+				for l in self.variableMapping:
+					if node.nodes[0].name in self.variableMapping[l]:
+						listcreate = Assign(node.nodes,List([Const(0)]))
+						subassign = Assign([Subscript(Name(node.nodes[0].name),'OP_APPLY',[Const(0)])],node.expr)
+						return Stmt([listcreate,subassign])
+					else:
+						continue
 			else: return node
 		elif isinstance(node,Lambda):
 			varSet = self.variableMapping[node.uniquename]
 			varList = sorted(varSet)
 			self.fvs += varList
 			loadVars = [Assign([AssName(varList[i],'OP_ASSIGN')],Subscript(Name('fvs'),'OP_APPLY',[Const(4*i)])) for i in range (len(varList))]
+			#it's Const(4 * i) because projections and stuff
 			lammy = Lambda(node.argnames+['fvs'],node.defaults,node.flags,Stmt(loadVars+node.code.nodes))
 			lammy.uniquename = node.uniquename
 			return lammy

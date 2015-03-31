@@ -1,10 +1,6 @@
 from compiler.ast import *
 from PythonASTExtension import *
 
-freeVarsSet = set()
-variableMapping = {}
-varToLambda = {}
-
 class nameGenerator():
 
 	def __init__(self,prefix,count=0):
@@ -19,14 +15,16 @@ class nameGenerator():
 		self.count += 1
 		return name
 
-createName = nameGenerator("lammy")
+
 
 class FreeVars:
 
+	freeVarsSet = set()
+	variableMapping = {}
+	createName = nameGenerator("lammy")	
+
 	@staticmethod
 	def freeVarsHelper(node):
-		global variableMapping
-		global varToLambda
 		if isinstance(node,Const): return set([])
 		elif isinstance(node,Name): return set([node.name])
 		elif isinstance(node,Add): return FreeVars.freeVarsHelper(node.left) | FreeVars.freeVarsHelper(node.right)
@@ -41,7 +39,7 @@ class FreeVars:
 					save = save | FreeVars.freeVarsHelper(x)
 			else: save = save | FreeVars.freeVarsHelper(node.code)
 			node.uniquename = createName.getNameAndIncrementCounter()
-			variableMapping[node.uniquename] = save - set(node.argnames)
+			FreeVars.variableMapping[node.uniquename] = save - set(node.argnames)
 			return save - set(node.argnames)
 		elif isinstance(node,UnarySub): return FreeVars.freeVarsHelper(node.expr)
 		elif isinstance(node,List):
@@ -49,8 +47,8 @@ class FreeVars:
 			free_in_args = reduce(lambda b,a: a|b, fv_args, set([]))
 			return free_in_args			
 		elif isinstance(node,Dict):
-			fv_args = [FreeVars.freeVarsHelper(e) for e[0] in node.items]
-			fv_args2 = [FreeVars.freeVarsHelper(e) for e[1] in node.items]
+			fv_args = [FreeVars.freeVarsHelper(e[0]) for e in node.items]
+			fv_args2 = [FreeVars.freeVarsHelper(e[1]) for e in node.items]
 			free_in_args = reduce(lambda b,a: a|b, fv_args, set([]))
 			free_in_args2 = reduce(lambda b,a: a|b, fv_args2, set([]))
 			free_in_args3 = free_in_args | free_in_args
@@ -99,11 +97,9 @@ class FreeVars:
 		elif isinstance(node,Return): return FreeVars.freeVarsHelper(node.value)			
 		else: raise Exception(str(node) + " is an unsupported node type")
 
-
 	@staticmethod
 	def freeVars(IR):
-		global freeVarsSet
 		for i in IR.node.nodes:
-			freeVarsSet = freeVarsSet | FreeVars.freeVarsHelper(i)
-		return (freeVarsSet,variableMapping)
+			FreeVars.freeVarsSet = FreeVars.freeVarsSet | FreeVars.freeVarsHelper(i)
+		return (FreeVars.freeVarsSet,FreeVars.variableMapping)
 

@@ -207,8 +207,11 @@ class Translator():
 				return AddIntegerInstruction(ast.expr,ast.node)
 
 		
-		elif isinstance(ast,Not): return NotInstruction(ast.expr)
-			
+		elif isinstance(ast,Not):
+			notInstr = NotInstruction(ast.expr)
+			andInstr = AndInstruction(ConstantOperand(DecimalValue(1)),ast.expr)
+			return ClusteredInstruction([notInstr,andInstr])
+
 		elif isinstance(ast,IfExp):
 			test = ast.test
 			true = ast.then

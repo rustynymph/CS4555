@@ -102,9 +102,9 @@ class GetClosure(Node):
 
 class IndirectFuncCall(Node):
 	def __init__(self,name,args,fvs):
-		self.name = name
-		self.args = args
-		self.fvs = fvs
+		self.name = name #the name of the variable which contains the function pointer
+		self.args = args #the values of the parameters of the function
+		self.fvs = fvs #the free variables that this function captures
 		
 	def __repr__(self):
 		return self.__class__.__name__ + "(" + str(self.name) + "," + str(self.args) + "," + str(self.fvs) +  ")"
