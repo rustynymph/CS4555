@@ -245,6 +245,10 @@ class TraverseIR():
 			newIfc = f(environment,ifc) if environment else f(ifc)
 			TraverseIR.transferAttributes(ifc,newIfc)
 			return newIfc
+		elif isinstance(ast,NoReturn):
+			newNoReturn = f(environment,ast) if environment else f(ast)
+			TraverseIR.transferAttributes(ast,newNoReturn)
+			return newNoReturn
 
 		else: raise Exception("map does not currently support the " + ast.__class__.__name__ + " node. (" + str(ast) + ")")
 
@@ -395,6 +399,8 @@ class TraverseIR():
 				argsAcc = TraverseIR.foldPostOrderLeft(n,f,argsAcc,environment)
 			return f(environment,ast,argsAcc) if environment else f(ast,argsAcc)
 
+		elif isinstance(ast,NoReturn):
+			return f(environment,ast,acc) if environment else f(ast,acc)
 			
 		else:
 			raise Exception("foldPostOrderLeft does not currently support the " + ast.__class__.__name__ + " node.")
@@ -549,6 +555,9 @@ class TraverseIR():
 				argsAcc = TraverseIR.foldPostOrderRight(n,f,argsAcc,environment)
 			nameAcc = TraverseIR.foldPostOrderRight(ast.name,f,argsAcc,environment)
 			return f(environment,ast,nameAcc) if environment else f(ast,nameAcc)
+
+		elif isinstance(ast,NoReturn):
+			return f(environment,ast,acc) if environment else f(ast,acc)			
 			
 		else:
 			raise Exception("foldPostOrderRight does not currently support the " + ast.__class__.__name__ + " node.")

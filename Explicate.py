@@ -104,12 +104,14 @@ class Explicate:
 			return ast
 
 		elif isinstance(ast,Function):
+			ast.code = Stmt(ast.code.nodes+[NoReturn()])
 			newlambda = Lambda(ast.argnames,ast.defaults,ast.flags,ast.code)
 			newlambda.uniquename = ast.name
 			assign = Assign([AssName(ast.name,'OP_ASSIGN')],newlambda)
 			return assign
 		
-		elif isinstance(ast,Lambda): return Lambda(ast.argnames,ast.defaults,ast.flags,Stmt([Return(ast.code)]))
+		elif isinstance(ast,Lambda):
+			return Lambda(ast.argnames,ast.defaults,ast.flags,Stmt([Return(ast.code)]))
 		
 		elif isinstance(ast,Return): return ast
 			

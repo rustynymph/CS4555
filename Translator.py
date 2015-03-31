@@ -318,4 +318,9 @@ class Translator():
 			indirectCall = [CallInstruction(DereferenceOperand(name))]
 			return ClusteredInstruction(pushInstr + indirectCall)
 		
+		elif isinstance(ast,NoReturn):
+			leaveInstr = LeaveInstruction()
+			retInstr = ReturnInstruction()
+			return ClusteredInstruction([leaveInstr,retInstr])
+
 		else: return ast

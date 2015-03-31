@@ -114,3 +114,6 @@ class IndirectFuncCall(Node):
 	
 def isPythonASTLeaf(ast):
 	return isinstance(ast,Const) or isinstance(ast,Boolean) or isinstance(ast,Name) or isinstance(ast,AssName)
+
+class NoReturn(Node):
+	pass
