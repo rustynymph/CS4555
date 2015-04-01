@@ -5,3 +5,4 @@ AssemblyAST/*.pyc
 tests/
 *.s
 *.zip
+*.out
