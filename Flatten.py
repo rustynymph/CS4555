@@ -313,8 +313,8 @@ class ArithmeticFlattener():
 					stmtArray += [self.flattenArithmetic(fvs,fvsName)]
 				else: closFvs += [fvs]
 
-			return CallFunc(Name("create_closure"),[ast.name]+closFvs,None,None)
-
+			call = CallFunc(Name("create_closure"),[ast.name]+closFvs,None,None)
+			return Assign([AssName(name,'OP_ASSIGN')],call)
 
 		elif isinstance(ast,GetClosure):
 
