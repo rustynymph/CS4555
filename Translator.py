@@ -31,23 +31,13 @@ class Translator():
 		return invertedgraph
 
 	def getVariableLocation(self,variable):
-		register = self.getRegister(variable)
+		register = variable.register
 		if register: return register
 		else: return self.getVariableInMemory(variable)
 
+	#Come back to
 	def getVariableInMemory(self,variable):
-		if variable not in self.memory: self.putVariableInMemory(variable)
-		return self.memory[variable]
-	
-	def getRegister(self,variable): 
-		if variable in self.coloredgraph: return self.coloredgraph[variable]
-		else: return None
-	
-	def putVariableInMemory(self,variable):
-		if variable not in self.memory:
-			self.memory[variable] = MemoryOperand(Registers32.EBP,-self.getActivationRecordSize())
-	
-	def getActivationRecordSize(self): return 4*(len(self.memory)+1)
+		return variable.memory
 
 	def evictVariable(self):
 		reg = RegisterOperand(Registers32.EAX)
@@ -63,9 +53,6 @@ class Translator():
 
 	def translateToX86(self,ast):
 		if isinstance(ast,Module):
-
-			# assFunction = AssemblyFunction(SectionHeaderInstruction("main"),ast.node,self.getActivationRecordSize(),ConstantOperand(DecimalValue(0)))
-			# clusteredAssFunction = ClusteredInstruction([assFunction])
 			return AssemblyProgram(EntryPointInstruction(NameOperand("main")),ast.node)
 		
 		elif isinstance(ast,Stmt): return ClusteredInstruction(ast.nodes)			
@@ -73,11 +60,10 @@ class Translator():
 		elif isinstance(ast,Const):	return ConstantOperand(DecimalValue(ast.value))
 
 		elif isinstance(ast,AssName):
-			self.putVariableInMemory(ast.name)
-			return self.getVariableLocation(ast.name)
+			return self.getVariableLocation(ast)
 
 		elif isinstance(ast,Name):
-			if ast.name in self.memory:	return self.getVariableLocation(ast.name)
+			if ast.name in self.memory:	return self.getVariableLocation(ast)
 			else: return NameOperand(ast.name)
 
 		elif isinstance(ast,CallFunc):
@@ -97,8 +83,9 @@ class Translator():
 			if len(ast.args) > 0:
 				pushArgsInstr = []
 				for arg in reversed(ast.args):
-					if isinstance(arg,NameOperand): pushArgsInstr += [PushInstruction(self.getVariableLocation(arg))]
-					else: pushArgsInstr += [PushInstruction(arg)]
+					# if isinstance(arg,NameOperand): pushArgsInstr += [PushInstruction(self.getVariableLocation(arg))]
+					# else: pushArgsInstr += [PushInstruction(arg)]
+					pushArgsInstr += [PushInstruction(arg)]
 			else: pushArgsInstr = []		
 					
 			length = len(pushArgsInstr)*4
@@ -130,7 +117,7 @@ class Translator():
 		elif isinstance(ast, Assign):
 			if isinstance(ast.expr,Operand):
 				fromOperand = ast.expr
-				if isinstance(fromOperand,NameOperand): fromOperand = self.getVariableLocation(fromOperand)
+				# if isinstance(fromOperand,NameOperand): fromOperand = self.getVariableLocation(fromOperand)
 				toOperand = ast.nodes[0]
 				clusteredArrayBefore = []
 				clusteredArrayAfter = []
@@ -285,7 +272,7 @@ class Translator():
 			return assFunc
 		
 		elif isinstance(ast,CreateClosure):
-			name = self.getVariableLocation(ast.name)
+			name = self.getVariableLocation(ast)
 			fvs_name = self.getVariableLocation(ast.fvs)
 			freeVariables = ast.fvs
 			pushInstr1 = [PushInstruction(name)]
@@ -295,7 +282,7 @@ class Translator():
 			
 		elif isinstance(ast,GetClosure):
 			#need a save instruction
-			name = self.getVariableLocation(ast.name)
+			name = self.getVariableLocation(ast)
 			pushInstr1 = [PushInstruction(name)]
 			getFunPtr = [CallInstruction(NameOperand('get_fun_ptr'))]
 			movInstr1 = [MoveInstruction(RegisterOperand(Registers32.EAX),RegisterOperand(Registers32.EBX))]
@@ -313,7 +300,7 @@ class Translator():
 			return ClusteredInstruction(movInstr + retInstr)
 		
 		elif isinstance(ast,IndirectFuncCall):
-			name = self.getVariableLocation(ast.name)
+			name = self.getVariableLocation(ast)
 			pushInstr = [PushInstruction(self.getVariableLocation(i)) for i in ast.args]
 			indirectCall = [CallInstruction(DereferenceOperand(name))]
 			return ClusteredInstruction(pushInstr + indirectCall)

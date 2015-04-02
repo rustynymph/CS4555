@@ -104,7 +104,9 @@ liveness = TraverseIR.foldPostOrderRight(pythonAST,LivenessAnalysis2.livenessFol
 graph = TraverseIR.foldPostOrderRight(pythonAST,GraphColoring.createGraphFolding,{},GraphColoring(functions))
 coloredgraph = GraphColoring.colorGraph(graph)
 print coloredgraph
-pythonAST = TraverseIR.map(pythonAST,MemoryAssignment.assignMemoryLocationMap,MemoryAssignment(coloredgraph))
+parameterMemoryLocations = TraverseIR.foldPostOrderRight(pythonAST,MemoryAssignment.getParameterMemoryLocations,{})
+print parameterMemoryLocations
+pythonAST = TraverseIR.map(pythonAST,MemoryAssignment.assignMemoryLocationMap,MemoryAssignment(coloredgraph,parameterMemoryLocations))
 
 x86 = TraverseIR.map(pythonAST,Translator.translateToX86,Translator(coloredgraph))
 print x86
