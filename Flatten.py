@@ -300,26 +300,40 @@ class ArithmeticFlattener():
 			
 		elif isinstance(ast,CreateClosure):
 
+			stmtArray = []
+			closFvs = []
+			fvsPrefixName = name + "$" + ast.name.name
+			print "HEYYYAYAYAYYAYA"
+			print ast.fvs
+			for i in range(len(ast.fvs)):
+				fvs = ast.fvs[i]
+				if not isPythonASTLeaf(fvs):
+					fvsName = fvsPrefixName + "$" +str(i)
+					closFvs += [Name(fvsName)]
+					stmtArray += [self.flattenArithmetic(fvs,fvsName)]
+				else: closFvs += [fvs]
 
-			fvs_stmt = self.flattenArithmetic(ast.fvs,name+"$fvs")
-			nameNode1 = Name(name+"$fvs")
-			assign1 = Assign([AssName(name,'OP_ASSIGN')],nameNode1)
+			return CallFunc(Name("create_closure"),[ast.name]+closFvs,None,None)
 
-			#clos = CreateClosure(Name(name),Stmt([nameNode1]))
-			call = CallFunc(Name("create_closure"),[Name(name),nameNode1],None,None)
-			name2 = name+"$clos"
-			assign2 = Assign([AssName(name2,'OP_ASSIGN')],call)
-
-			return Stmt([fvs_stmt,assign1,assign2])
 
 		elif isinstance(ast,GetClosure):
-			print "AHOY MATEY"
-			print ast.args
+
+			stmtArray = []
+			closArgs = []
+			argPrefixName = name + "$" + ast.name.name
+			for i in range(len(ast.args)):
+				arg = ast.args[i]
+				if not isPythonASTLeaf(arg):
+					argName = argPrefixName + "$" +str(i)
+					closArgs += [Name(argName)]
+					stmtArray += [self.flattenArithmetic(arg,argName)]
+				else: closArgs += [arg]
+
 			fptrname = ast.name.name + '$fptr'
 			fvsname = ast.name.name + '$fvs'
 			assign1 = Assign([AssName(fptrname,'OP_ASSIGN')],CallFunc(Name("get_fun_ptr"),[ast.name]))
 			assign2 = Assign([AssName(fvsname,'OP_ASSIGN')],CallFunc(Name("get_free_vars"),[ast.name]))
-			assign3 = Assign([AssName(name,'OP_ASSIGN')],IndirectFuncCall(Name(fptrname),ast.args+[Name(fvsname)]))
+			assign3 = Assign([AssName(name,'OP_ASSIGN')],IndirectFuncCall(Name(fptrname),closArgs+[Name(fvsname)]))
 			return Stmt([assign1,assign2,assign3])
 			
 

@@ -16,7 +16,7 @@ class ClosureConversion:
 					elif isinstance(node.nodes[0],Subscript): new_func_name = str(node.nodes[0].expr.name) + '$function' 
 									
 					captured_vars = [Name(var) for var in node.expr.argnames if var in self.variableMapping[node.expr.uniquename]]
-					closure = CreateClosure(Name(new_func_name),List(captured_vars))
+					closure = CreateClosure(Name(new_func_name),captured_vars)
 					assign = Assign(node.nodes,closure)
 					func_node = Function(None,new_func_name,node.expr.argnames,(),0,None,node.expr.code)
 					func_node.uniquename = node.expr.uniquename
@@ -25,7 +25,7 @@ class ClosureConversion:
 			elif isinstance(node,Return):
 				if isinstance(node.value,Lambda):
 					captured_vars = [Name(var) for var in node.value.argnames if var in self.variableMapping[node.value.uniquename]]
-					closure = CreateClosure(Name(new_func_name),List(captured_vars))
+					closure = CreateClosure(Name(new_func_name),captured_vars)
 					returN = Return(closure)
 					func_node = Function(None,new_func_name,node.value.argnames,(),0,None,node.value.code)
 					func_node.uniquename = node.value.uniquename

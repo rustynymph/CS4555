@@ -226,7 +226,7 @@ class TraverseIR():
 			TraverseIR.transferAttributes(augassign,newaugassign)
 			return newaugassign
 		elif isinstance(ast,CreateClosure):
-			closure = CreateClosure(TraverseIR.map(ast.name,f,environment),List([TraverseIR.map(i,f,environment) for i in ast.fvs.nodes]))
+			closure = CreateClosure(TraverseIR.map(ast.name,f,environment),[TraverseIR.map(i,f,environment) for i in ast.fvs])
 			# if hasattr(ast,'liveness'): closure.liveness = ast.liveness
 			TraverseIR.transferAttributes(ast,closure)
 			newClosure = f(environment,closure) if environment else f(closure)
