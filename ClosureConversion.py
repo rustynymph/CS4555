@@ -22,6 +22,16 @@ class ClosureConversion:
 					func_node.uniquename = node.expr.uniquename
 					return Stmt([func_node,assign])
 				else: return node
+			elif isinstance(node,Return):
+				if isinstance(node.value,Lambda):
+					captured_vars = [Name(var) for var in node.value.argnames if var in self.variableMapping[node.value.uniquename]]
+					closure = CreateClosure(Name(new_func_name),List(captured_vars))
+					returN = Return(closure)
+					func_node = Function(None,new_func_name,node.value.argnames,(),0,None,node.value.code)
+					func_node.uniquename = node.value.uniquename
+					return Stmt([func_node,returN])
+				else: return node
+
 			elif isinstance(node,CallFunc):
 				if node.node.name in self.reservedFunctions: return node
 				else:
