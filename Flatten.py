@@ -290,6 +290,7 @@ class ArithmeticFlattener():
 				n = Not(Name(name))
 				assign = Assign([AssName(name,'OP_ASSIGN')],n)
 				return Stmt([expr,assign])
+
 		elif isinstance(ast,GetTag):
 			stmtArray = []
 			nameNode = Name(name)
@@ -298,10 +299,16 @@ class ArithmeticFlattener():
 			return Stmt([assign,getTag])
 			
 		elif isinstance(ast,CreateClosure):
+
+
 			fvs_stmt = self.flattenArithmetic(ast.fvs,name+"$fvs")
-			nameNode = Name(name+"$fvs")
-			assign1 = Assign([AssName(name,'OP_ASSIGN')],nameNode)
-			return Stmt([fvs_stmt]+[assign1])
+			nameNode1 = Name(name+"$fvs")
+			assign1 = Assign([AssName(name,'OP_ASSIGN')],nameNode1)
+
+			#clos = CreateClosure(Name(name),Stmt([nameNode1]))
+			call = CallFunc(Name("create_closure"),[Name(name),nameNode1],None,None)
+
+			return Stmt([fvs_stmt,assign1,call])
 
 		elif isinstance(ast,GetClosure):
 			print "AHOY MATEY"
