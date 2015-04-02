@@ -77,6 +77,8 @@ print pythonAST
 pythonAST = TraverseIR.map(pythonAST,StrayCatcher.catchStray)
 print "hello"
 print pythonAST
+pythonAST = TraverseIR.map(pythonAST,Flatten.removeNestedStmtMap)
+pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
 pythonAST = TraverseIR.map(pythonAST,FlattenFunctions.flattenFunctions)
 print "Flattened Functions"
 print pythonAST
