@@ -307,8 +307,10 @@ class ArithmeticFlattener():
 
 			#clos = CreateClosure(Name(name),Stmt([nameNode1]))
 			call = CallFunc(Name("create_closure"),[Name(name),nameNode1],None,None)
+			name2 = name+"$clos"
+			assign2 = Assign([AssName(name2,'OP_ASSIGN')],call)
 
-			return Stmt([fvs_stmt,assign1,call])
+			return Stmt([fvs_stmt,assign1,assign2])
 
 		elif isinstance(ast,GetClosure):
 			print "AHOY MATEY"
