@@ -314,7 +314,9 @@ class ArithmeticFlattener():
 				else: closFvs += [fvs]
 
 			call = CallFunc(Name("create_closure"),[ast.name]+closFvs,None,None)
-			return Assign([AssName(name,'OP_ASSIGN')],call)
+			ass =  Assign([AssName(name,'OP_ASSIGN')],call)
+			inj =  InjectFrom(Const(3),Name(name))
+			return Stmt([ass,inj])
 
 		elif isinstance(ast,GetClosure):
 
