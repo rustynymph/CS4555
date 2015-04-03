@@ -279,20 +279,7 @@ class Translator():
 			pushInstr2 = [PushInstruction(fvs_name)]
 			callInstr = [CallInstruction(NameOperand('create_closure'))]
 			return ClusteredInstruction(pushInstr1 + pushInstr2 + callInstr)
-			
-		elif isinstance(ast,GetClosure):
-			#need a save instruction
-			name = self.getVariableLocation(ast)
-			pushInstr1 = [PushInstruction(name)]
-			getFunPtr = [CallInstruction(NameOperand('get_fun_ptr'))]
-			movInstr1 = [MoveInstruction(RegisterOperand(Registers32.EAX),RegisterOperand(Registers32.EBX))]
-			pushInstr2 = [PushInstruction(name)]
-			getFvs = [CallInstruction(NameOperand('get_free_vars'))]
-			movInstr2 = [MoveInstruction(RegisterOperand(Registers32.EAX),RegisterOperand(Registers32.ECX))]
-			#need to push the args here
-			indirectCall = [CallInstruction(DereferenceOperand(RegisterOperand(Registers32.ECX)))]
-			return ClusteredInstruction(pushInstr1+getFunPtr+movInstr1+pushInstr2+getFvs+movInstr2+indirectCall)
-			
+		
 		elif isinstance(ast,Return):
 			val = ast.value
 			movInstr = [MoveInstruction(val,RegisterOperand(Registers32.EAX))]
@@ -300,7 +287,7 @@ class Translator():
 			return ClusteredInstruction(movInstr + retInstr)
 		
 		elif isinstance(ast,IndirectFuncCall):
-			name = self.getVariableLocation(ast)
+			name = self.getVariableLocation(ast.name)
 			pushInstr = [PushInstruction(self.getVariableLocation(i)) for i in ast.args]
 			indirectCall = [CallInstruction(DereferenceOperand(name))]
 			return ClusteredInstruction(pushInstr + indirectCall)
