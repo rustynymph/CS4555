@@ -26,11 +26,17 @@ class Heapify:
 		elif isinstance(node,Lambda):
 			varSet = self.variableMapping[node.uniquename]
 			varList = sorted(varSet)
-			self.fvs += varList
+
+			self.fvs += [Name(i) for i in varList]
+
 			loadVars = [Assign([AssName(varList[i],'OP_ASSIGN')],Subscript(Name('fvs'),'OP_APPLY',[Const(4*i)])) for i in range (len(varList))]
-			#it's Const(4 * i) because projections and stuff
-			lammy = Lambda(node.argnames+['fvs'],node.defaults,node.flags,Stmt(loadVars+node.code.nodes))
+
+			node.argnames = node.argnames + self.fvs
+			#fvsAss = Assign([AssName('fvs','OP_ASSIGN')],List(self.fvs))
+			lammy = Lambda(node.argnames,node.defaults,node.flags,Stmt(loadVars+node.code.nodes))
+			
 			lammy.uniquename = node.uniquename
+
 			return lammy
 		return node
 
