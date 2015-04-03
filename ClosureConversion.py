@@ -34,7 +34,7 @@ class ClosureConversion:
 					fvs_name = Name(fvs_n)
 					newArgnames = [node.expr.argnames.remove(i) for i in captured_vars] + [fvs_name]
 					fvsAss = Assign([AssName(fvs_n,'OP_ASSIGN')],List(captured_vars))
-					closure = CreateClosure(Name(new_func_name),[fvs_name])
+					closure = InjectFrom(BIG_t,CreateClosure(Name(new_func_name),[fvs_name]))
 					assign = Assign(node.nodes,closure)
 					func_node = Function(None,new_func_name,newArgnames,(),0,None,node.expr.code)
 					func_node.uniquename = node.expr.uniquename
@@ -45,7 +45,7 @@ class ClosureConversion:
 					captured_vars = [var for var in node.value.argnames if var.name in self.variableMapping[node.value.uniquename]]
 					fvs_n = self.generateName.getNameAndIncrementCounter()
 					fvs_name = Name(fvs_n)
-					closure = CreateClosure(Name(new_func_name),[fvs_name])
+					closure = InjectFrom(BIG_t,CreateClosure(Name(new_func_name),[fvs_name]))
 					fvsAss = Assign([AssName(fvs_n,'OP_ASSIGN')],List(captured_vars))
 					newArgnames = [node.value.argnames.remove(i) for i in captured_vars] + [fvs_name]
 					returN = Return(closure)
@@ -56,8 +56,6 @@ class ClosureConversion:
 
 			elif isinstance(node,CallFunc):
 				if node.node.name in self.reservedFunctions: return node
-				else:
-					new_name = str(node.node.name)+ '$getclos'
-					return GetClosure(node.node,node.args)
+				else: return GetClosure(node.node,node.args)
 			else: return node
 
