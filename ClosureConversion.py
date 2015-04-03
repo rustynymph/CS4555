@@ -61,36 +61,3 @@ class ClosureConversion:
 					return GetClosure(node.node,node.args)
 			else: return node
 
-
-'''
-        label_name = 'Q' + generate_name("SLambda")
-        
-        # Recurse on code body
-        slambdas = []
-        (code, rslambdas) = self.dispatch(n.code, False)
-        slambdas += rslambdas
-        # Setup fvs list
-        fvs_n = generate_name("fvs")
-        fvs = []
-        # Setup each free variable
-        stmts = []
-        cnt = 0
-        for var in n.free_vars:
-            fvs += [Name(var)]
-            stmt = make_assign(var, Subscript(Name(fvs_n),
-                                              [InjectFrom(INT_t, Const(cnt))]))
-            stmts += [stmt]
-            cnt += 1
-        # Setup list of stmts
-        stmts += code.nodes
-        # Setup params, appending fvs
-        params = []
-        params += [fvs_n]
-        params += n.params
-        #Create SLambdaLabel
-        label = SLambdaLabel(label_name, len(params))
-        # Create new closed slambda
-        slambdas += [SLambda(params, StmtList(stmts), label_name)]
-        # Return Call and list of SLambdas
-        return (InjectFrom(BIG_t, CallCREATECLOSURE([label, List(fvs)])), slambdas)
-'''
