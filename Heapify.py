@@ -20,23 +20,16 @@ class Heapify:
 						listcreate = Assign(node.nodes,List([Const(0)]))
 						subassign = Assign([Subscript(Name(node.nodes[0].name),'OP_APPLY',[Const(0)])],node.expr)
 						return Stmt([listcreate,subassign])
-					else:
-						continue
+					else: continue
 			else: return node
 		elif isinstance(node,Lambda):
 			varSet = self.variableMapping[node.uniquename]
 			varList = sorted(varSet)
-
 			self.fvs += [Name(i) for i in varList]
-
 			loadVars = [Assign([AssName(varList[i],'OP_ASSIGN')],Subscript(Name('fvs'),'OP_APPLY',[Const(4*i)])) for i in range (len(varList))]
-
 			node.argnames = node.argnames + self.fvs
-			#fvsAss = Assign([AssName('fvs','OP_ASSIGN')],List(self.fvs))
 			lammy = Lambda(node.argnames,node.defaults,node.flags,Stmt(loadVars+node.code.nodes))
-			
 			lammy.uniquename = node.uniquename
-
 			return lammy
 		return node
 
