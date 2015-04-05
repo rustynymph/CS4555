@@ -81,7 +81,7 @@ class Translator():
 			liveMemory = []
 
 			for variable in liveVariables:
-				variableLocation = self.coloredgraph[variable]
+				variableLocation = self.coloredgraph[variable] if variable in self.coloredgraph else None
 				if variableLocation and isinstance(variableLocation.register,Register): 
 					liveMemory += [self.memoryMapping[variable]]
 					liveRegisters += [variableLocation]

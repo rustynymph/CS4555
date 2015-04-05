@@ -29,10 +29,13 @@ class ClosureConversion:
 				if isinstance(node.expr,Lambda):
 					if isinstance(node.nodes[0],AssName): new_func_name = str(node.nodes[0].name) + '$function'
 					elif isinstance(node.nodes[0],Subscript): new_func_name = str(node.nodes[0].expr.name) + '$function'
-					captured_vars = [var for var in node.expr.argnames if var.name in self.variableMapping[node.expr.uniquename]]
+					captured_vars = [var for var in node.expr.argnames if var in self.variableMapping[node.expr.uniquename]]
 					fvs_n = self.generateName.getNameAndIncrementCounter()
 					fvs_name = Name(fvs_n)
-					newArgnames = [node.expr.argnames.remove(i) for i in captured_vars] + [fvs_name]
+					print "fjksdlafjs"
+					print node.expr.argnames
+					# newArgnames = [node.expr.argnames.remove(i) for i in captured_vars] + [fvs_name.name]
+					newArgnames = node.expr.argnames + [fvs_n]
 					fvsAss = Assign([AssName(fvs_n,'OP_ASSIGN')],List(captured_vars))
 					closure = InjectFrom(BIG_t,CreateClosure(Name(new_func_name),[fvs_name]))
 					assign = Assign(node.nodes,closure)
