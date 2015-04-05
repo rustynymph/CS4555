@@ -36,7 +36,7 @@ class ClosureConversion:
 					# newArgnames = [node.expr.argnames.remove(i) for i in captured_vars] + [fvs_name.name]
 					newArgnames = node.expr.argnames + [fvs_n]
 					fvsAss = Assign([AssName(fvs_n,'OP_ASSIGN')],List(captured_vars))
-					closure = InjectFrom(BIG_t,CreateClosure(Name(new_func_name),[fvs_n]))
+					closure = InjectFrom(BIG_t,CreateClosure(Name(new_func_name),[Name(fvs_n)]))
 					assign = Assign(node.nodes,closure)
 					func_node = Function(None,new_func_name,newArgnames,(),0,None,node.expr.code)
 					func_node.uniquename = node.expr.uniquename
@@ -48,7 +48,7 @@ class ClosureConversion:
 					#fvs_n = self.generateName.getNameAndIncrementCounter()
 					#fvs_name = Name(fvs_n)
 					fvs_n = node.value.fvsname
-					closure = InjectFrom(BIG_t,CreateClosure(Name(new_func_name),[fvs_n]))
+					closure = InjectFrom(BIG_t,CreateClosure(Name(new_func_name),[Name(fvs_n)]))
 					fvsAss = Assign([AssName(fvs_n,'OP_ASSIGN')],List(captured_vars))
 					newArgnames = [node.value.argnames.remove(i) for i in captured_vars] + [fvs_n]
 					returN = Return(closure)
