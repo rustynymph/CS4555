@@ -45,11 +45,12 @@ class ClosureConversion:
 			elif isinstance(node,Return):
 				if isinstance(node.value,Lambda):
 					captured_vars = [var for var in node.value.argnames if var.name in self.variableMapping[node.value.uniquename]]
-					fvs_n = self.generateName.getNameAndIncrementCounter()
-					fvs_name = Name(fvs_n)
-					closure = InjectFrom(BIG_t,CreateClosure(Name(new_func_name),[fvs_name]))
+					#fvs_n = self.generateName.getNameAndIncrementCounter()
+					#fvs_name = Name(fvs_n)
+					fvs_n = node.value.fvsname
+					closure = InjectFrom(BIG_t,CreateClosure(Name(new_func_name),[fvs_n]))
 					fvsAss = Assign([AssName(fvs_n,'OP_ASSIGN')],List(captured_vars))
-					newArgnames = [node.value.argnames.remove(i) for i in captured_vars] + [fvs_name]
+					newArgnames = [node.value.argnames.remove(i) for i in captured_vars] + [fvs_n]
 					returN = Return(closure)
 					func_node = Function(None,new_func_name,newArgnames,(),0,None,node.value.code)
 					func_node.uniquename = node.value.uniquename
