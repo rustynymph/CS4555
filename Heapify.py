@@ -26,7 +26,7 @@ class Heapify:
 
 	def heapify(self,node):
 		if isinstance(node,Name):
-			if node.name in self.fvs: return Subscript(Name(node.name),'OP_APPLY',[Const(0)])
+			if node.name in self.fvs: return Subscript(node,'OP_APPLY',[Const(0)])
 			else: return node
 		elif isinstance(node,Assign):
 			if isinstance(node.nodes[0],AssName):
