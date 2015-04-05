@@ -35,7 +35,8 @@ class Translator():
 	def getVariableLocation(self,variable):
 		print "get variable"
 		print variable
-		if variable.name in self.coloredgraph or variable.name in self.memoryMapping:
+		if isinstance(variable,ConstantOperand): return variable
+		elif variable.name in self.coloredgraph or variable.name in self.memoryMapping:
 			register = self.coloredgraph[variable.name] if variable.name in self.coloredgraph else None
 			if register: return register
 			else: return self.getVariableInMemory(variable)
