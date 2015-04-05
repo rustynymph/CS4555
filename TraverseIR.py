@@ -403,6 +403,7 @@ class TraverseIR():
 			return f(environment,ast,acc) if environment else f(ast,acc)
 			
 		else:
+			print ast
 			raise Exception("foldPostOrderLeft does not currently support the " + ast.__class__.__name__ + " node.")
 
 

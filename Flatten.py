@@ -299,12 +299,9 @@ class ArithmeticFlattener():
 			return Stmt([assign,getTag])
 			
 		elif isinstance(ast,CreateClosure):
-
 			stmtArray = []
 			closFvs = []
 			fvsPrefixName = name + "$" + ast.name.name
-			print "HEYYYAYAYAYYAYA"
-			print ast.fvs
 			for i in range(len(ast.fvs)):
 				fvs = ast.fvs[i]
 				if not isPythonASTLeaf(fvs):
@@ -319,7 +316,6 @@ class ArithmeticFlattener():
 			return Stmt([ass,inj])
 
 		elif isinstance(ast,GetClosure):
-
 			stmtArray = []
 			closArgs = []
 			argPrefixName = name + "$" + ast.name.name

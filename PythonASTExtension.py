@@ -116,4 +116,8 @@ def isPythonASTLeaf(ast):
 	return isinstance(ast,Const) or isinstance(ast,Boolean) or isinstance(ast,Name) or isinstance(ast,AssName)
 
 class NoReturn(Node):
-	pass
+	def __repr__(self):
+		return self.__class__.__name__ + "(" + ")"
+		
+	def __str__(self):
+		return self.__class__.__name__ + "(" + ")"		
