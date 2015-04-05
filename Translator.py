@@ -16,9 +16,10 @@ class NameGenerator():
 		return name
 
 class Translator():
-	def __init__(self,coloredgraph):
+	def __init__(self,coloredgraph,memoryMapping):
 		self.branch = NameGenerator("branch")		
 		self.coloredgraph = coloredgraph
+		self.memoryMapping = memoryMapping
 		self.memory = {}
 	
 	def getInvertedGraph(self,coloredgraph):
@@ -30,10 +31,15 @@ class Translator():
 				invertedgraph[v] += [k]
 		return invertedgraph
 
+	#Come back to
 	def getVariableLocation(self,variable):
-		register = variable.register
-		if register: return register
-		else: return self.getVariableInMemory(variable)
+		print "get variable"
+		print variable
+		if variable.name in self.coloredgraph or variable.name in self.memoryMapping:
+			register = self.coloredgraph[variable.name] if variable.name in self.coloredgraph else None
+			if register: return register
+			else: return self.getVariableInMemory(variable)
+		else: return NameOperand(variable.name)
 
 	#Come back to
 	def getVariableInMemory(self,variable):
@@ -63,8 +69,8 @@ class Translator():
 			return self.getVariableLocation(ast)
 
 		elif isinstance(ast,Name):
-			if ast.name in self.memory:	return self.getVariableLocation(ast)
-			else: return NameOperand(ast.name)
+			return self.getVariableLocation(ast)
+			# return NameOperand(ast.name)
 
 		elif isinstance(ast,CallFunc):
 			callersavedvariables = []
@@ -75,18 +81,16 @@ class Translator():
 			liveMemory = []
 
 			for variable in liveVariables:
-				variableLocation = self.getVariableLocation(variable)
-				if isinstance(variableLocation.register,CallerSavedRegister): 
-					liveMemory += [self.getVariableInMemory(variable)]
+				variableLocation = self.coloredgraph[variable]
+				if variableLocation and isinstance(variableLocation.register,Register): 
+					liveMemory += [self.memoryMapping[variable]]
 					liveRegisters += [variableLocation]
 
-			if len(ast.args) > 0:
-				pushArgsInstr = []
-				for arg in reversed(ast.args):
-					# if isinstance(arg,NameOperand): pushArgsInstr += [PushInstruction(self.getVariableLocation(arg))]
-					# else: pushArgsInstr += [PushInstruction(arg)]
-					pushArgsInstr += [PushInstruction(arg)]
-			else: pushArgsInstr = []		
+			pushArgsInstr = []
+			for arg in reversed(ast.args):
+				# if isinstance(arg,NameOperand): pushArgsInstr += [PushInstruction(self.getVariableLocation(arg))]
+				# else: pushArgsInstr += [PushInstruction(arg)]
+				pushArgsInstr += [PushInstruction(arg)]		
 					
 			length = len(pushArgsInstr)*4
 			addInstr = [AddIntegerInstruction(ConstantOperand(DecimalValue(length)),RegisterOperand(Registers32.ESP))]		
@@ -295,6 +299,8 @@ class Translator():
 			
 		elif isinstance(ast,Return):
 			val = ast.value
+			print "return"
+			print val
 			movInstr = [MoveInstruction(val,RegisterOperand(Registers32.EAX))]
 			retInstr = [LeaveInstruction(),ReturnInstruction()]
 			return ClusteredInstruction(movInstr + retInstr)

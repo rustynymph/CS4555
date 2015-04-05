@@ -12,12 +12,14 @@ class GraphColoring:
 	@staticmethod
 	def createGraph(liveVariables):
 		lv = liveVariables
+		print "hello"
+		print lv
 		graph = {}
 		for variableSet in lv:
 			for variable in variableSet:
 				edges = [x for x in (variableSet - set((variable,)))]
 				if variable not in graph: graph[variable] = []
-				graph[variable] += edges
+				graph[variable] += set(edges)
 		return graph
 
 	@staticmethod
@@ -66,7 +68,8 @@ class GraphColoring:
 
 			if variable not in self.ignore:
 				edges = [x for x in (liveVariables - set([variable]))]
-				if variable not in graph: graph[variable] = []
-				graph[variable] += edges
+				if variable not in graph: graph[variable] = set([])
+				graph[variable] = graph[variable] | set(edges)
+
 		return graph
 

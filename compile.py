@@ -101,15 +101,53 @@ functions = TraverseIR.foldPostOrderRight(pythonAST,getFunctionNames,RuntimeFunc
 liveness = TraverseIR.foldPostOrderRight(pythonAST,LivenessAnalysis2.livenessFolding,set([]),LivenessAnalysis2(functions))
 
 # graph = GraphColoring.createGraph(liveness)
-graph = TraverseIR.foldPostOrderRight(pythonAST,GraphColoring.createGraphFolding,{},GraphColoring(functions))
+# 
+
+def getParameters(ast,acc):
+	if isinstance(ast,Function) or isinstance(ast,Lambda):
+		return acc + ast.argnames
+	else: return acc
+
+parameterNames = TraverseIR.foldPostOrderRight(pythonAST,getParameters,[])
+
+graph = TraverseIR.foldPostOrderRight(pythonAST,GraphColoring.createGraphFolding,{},GraphColoring(functions + parameterNames))
+print "Graph"
+print graph
 coloredgraph = GraphColoring.colorGraph(graph)
+print "Colored Graph"
 print coloredgraph
+functionVariables = TraverseIR.foldPostOrderRight(pythonAST,MemoryAssignment.variablesWithAssociatedFunctions,({},set([])))
+print functionVariables
+
+def seperateVariables(functionVariables,coloredgraph):
+	seperate = {}
+	for (k,v) in functionVariables.items():
+		if k not in seperate: seperate[k] = {}
+		for variable in v:
+			if variable in coloredgraph and coloredgraph[variable] != None: seperate[k] = dict(seperate[k].items() + {variable:coloredgraph[variable]}.items())
+	return seperate
+
+functionVariableMapping =  seperateVariables(functionVariables[0],coloredgraph)
+print "fdjskla"
+print functionVariableMapping
+
+functionDictionary = MemoryAssignment.assignRegisterMemoryLocation(functionVariableMapping)
+print functionDictionary
+
+d = MemoryAssignment.assignVariableWithRegisterMapping(functionVariableMapping,functionDictionary)
+print d
+
+memory = {}
+for (k,v) in d.items():
+	memory = dict(memory.items() + v.items())
+
+
 parameterMemoryLocations = TraverseIR.foldPostOrderRight(pythonAST,MemoryAssignment.getParameterMemoryLocations,{})
 print parameterMemoryLocations
-pythonAST = TraverseIR.map(pythonAST,MemoryAssignment.assignMemoryLocationMap,MemoryAssignment(coloredgraph,parameterMemoryLocations))
+pythonAST = TraverseIR.map(pythonAST,MemoryAssignment.assignMemoryLocationMap,MemoryAssignment(parameterMemoryLocations,memory))
 
-x86 = TraverseIR.map(pythonAST,Translator.translateToX86,Translator(coloredgraph))
-print x86
+x86 = TraverseIR.map(pythonAST,Translator.translateToX86,Translator(coloredgraph,dict(memory.items() + parameterMemoryLocations.items())))
+# print x86
 #x86 = SeparateFunctions.move(x86)
 #print x86
 
