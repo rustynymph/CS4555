@@ -28,9 +28,6 @@ class Heapify:
 		if isinstance(node,Name):
 			if node.name in self.freeVariables: return Subscript(node,'OP_APPLY',[Const(0)])
 			else: return node
-#		elif isinstance(node,Return):
-#			if node.value.name in self.freeVariables: return Return(Subscript(node.value,'OP_APPLY',[Const(0)]))
-#			else: return node 
 		elif isinstance(node,Assign):
 			if isinstance(node.nodes[0],AssName):
 				for l in self.variableMapping:
@@ -51,11 +48,11 @@ class Heapify:
 
 			lammy = Lambda(node.argnames,node.defaults,node.flags,Stmt(loadVars+node.code.nodes))
 
-			fvsList = Assign([AssName(fvs_name,'OP_ASSIGN')],List(self.fvs))
+			fvsList = Assign([AssName(fvs_name,'OP_ASSIGN')],List(self.fvs)) #creating our list of free variables
 
-			lammy.uniquename = node.uniquename
-			lammy.fvsname = fvs_name
-			lammy.fvsList = fvsList
+			lammy.uniquename = node.uniquename #allows us to map fvs to anonymous lambda functions
+			lammy.fvsname = fvs_name #set the fvs list name as an attribute so we can access it in closure conversion
+			lammy.fvsList = fvsList #set the actual fvsList assign as an attribute so we can access it in closure conversion
 
 			self.fvs = []
 
