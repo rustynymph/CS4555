@@ -32,6 +32,10 @@ class FreeVars:
 			fv_args = [FreeVars.freeVarsHelper(e) for e in node.args]
 			free_in_args = reduce(lambda b,a: a|b, fv_args, set([]))
 			return free_in_args
+		elif isinstance(node,Stmt):
+			fv_args = [FreeVars.freeVarsHelper(e) for e in node.nodes]
+			free_in_args = reduce(lambda b,a: a|b, fv_args, set([]))
+			return free_in_args					
 		elif isinstance(node,Lambda):
 			save = set()
 			if isinstance(node.code,Stmt):

@@ -26,8 +26,11 @@ class Heapify:
 
 	def heapify(self,node):
 		if isinstance(node,Name):
-			if node.name in self.fvs: return Subscript(node,'OP_APPLY',[Const(0)])
+			if node.name in self.freeVariables: return Subscript(node,'OP_APPLY',[Const(0)])
 			else: return node
+#		elif isinstance(node,Return):
+#			if node.value.name in self.freeVariables: return Return(Subscript(node.value,'OP_APPLY',[Const(0)]))
+#			else: return node 
 		elif isinstance(node,Assign):
 			if isinstance(node.nodes[0],AssName):
 				for l in self.variableMapping:
@@ -40,13 +43,22 @@ class Heapify:
 		elif isinstance(node,Lambda):
 			varSet = self.variableMapping[node.uniquename]
 			varList = sorted(varSet)
-			self.fvs += [i for i in varList]
+			self.fvs += [Name(i) for i in varList]
+
 			fvs_name = self.generateName.getNameAndIncrementCounter()
-			loadVars = [Assign([AssName(varList[i],'OP_ASSIGN')],Subscript(fvs_name,'OP_APPLY',[Const(4*i)])) for i in range (len(varList))]
-			node.argnames = node.argnames + self.fvs
+
+			loadVars = [Assign([AssName(varList[i],'OP_ASSIGN')],Subscript(Name(fvs_name),'OP_APPLY',[Const(4*i)])) for i in range (len(varList))]
+
 			lammy = Lambda(node.argnames,node.defaults,node.flags,Stmt(loadVars+node.code.nodes))
+
+			fvsList = Assign([AssName(fvs_name,'OP_ASSIGN')],List(self.fvs))
+
 			lammy.uniquename = node.uniquename
 			lammy.fvsname = fvs_name
+			lammy.fvsList = fvsList
+
+			self.fvs = []
+
 			return lammy
 		return node
 
