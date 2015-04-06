@@ -128,7 +128,7 @@ class ConstantOperand(Operand):
 
 	def __init__(self,value,size=OperandSize.ThirtyTwoBits):
 		if not isinstance(value,ConstantValue):
-			raise Exception("value must be of type ConstantValue.")
+			raise Exception("value must be of type ConstantValue or NameOperand.")
 		self.value = value
 		self.size = size
 
@@ -149,9 +149,10 @@ class ConstantOperand(Operand):
 
 class NameOperand(Operand):
 
-	def __init__(self,name,size=OperandSize.ThirtyTwoBits):
+	def __init__(self,name,constant=False,size=OperandSize.ThirtyTwoBits):
 		self.name = name
 		self.size = size
+		self.constant = constant
 
 	def __repr__(self):
 		return self.__class__.__name__ + "(" + self.name + "," + OperandSize.sizeToString(self.size) + ")"
@@ -166,7 +167,7 @@ class NameOperand(Operand):
 		return hash(str(self))
 
 	def printOperand(self):
-		return self.name
+		return "$" + self.name if self.constant else self.name
 
 class DereferenceOperand(Operand):
 

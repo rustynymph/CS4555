@@ -91,7 +91,8 @@ class Translator():
 			for arg in reversed(ast.args):
 				# if isinstance(arg,NameOperand): pushArgsInstr += [PushInstruction(self.getVariableLocation(arg))]
 				# else: pushArgsInstr += [PushInstruction(arg)]
-				pushArgsInstr += [PushInstruction(arg)]		
+				if isinstance(arg,NameOperand): arg.constant = True
+				pushArgsInstr += [PushInstruction(arg)]
 					
 			length = len(pushArgsInstr)*4
 			addInstr = [AddIntegerInstruction(ConstantOperand(DecimalValue(length)),RegisterOperand(Registers32.ESP))]		
@@ -277,13 +278,14 @@ class Translator():
 			return assFunc
 		
 		elif isinstance(ast,CreateClosure):
+			print "fjdsklafjskla"
 			name = self.getVariableLocation(ast)
 			fvs_name = self.getVariableLocation(ast.fvs)
 			freeVariables = ast.fvs
 			pushInstr1 = [PushInstruction(name)]
 			pushInstr2 = [PushInstruction(fvs_name)]
 			callInstr = [CallInstruction(NameOperand('create_closure'))]
-			return ClusteredInstruction(pushInstr1 + pushInstr2 + callInstr)
+			return ClusteredInstruction( pushInstr2 + pushInstr1 +callInstr)
 		
 		elif isinstance(ast,Return):
 			val = ast.value

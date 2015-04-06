@@ -52,7 +52,7 @@ class MemoryAssignment:
 		if isinstance(ast,Function):
 			partialAcc = {}
 			for i in range(-len(ast.argnames),0):
-				partialAcc = dict(partialAcc.items() +  {ast.argnames[i]:MemoryOperand(Registers32.EBP,-i * 4)}.items())
+				partialAcc = dict(partialAcc.items() +  {ast.argnames[i]:MemoryOperand(Registers32.EBP,(-i+1) * 4)}.items())
 			return dict(partialAcc.items() + acc.items())
 		else: return acc
 
