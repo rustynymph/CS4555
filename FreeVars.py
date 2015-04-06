@@ -21,6 +21,7 @@ class FreeVars:
 
 	freeVarsSet = set()
 	variableMapping = {}
+	lambdafvs = set()
 
 
 	@staticmethod
@@ -42,6 +43,7 @@ class FreeVars:
 				for x in node.code.nodes:
 					save = save | FreeVars.freeVarsHelper(x)
 			else: save = save | FreeVars.freeVarsHelper(node.code)
+			FreeVars.lambdafvs = save
 			node.uniquename = createName.getNameAndIncrementCounter()
 			FreeVars.variableMapping[node.uniquename] = save - set(node.argnames)
 			return save - set(node.argnames)
@@ -106,5 +108,6 @@ class FreeVars:
 	def freeVars(IR):
 		for i in IR.node.nodes:
 			FreeVars.freeVarsSet = FreeVars.freeVarsSet | FreeVars.freeVarsHelper(i)
+		FreeVars.freeVarsSet = FreeVars.freeVarsSet & FreeVars.lambdafvs #that way we don't get false positives for free variables
 		return (FreeVars.freeVarsSet,FreeVars.variableMapping)
 
