@@ -35,7 +35,8 @@ class ClosureConversion:
 					fvs_n = node.expr.fvsname
 					# newArgnames = [node.expr.argnames.remove(i) for i in captured_vars] + [fvs_name.name]
 					newArgnames = node.expr.argnames + [fvs_n]
-					fvsAss = Assign([AssName(fvs_n,'OP_ASSIGN')],List(captured_vars))
+					print captured_vars
+					fvsAss = Assign([AssName(fvs_n,'OP_ASSIGN')],List([Name(x) for x in captured_vars]))
 					closure = InjectFrom(BIG_t,CreateClosure(Name(new_func_name),[Name(fvs_n)]))
 					assign = Assign(node.nodes,closure)
 					func_node = Function(None,new_func_name,newArgnames,(),0,None,node.expr.code)
