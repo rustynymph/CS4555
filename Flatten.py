@@ -327,7 +327,7 @@ class ArithmeticFlattener():
 			assign1 = Assign([AssName(fptrname,'OP_ASSIGN')],CallFunc(Name("get_fun_ptr"),[ast.name]))
 			assign2 = Assign([AssName(fvsname,'OP_ASSIGN')],CallFunc(Name("get_free_vars"),[ast.name]))
 			assign3 = Assign([AssName(name,'OP_ASSIGN')],IndirectFuncCall(Name(fptrname),closArgs+[Name(fvsname)]))
-			return Stmt([assign1,assign2,assign3])
+			return Stmt(stmtArray+[assign1,assign2,assign3])
 			
 
 		else: return Assign([AssName(name,'OP_ASSIGN')],ast)

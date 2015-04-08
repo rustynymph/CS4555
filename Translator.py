@@ -33,8 +33,6 @@ class Translator():
 
 	#Come back to
 	def getVariableLocation(self,variable):
-		print "get variable"
-		print variable
 		if isinstance(variable,ConstantOperand): return variable
 		elif variable.name in self.coloredgraph or variable.name in self.memoryMapping:
 			register = self.coloredgraph[variable.name] if variable.name in self.coloredgraph else None
@@ -162,7 +160,6 @@ class Translator():
 					else: clusteredArray += [i]
 				return ClusteredInstruction(clusteredArray)
 			
-			#elif isinstance(ast.expr,Subscript): print("hello")
 			
 			else: raise Exception("Error: Unrecognized node type")
 			
@@ -278,7 +275,6 @@ class Translator():
 			return assFunc
 		
 		elif isinstance(ast,CreateClosure):
-			print "fjdsklafjskla"
 			name = self.getVariableLocation(ast)
 			fvs_name = self.getVariableLocation(ast.fvs)
 			freeVariables = ast.fvs
@@ -289,8 +285,6 @@ class Translator():
 		
 		elif isinstance(ast,Return):
 			val = ast.value
-			print "return"
-			print val
 			movInstr = [MoveInstruction(val,RegisterOperand(Registers32.EAX))]
 			retInstr = [LeaveInstruction(),ReturnInstruction()]
 			return ClusteredInstruction(movInstr + retInstr)
