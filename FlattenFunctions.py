@@ -8,10 +8,8 @@ class FlattenFunctions:
 	def flattenFunctions(node):
 		if isinstance(node,Function):
 			flattenCode = []
-			print "this"
 			
 			for c in node.code:
-				if node.name == "__g$0": print node.code
 				if isinstance(c,Stmt): flattenCode += c.nodes
 				else: flattenCode += [c]
 			
