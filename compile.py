@@ -50,14 +50,6 @@ pythonAST = TraverseIR.map(pythonAST,Explicate.removeNot)
 pythonAST = TraverseIR.map(pythonAST,Explicate.explicateCompareMap)
 pythonAST = TraverseIR.map(pythonAST,Optimizer.explicateFoldingMap)
 
-def removeLet(ast):
-	if isinstance(ast,Let):
-		assign = Assign([AssName(ast.var.name,'OP_ASSIGN') if isinstance(ast.var,Name) else ast.var],ast.expr)
-		body = ast.body
-		return Stmt([assign,body])
-	else: return ast
-
-pythonAST = TraverseIR.map(pythonAST,removeLet)
 pythonAST = TraverseIR.map(pythonAST,UniquifyLambdas.labelLambdas,UniquifyLambdas())
 pythonAST = TraverseIR.map(pythonAST,FreeVars.calcFreeVars,FreeVars())
 
@@ -88,7 +80,6 @@ pythonAST = TraverseIR.map(pythonAST,StrayCatcher.catchStray)
 pythonAST = TraverseIR.map(pythonAST,Flatten.removeNestedStmtMap)
 pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
 pythonAST = TraverseIR.map(pythonAST,FlattenFunctions.flattenFunctions)
-
 
 pythonAST = TraverseIR.map(pythonAST,Flatten.flattenMap,Flatten())
 pythonAST = TraverseIR.map(pythonAST,Functionize.replaceBigPyobjMap)

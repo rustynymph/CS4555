@@ -41,4 +41,6 @@ class LambdaFreeVars:
 		elif isinstance(ast,CallFunc):
 			acc = acc - set([ast.node.name])
 			return acc
+		elif isinstance(ast,Let):
+			return acc - set([ast.var.name])
 		else: return acc
