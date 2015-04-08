@@ -27,20 +27,12 @@ class LambdaFreeVars:
 
 	def __init__(self,uniquename):
 		self.uniquename = uniquename
+		self.reservedNames = ['input','input_int','print_any','add','set_subscript','create_list','create_dict','get_fun_ptr','get_free_vars','main']
 
 	def lambdaFoldRight(self,ast,acc):
-		if isinstance(ast,Lambda):
-			acc = acc - set([arg for arg in ast.argnames])
-			return acc
-		elif isinstance(ast,AssName):
-			acc = acc - set([ast.name])
-			return acc
-		elif isinstance(ast,Name):
-			acc = acc | set([ast.name])
-			return acc
-		elif isinstance(ast,CallFunc):
-			acc = acc - set([ast.node.name])
-			return acc
-		elif isinstance(ast,Let):
-			return acc - set([ast.var.name])
+		if isinstance(ast,Lambda): return acc - set([arg for arg in ast.argnames])
+		elif isinstance(ast,AssName): return acc - set([ast.name])
+		elif isinstance(ast,Name): return acc | set([ast.name])
+		elif isinstance(ast,CallFunc): return acc - set([ast.node.name]) if (ast.node.name in self.reservedNames) else acc
+		elif isinstance(ast,Let): return acc - set([ast.var.name])
 		else: return acc

@@ -28,7 +28,7 @@ class ClosureConversion:
 				else: return node
 			elif isinstance(node,Return):
 				if isinstance(node.value,Lambda):
-					captured_vars = [var for var in node.value.argnames if var.name in self.variableMapping[node.value.uniquename]]
+					captured_vars = [var for var in node.value.argnames if var in self.variableMapping[node.value.uniquename]]
 					fvs_n = node.value.fvsname
 					fvs = node.value.fvsList
 					closure = InjectFrom(BIG_t,CreateClosure(Name(new_func_name),InjectFrom(BIG_t,fvs)))

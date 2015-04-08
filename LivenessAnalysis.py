@@ -1,6 +1,6 @@
 from PythonASTExtension import *
 
-class LivenessAnalysis2:
+class LivenessAnalysis:
 	
 	def __init__(self,ignore):
 		self.ignore = ignore
@@ -15,7 +15,9 @@ class LivenessAnalysis2:
 			else: return acc
 		elif isinstance(ast,Function) or isinstance(ast,Lambda):
 			accWithoutParameters = acc - set(ast.argnames)
-			if len(accWithoutParameters) > 0: raise Exception("Functions must not have any live variables outside of the function definition.")
+			if len(accWithoutParameters) > 0: 
+				print "\n\n\nAccWithoutParams\n"+str(accWithoutParameters)+"\n"+str(ast.uniquename)+"\n\n"
+				raise Exception("Functions must not have any live variables outside of the function definition.")
 			ast.liveness = accWithoutParameters
 			return accWithoutParameters
 		else:

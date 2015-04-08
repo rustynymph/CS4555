@@ -33,6 +33,7 @@ pythonFilename = sys.argv[1]
 #raise Exception(text_to_parse)
 
 pythonAST = compiler.parseFile(pythonFilename)
+
 pythonAST = TraverseIR.map(pythonAST,Simplify.removeDiscardMap)
 pythonAST = TraverseIR.map(pythonAST,Simplify.nameToBoolMap)
 pythonAST = TraverseIR.map(pythonAST,Optimizer.constantFoldingMap)
@@ -42,7 +43,6 @@ namespace = Namespace(Namespace.environmentKeywords + Namespace.reservedKeywords
 pythonAST = TraverseIR.map(pythonAST,Namespace.removeDependenciesMap,namespace)
 pythonAST = TraverseIR.map(pythonAST,Namespace.uniquifyMap,namespace)
 
-
 pythonAST = TraverseIR.map(pythonAST,Explicate.explicateMap,Explicate())
 pythonAST = TraverseIR.map(pythonAST,Explicate.shortCircuitMap,Explicate())
 pythonAST = TraverseIR.map(pythonAST,Explicate.removeIsTagMap)
@@ -50,12 +50,14 @@ pythonAST = TraverseIR.map(pythonAST,Explicate.removeNot)
 pythonAST = TraverseIR.map(pythonAST,Explicate.explicateCompareMap)
 pythonAST = TraverseIR.map(pythonAST,Optimizer.explicateFoldingMap)
 
+print "\n"+"PythonAST w/o Functions"
+print pythonAST
+print
+
 pythonAST = TraverseIR.map(pythonAST,UniquifyLambdas.labelLambdas,UniquifyLambdas())
 pythonAST = TraverseIR.map(pythonAST,FreeVars.calcFreeVars,FreeVars())
 
-print "\n"+"PythonAST"
-print pythonAST
-print
+
 
 allFreeVars = FreeVars.getAllFreeVars()
 mappings = TraverseIR.foldPostOrderLeft(pythonAST,FunctionLabelMapping.functionLabelMapping,{},FunctionLabelMapping())
@@ -67,10 +69,12 @@ mappings = TraverseIR.foldPostOrderLeft(pythonAST,FunctionLabelMapping.functionL
 pythonAST = TraverseIR.map(pythonAST,Heapify.heapify,Heapify(allFreeVars,mappings))
 print "Heapified"
 print pythonAST
+print
 
 pythonAST = TraverseIR.map(pythonAST,ClosureConversion.createClosure,ClosureConversion(mappings))
 print "Closured"
 print pythonAST
+print
 
 pythonAST = TraverseIR.map(pythonAST,FunctionRevert.revert)
 # pythonAST = TraverseIR.map(pythonAST,Flatten.removeNestedStmtMap)
@@ -96,7 +100,7 @@ def getFunctionNames(ast,acc):
 
 functions = TraverseIR.foldPostOrderRight(pythonAST,getFunctionNames,RuntimeFunctions.runtimeFunctions)
 
-liveness = TraverseIR.foldPostOrderRight(pythonAST,LivenessAnalysis2.livenessFolding,set([]),LivenessAnalysis2(functions))
+liveness = TraverseIR.foldPostOrderRight(pythonAST,LivenessAnalysis.livenessFolding,set([]),LivenessAnalysis(functions))
 
 # graph = GraphColoring.createGraph(liveness)
 # 
@@ -126,14 +130,14 @@ def seperateVariables(functionVariables,coloredgraph):
 	return seperate
 
 functionVariableMapping =  seperateVariables(functionVariables[0],coloredgraph)
-print "fdjskla"
-print functionVariableMapping
+#print "fdjskla"
+#print functionVariableMapping
 
 functionDictionary = MemoryAssignment.assignRegisterMemoryLocation(functionVariableMapping)
-print functionDictionary
+#print functionDictionary
 
 d = MemoryAssignment.assignVariableWithRegisterMapping(functionVariableMapping,functionDictionary)
-print d
+#print d
 
 memory = {}
 for (k,v) in d.items():
