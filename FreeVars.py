@@ -1,120 +1,44 @@
 from compiler.ast import *
 from PythonASTExtension import *
-
-class nameGenerator():
-
-	def __init__(self,prefix,count=0):
-		self.prefix = prefix
-		self.count = count
-
-	def getName(self):
-		return self.prefix + "$" + str(self.count)
-
-	def getNameAndIncrementCounter(self):
-		name = self.getName()
-		self.count += 1
-		return name
-
-createName = nameGenerator("lammy")	
+from TraverseIR import TraverseIR
 
 class FreeVars:
 
-	freeVarsSet = set()
-	variableMapping = {}
-	lambdafvs = set()
+	allFreeVars = set()
+	#variableMapping = {}
+	#lambdafvs = set()
 
+	def __init__(self):
+		pass
 
-	@staticmethod
-	def freeVarsHelper(node):
-		if isinstance(node,Const): return set([])
-		elif isinstance(node,Name): return set([node.name])
-		elif isinstance(node,Add): return FreeVars.freeVarsHelper(node.left) | FreeVars.freeVarsHelper(node.right)
-		elif isinstance(node,CallFunc):
-			fv_args = [FreeVars.freeVarsHelper(e) for e in node.args]
-			free_in_args = reduce(lambda b,a: a|b, fv_args, set([]))
-			return free_in_args
-		elif isinstance(node,Stmt):
-			fv_args = [FreeVars.freeVarsHelper(e) for e in node.nodes]
-			free_in_args = reduce(lambda b,a: a|b, fv_args, set([]))
-			return free_in_args					
-		elif isinstance(node,Lambda):
-			save = set()
-			if isinstance(node.code,Stmt):
-				for x in node.code.nodes:
-					save = save | FreeVars.freeVarsHelper(x)
-			else: save = save | FreeVars.freeVarsHelper(node.code)
-			FreeVars.lambdafvs = save
-			node.uniquename = createName.getNameAndIncrementCounter()
-			FreeVars.variableMapping[node.uniquename] = save - set(node.argnames)
-			return save - set(node.argnames)
-		elif isinstance(node,UnarySub): return FreeVars.freeVarsHelper(node.expr)
-		elif isinstance(node,List):
-			fv_args = [FreeVars.freeVarsHelper(e) for e in node.nodes]
-			free_in_args = reduce(lambda b,a: a|b, fv_args, set([]))
-			return free_in_args			
-		elif isinstance(node,Dict):
-			fv_args = [FreeVars.freeVarsHelper(e[0]) for e in node.items]
-			fv_args2 = [FreeVars.freeVarsHelper(e[1]) for e in node.items]
-			free_in_args = reduce(lambda b,a: a|b, fv_args, set([]))
-			free_in_args2 = reduce(lambda b,a: a|b, fv_args2, set([]))
-			free_in_args3 = free_in_args | free_in_args
-			return free_in_args3
-		elif isinstance(node,Subscript):
-			expression = FreeVars.freeVarsHelper(node.expr)
-			subs = [FreeVars.freeVarsHelper(sub) for sub in node.subs]
-			free_in_args = reduce(lambda b,a: a|b, subs, set([]))
-			free_in_args2 = expression | free_in_args
-			return free_in_args2
-		elif isinstance(node,IfExp):
-			save = FreeVars.freeVarsHelper(node.test)
-			if isinstance(node.then,Stmt):
-				for i in node.then.nodes:
-					save = save | FreeVars.freeVarsHelper(i)
-			else:
-				save = save | FreeVars.freeVarsHelper(node.then)
-			if isinstance(node.else_,Stmt):
-				for i in node.else_.nodes:
-					save = save | FreeVars.freeVarsHelper(i)
-			else:
-				save = save | FreeVars.freeVarsHelper(node.else_)
-			return save			
-		elif isinstance(node,Compare): return FreeVars.freeVarsHelper(node.expr) | FreeVars.freeVarsHelper(node.ops[0][1])	
-		elif isinstance(node,And):
-			save = set()
-			for i in node.nodes:
-				save = save | FreeVars.freeVarsHelper(i)
-			return save			
-		elif isinstance(node,Or):
-			save = set()
-			for i in node.nodes:
-				save = save | FreeVars.freeVarsHelper(i)
-			return save				
-		elif isinstance(node,Let):
-			save = FreeVars.freeVarsHelper(node.var)
-			if isinstance(node.expr,Let): save = save | FreeVars.freeVarsHelper(node.expr)
-			else: save = save | FreeVars.freeVarsHelper(node.body)
-			print
-			print
-			print "khsdfksdhfusdkhfdfd"
-			print node
-			print save
-			print
-			print
-			return save			
-		elif isinstance(node,InjectFrom): return FreeVars.freeVarsHelper(node.arg)
-		elif isinstance(node,GetTag): return FreeVars.freeVarsHelper(node.arg)
-		elif isinstance(node,ProjectTo): return FreeVars.freeVarsHelper(node.arg)
-		elif isinstance(node,Not): return FreeVars.freeVarsHelper(node.expr)
-		elif isinstance(node,Assign): return FreeVars.freeVarsHelper(node.expr)
-		elif isinstance(node,Printnl): return FreeVars.freeVarsHelper(node.nodes[0])
-		elif isinstance(node,Return): return FreeVars.freeVarsHelper(node.value)
-		elif isinstance(node,NoReturn): return set()			
-		else: raise Exception(str(node) + " is an unsupported node type")
+	def calcFreeVars(self,ast):
+		if isinstance(ast,Lambda):
+			fvs_set = TraverseIR.foldPostOrderRight(ast,LambdaFreeVars.lambdaFoldRight,set(),LambdaFreeVars(ast.uniquename))
+			FreeVars.allFreeVars = FreeVars.allFreeVars | fvs_set
+			ast.fvs = fvs_set
+			print "\n\n\n\n"+"FreeVars test"+"\n"+str(ast)+"\n"+str(ast.fvs)+"\n\n\n"
+			return ast
+		else: return ast
 
 	@staticmethod
-	def freeVars(IR):
-		for i in IR.node.nodes:
-			FreeVars.freeVarsSet = FreeVars.freeVarsSet | FreeVars.freeVarsHelper(i)
-		FreeVars.freeVarsSet = FreeVars.freeVarsSet & FreeVars.lambdafvs #that way we don't get false positives for free variables
-		return (FreeVars.freeVarsSet,FreeVars.variableMapping)
+	def getAllFreeVars(): return FreeVars.allFreeVars
 
+class LambdaFreeVars:
+
+	def __init__(self,uniquename):
+		self.uniquename = uniquename
+
+	def lambdaFoldRight(self,ast,acc):
+		if isinstance(ast,Lambda):
+			acc = acc - set([arg for arg in ast.argnames])
+			return acc
+		elif isinstance(ast,AssName):
+			acc = acc - set([ast.name])
+			return acc
+		elif isinstance(ast,Name):
+			acc = acc | set([ast.name])
+			return acc
+		elif isinstance(ast,CallFunc):
+			acc = acc - set([ast.node.name])
+			return acc
+		else: return acc

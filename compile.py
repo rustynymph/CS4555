@@ -12,11 +12,10 @@ from TraverseIR import TraverseIR
 from Namespace import *
 from Orphan import *
 from Functionize import *
-# from LivenessAnalysis import *
-from LivenessAnalysis2 import *
+from LivenessAnalysis import *
 from GraphColoring import *
 from Heapify import *
-from FreeVars2 import *
+from FreeVars import *
 from ClosureConversion import *
 from FunctionLabelMapping import *
 from FlattenFunctions import *

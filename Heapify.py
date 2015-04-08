@@ -46,9 +46,9 @@ class Heapify:
 
 			lammy = Lambda(node.argnames,node.defaults,node.flags,Stmt(loadVars+node.code.nodes))
 
-			lammy.uniquename = node.uniquename #allows us to map fvs to anonymous lambda functions
-			lammy.fvsname = fvs_name #set the fvs list name as an attribute so we can access it in closure conversion
-			lammy.fvsList = List(var_list) #set the actual fvsList assign as an attribute so we can access it in closure conversion
+			lammy.uniquename = node.uniquename
+			lammy.fvsname = fvs_name 
+			lammy.fvsList = List(var_list)
 
 			return lammy
 		return node
