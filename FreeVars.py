@@ -93,6 +93,13 @@ class FreeVars:
 			save = FreeVars.freeVarsHelper(node.var)
 			if isinstance(node.expr,Let): save = save | FreeVars.freeVarsHelper(node.expr)
 			else: save = save | FreeVars.freeVarsHelper(node.body)
+			print
+			print
+			print "khsdfksdhfusdkhfdfd"
+			print node
+			print save
+			print
+			print
 			return save			
 		elif isinstance(node,InjectFrom): return FreeVars.freeVarsHelper(node.arg)
 		elif isinstance(node,GetTag): return FreeVars.freeVarsHelper(node.arg)

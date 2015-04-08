@@ -18,24 +18,26 @@ class ClosureConversion:
 					captured_vars = [var for var in node.expr.argnames if var in self.variableMapping[node.expr.uniquename]]
 					fvs_n = node.expr.fvsname
 					newArgnames = node.expr.argnames + [fvs_n]
-					fvsAss = node.expr.fvsList
-					closure = InjectFrom(BIG_t,CreateClosure(Name(new_func_name),[Name(fvs_n)]))
+					#fvsAss = node.expr.fvsList
+					fvs = node.expr.fvsList
+					closure = InjectFrom(BIG_t,CreateClosure(Name(new_func_name),InjectFrom(BIG_t,fvs)))
 					assign = Assign(node.nodes,closure)
 					func_node = Function(None,new_func_name,newArgnames,(),0,None,node.expr.code)
 					func_node.uniquename = node.expr.uniquename
-					return Stmt([fvsAss,func_node,assign])
+					return Stmt([func_node,assign])
 				else: return node
 			elif isinstance(node,Return):
 				if isinstance(node.value,Lambda):
 					captured_vars = [var for var in node.value.argnames if var.name in self.variableMapping[node.value.uniquename]]
 					fvs_n = node.value.fvsname
-					closure = InjectFrom(BIG_t,CreateClosure(Name(new_func_name),[Name(fvs_n)]))
-					fvsAss = node.value.fvsList
+					fvs = node.value.fvsList
+					closure = InjectFrom(BIG_t,CreateClosure(Name(new_func_name),InjectFrom(BIG_t,fvs)))
+					#fvsAss = node.value.fvsList
 					newArgnames = node.value.argnames + [fvs_n]
 					returN = Return(closure)
 					func_node = Function(None,new_func_name,newArgnames,(),0,None,node.value.code)
 					func_node.uniquename = node.value.uniquename
-					return Stmt([fvsAss,func_node,returN])
+					return Stmt([func_node,returN])
 				else: return node
 
 			elif isinstance(node,CallFunc):

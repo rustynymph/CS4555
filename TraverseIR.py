@@ -226,7 +226,7 @@ class TraverseIR():
 			TraverseIR.transferAttributes(augassign,newaugassign)
 			return newaugassign
 		elif isinstance(ast,CreateClosure):
-			closure = CreateClosure(TraverseIR.map(ast.name,f,environment),[TraverseIR.map(i,f,environment) for i in ast.fvs])
+			closure = CreateClosure(TraverseIR.map(ast.name,f,environment),TraverseIR.map(ast.fvs,f,environment))
 			# if hasattr(ast,'liveness'): closure.liveness = ast.liveness
 			TraverseIR.transferAttributes(ast,closure)
 			newClosure = f(environment,closure) if environment else f(closure)
@@ -377,9 +377,7 @@ class TraverseIR():
 			
 		elif isinstance(ast,CreateClosure):
 			nameAcc = TraverseIR.foldPostOrderLeft(ast.name,f,acc,environment)
-			fvsAcc = nameAcc
-			for n in ast.fvs:
-				fvsAcc = TraverseIR.foldPostOrderLeft(n,f,fvsAcc,environment)
+			fvsAcc = TraverseIR.foldPostOrderLeft(ast.fvs,f,fvsAcc,environment)
 			return f(environment,ast,fvsAcc) if environment else f(ast,fvsAcc)
 			
 		elif isinstance(ast,GetClosure):
@@ -532,9 +530,7 @@ class TraverseIR():
 			return f(environment,ast,valAcc) if environment else f(ast,valAcc)
 			
 		elif isinstance(ast,CreateClosure):
-			fvsAcc = acc
-			for n in reversed(ast.fvs):
-				fvsAcc = TraverseIR.foldPostOrderRight(n,f,fvsAcc,environment)
+			fvsAcc = TraverseIR.foldPostOrderRight(ast.fvs,f,fvsAcc,environment)
 			nameAcc = TraverseIR.foldPostOrderRight(ast.name,f,acc,environment)
 			return f(environment,ast,nameAcc) if environment else f(ast,nameAcc)
 			

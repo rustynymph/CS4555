@@ -301,19 +301,14 @@ class ArithmeticFlattener():
 		elif isinstance(ast,CreateClosure):
 			stmtArray = []
 			closFvs = []
-			fvsPrefixName = name + "$" + ast.name.name
-			for i in range(len(ast.fvs)):
-				fvs = ast.fvs[i]
-				if not isPythonASTLeaf(fvs):
-					fvsName = fvsPrefixName + "$" +str(i)
-					closFvs += [Name(fvsName)]
-					stmtArray += [self.flattenArithmetic(fvs,fvsName)]
-				else: closFvs += [fvs]
 
-			call = CallFunc(Name("create_closure"),[ast.name]+closFvs,None,None)
+			flat_list = self.flattenArithmetic(ast.fvs,name+'$fvs')
+			flat_list_name_node = Name(name+'$fvs')
+
+			call = CallFunc(Name("create_closure"),[ast.name]+[flat_list_name_node],None,None)
 			ass =  Assign([AssName(name,'OP_ASSIGN')],call)
 			inj =  InjectFrom(Const(3),Name(name))
-			return Stmt([ass,inj])
+			return Stmt([flat_list,ass,inj])
 
 		elif isinstance(ast,GetClosure):
 			stmtArray = []

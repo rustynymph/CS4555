@@ -47,12 +47,9 @@ class Heapify:
 			loadVars = [Assign([AssName(varList[i],'OP_ASSIGN')],Subscript(Name(fvs_name),'OP_APPLY',[Const(4*i)])) for i in range (len(varList))]
 
 			lammy = Lambda(node.argnames,node.defaults,node.flags,Stmt(loadVars+node.code.nodes))
-
-			fvsList = Assign([AssName(fvs_name,'OP_ASSIGN')],List(self.fvs)) #creating our list of free variables
-
 			lammy.uniquename = node.uniquename #allows us to map fvs to anonymous lambda functions
 			lammy.fvsname = fvs_name #set the fvs list name as an attribute so we can access it in closure conversion
-			lammy.fvsList = fvsList #set the actual fvsList assign as an attribute so we can access it in closure conversion
+			lammy.fvsList = List(self.fvs) #set the actual fvsList assign as an attribute so we can access it in closure conversion
 
 			self.fvs = []
 
