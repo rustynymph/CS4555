@@ -16,7 +16,7 @@ from Functionize import *
 from LivenessAnalysis2 import *
 from GraphColoring import *
 from Heapify import *
-from FreeVars import *
+from FreeVars2 import *
 from ClosureConversion import *
 from FunctionLabelMapping import *
 from FlattenFunctions import *
@@ -25,6 +25,7 @@ from SeparateFunctions import *
 from MemoryAssignment import *
 from StrayCatcher import *
 from RuntimeFunctions import *
+from UniquifyLambdas import *
 
 pythonFilename = sys.argv[1]
 
@@ -33,7 +34,6 @@ pythonFilename = sys.argv[1]
 #raise Exception(text_to_parse)
 
 pythonAST = compiler.parseFile(pythonFilename)
-print pythonAST
 pythonAST = TraverseIR.map(pythonAST,Simplify.removeDiscardMap)
 pythonAST = TraverseIR.map(pythonAST,Simplify.nameToBoolMap)
 pythonAST = TraverseIR.map(pythonAST,Optimizer.constantFoldingMap)
@@ -43,9 +43,6 @@ namespace = Namespace(Namespace.environmentKeywords + Namespace.reservedKeywords
 pythonAST = TraverseIR.map(pythonAST,Namespace.removeDependenciesMap,namespace)
 pythonAST = TraverseIR.map(pythonAST,Namespace.uniquifyMap,namespace)
 
-print "idk"
-print pythonAST
-print "\n"
 
 pythonAST = TraverseIR.map(pythonAST,Explicate.explicateMap,Explicate())
 pythonAST = TraverseIR.map(pythonAST,Explicate.shortCircuitMap,Explicate())
@@ -62,35 +59,37 @@ def removeLet(ast):
 	else: return ast
 
 pythonAST = TraverseIR.map(pythonAST,removeLet)
+pythonAST = TraverseIR.map(pythonAST,UniquifyLambdas.labelLambdas,UniquifyLambdas())
+pythonAST = TraverseIR.map(pythonAST,FreeVars.calcFreeVars,FreeVars())
 
-print "EXPLICATED"
+print "\n"+"PythonAST"
 print pythonAST
-print "\n"
+print
 
-tup = FreeVars.freeVars(pythonAST)
-free_vars = tup[0]
-env = tup[1]
+allFreeVars = FreeVars.getAllFreeVars()
+mappings = TraverseIR.foldPostOrderLeft(pythonAST,FunctionLabelMapping.functionLabelMapping,{},FunctionLabelMapping())
 
-pythonAST = TraverseIR.map(pythonAST,Heapify.heapify,Heapify(free_vars,env))
+#tup = FreeVars.freeVars(pythonAST)
+#free_vars = tup[0]
+#env = tup[1]
+
+pythonAST = TraverseIR.map(pythonAST,Heapify.heapify,Heapify(allFreeVars,mappings))
 print "Heapified"
 print pythonAST
-mappings = TraverseIR.foldPostOrderLeft(pythonAST,FunctionLabelMapping.functionLabelMapping,{},FunctionLabelMapping())
-pythonAST = TraverseIR.map(pythonAST,ClosureConversion.createClosure,ClosureConversion(env))
+
+pythonAST = TraverseIR.map(pythonAST,ClosureConversion.createClosure,ClosureConversion(mappings))
 print "Closured"
 print pythonAST
 
 pythonAST = TraverseIR.map(pythonAST,FunctionRevert.revert)
-print pythonAST
 # pythonAST = TraverseIR.map(pythonAST,Flatten.removeNestedStmtMap)
 # pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
 pythonAST = TraverseIR.map(pythonAST,StrayCatcher.catchStray)
-print "hello"
-print pythonAST
+
 pythonAST = TraverseIR.map(pythonAST,Flatten.removeNestedStmtMap)
 pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
 pythonAST = TraverseIR.map(pythonAST,FlattenFunctions.flattenFunctions)
-print "Flattened Functions"
-print pythonAST
+
 
 pythonAST = TraverseIR.map(pythonAST,Flatten.flattenMap,Flatten())
 pythonAST = TraverseIR.map(pythonAST,Functionize.replaceBigPyobjMap)

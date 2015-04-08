@@ -15,8 +15,8 @@ class LivenessAnalysis2:
 			else: return acc
 		elif isinstance(ast,Function) or isinstance(ast,Lambda):
 			accWithoutParameters = acc - set(ast.argnames)
-			print accWithoutParameters
-			print ast.name
+			#print accWithoutParameters
+			#print ast.name
 			if len(accWithoutParameters) > 0: raise Exception("Functions must not have any live variables outside of the function definition.")
 			ast.liveness = accWithoutParameters
 			return accWithoutParameters

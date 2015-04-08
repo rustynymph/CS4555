@@ -6,8 +6,8 @@ BIG_t = Const(3)
 
 class ClosureConversion:
 
-		def __init__(self,varmap):
-			self.variableMapping = varmap
+		def __init__(self,mappings):
+			self.variableMapping = mappings
 			self.reservedFunctions = ['input','input_int','print_any','add','set_subscript','create_list','create_dict','get_fun_ptr','get_free_vars','main']
 
 		def createClosure(self,node):

@@ -232,7 +232,7 @@ class ArithmeticFlattener():
 			if isinstance(ast.code,Stmt):
 				stmt += [self.flattenArithmetic(i,name) for i in ast.code.nodes]
 			else: stmt = self.flattenArithmetic(ast.code,name)
-			return Lambda(ast.argnames,ast.defaults,ast.flags,stmt)
+			return Lambda(ast.argnames,ast.defaults,ast.flags,Stmt(stmt))
 		
 		elif isinstance(ast,Return): 
 			
@@ -398,8 +398,6 @@ class Flatten():
 				returnStmt = self.arithmeticFlattener.flattenArithmetic(ast.value,name)
 				assign = Return(Name(name))
 				cluster = [returnStmt,assign]
-				print "return flattened"
-				print cluster
 			else: cluster = [Return(ast.value)]
 			return Stmt(cluster)
 		

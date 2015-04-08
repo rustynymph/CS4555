@@ -18,40 +18,37 @@ class NameTracker():
 
 class Heapify:
 	
-	def __init__(self,fvs,vm):
-		self.freeVariables = fvs
-		self.variableMapping = vm
-		self.fvs = []
+	def __init__(self,allFreeVars,mappings):
+		self.variableMapping = mappings
+		self.allFreeVars = allFreeVars
 		self.generateName = NameTracker('fvs')
 
 	def heapify(self,node):
 		if isinstance(node,Name):
-			if node.name in self.freeVariables: return Subscript(node,'OP_APPLY',[Const(0)])
+			if node.name in self.allFreeVars: return Subscript(node,'OP_APPLY',[Const(0)])
 			else: return node
 		elif isinstance(node,Assign):
 			if isinstance(node.nodes[0],AssName):
-				for l in self.variableMapping:
-					if node.nodes[0].name in self.variableMapping[l]:
-						listcreate = Assign(node.nodes,List([Const(0)]))
-						subassign = Assign([Subscript(Name(node.nodes[0].name),'OP_APPLY',[Const(0)])],node.expr)
-						return Stmt([listcreate,subassign])
-					else: continue
+				if node.nodes[0].name in self.allFreeVars:
+					listcreate = Assign(node.nodes,List([node.expr]))
+					return listcreate
+				else: return node
 			else: return node
 		elif isinstance(node,Lambda):
-			varSet = self.variableMapping[node.uniquename]
-			varList = sorted(varSet)
-			self.fvs += [Name(i) for i in varList]
+
+			lambda_fvs = node.fvs
+			var_list = [Name(var) for var in lambda_fvs]
+			var_list = sorted(var_list)
 
 			fvs_name = self.generateName.getNameAndIncrementCounter()
 
-			loadVars = [Assign([AssName(varList[i],'OP_ASSIGN')],Subscript(Name(fvs_name),'OP_APPLY',[Const(4*i)])) for i in range (len(varList))]
+			loadVars = [Assign([AssName(var_list[i].name,'OP_ASSIGN')],Subscript(Name(fvs_name),'OP_APPLY',[Const(4*i)])) for i in range (len(var_list))]
 
 			lammy = Lambda(node.argnames,node.defaults,node.flags,Stmt(loadVars+node.code.nodes))
+
 			lammy.uniquename = node.uniquename #allows us to map fvs to anonymous lambda functions
 			lammy.fvsname = fvs_name #set the fvs list name as an attribute so we can access it in closure conversion
-			lammy.fvsList = List(self.fvs) #set the actual fvsList assign as an attribute so we can access it in closure conversion
-
-			self.fvs = []
+			lammy.fvsList = List(var_list) #set the actual fvsList assign as an attribute so we can access it in closure conversion
 
 			return lammy
 		return node
