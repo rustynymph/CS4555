@@ -36,10 +36,11 @@ class Explicate:
 			rightName = Name("letAdd"+str(self.getAndIncrement()))
 			#Checks if the left subtree is an int or bool
 			leftPredicate = Or([IsTag(Const(INT_t),leftName),IsTag(Const(BOOL_t),leftName)])
+			predicate = leftPredicate
 			#Checks if the right subtree is an int or bool
-			rightPredicate = Or([IsTag(Const(INT_t),rightName),IsTag(Const(BOOL_t),rightName)])
+			# rightPredicate = Or([IsTag(Const(INT_t),rightName),IsTag(Const(BOOL_t),rightName)])
 			#Checks if both subtrees are an int or a bool
-			predicate = And([leftPredicate,rightPredicate])
+			# predicate = And([leftPredicate,rightPredicate])
 			#Adds ints and bools
 			addIntsAndBools = InjectFrom(Const(INT_t),Add((ProjectTo(Const(INT_t),leftName),ProjectTo(Const(INT_t),rightName))))
 			#Adds bigs
@@ -103,11 +104,14 @@ class Explicate:
 			return ast
 
 		elif isinstance(ast,Function):
+			ast.code = Stmt(ast.code.nodes+[NoReturn()])
 			newlambda = Lambda(ast.argnames,ast.defaults,ast.flags,ast.code)
+			newlambda.uniquename = ast.name
 			assign = Assign([AssName(ast.name,'OP_ASSIGN')],newlambda)
 			return assign
 		
-		elif isinstance(ast,Lambda): return Lambda(ast.argnames,ast.defaults,ast.flags,Stmt([Return(ast.code)]))
+		elif isinstance(ast,Lambda):
+			return Lambda(ast.argnames,ast.defaults,ast.flags,Stmt([Return(ast.code)]))
 		
 		elif isinstance(ast,Return): return ast
 			
