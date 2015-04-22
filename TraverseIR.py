@@ -180,7 +180,7 @@ class TraverseIR():
 			TraverseIR.transferAttributes(let,newlet)
 			return newlet
 		elif isinstance(ast,IsTag):
-			istag = IsTag(ast.typ,TraverseIR.map(ast.arg,f,environment))
+			istag = IsTag(TraverseIR.map(ast.typ,f,environment),TraverseIR.map(ast.arg,f,environment))
 			# if hasattr(ast,'liveness'): istag.liveness = ast.liveness
 			TraverseIR.transferAttributes(ast,istag)
 			newistag = f(environment,istag) if environment else f(istag)

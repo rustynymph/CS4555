@@ -304,8 +304,6 @@ class ArithmeticFlattener():
 			return Stmt([fvs_stmt]+[assign1])
 
 		elif isinstance(ast,GetClosure):
-			print "AHOY MATEY"
-			print ast.args
 			fptrname = ast.name.name + '$fptr'
 			fvsname = ast.name.name + '$fvs'
 			assign1 = Assign([AssName(fptrname,'OP_ASSIGN')],CallFunc(Name("get_fun_ptr"),[ast.name]))

@@ -9,6 +9,9 @@ class Boolean(Node):
 
 	def __repr__(self):
 		return "Boolean(" + str(self.value) + ")"
+
+	def getChildNodes(self):
+		return []
 		
 class GetTag(Node):
 	def __init__(self,arg):
@@ -19,6 +22,9 @@ class GetTag(Node):
 		
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.arg) + ")"
+
+	def getChildNodes(self):
+		return [self.arg]
 			
 class IsTag(Node):
 	def __init__(self,typ,arg):
@@ -30,6 +36,9 @@ class IsTag(Node):
 		
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.typ) + "," + str(self.arg) + ")"
+
+	def getChildNodes(self):
+		return [self.typ,self.arg]
 		
 class InjectFrom(Node):
 	def __init__(self,typ,arg):
@@ -41,6 +50,9 @@ class InjectFrom(Node):
 		
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.typ) + "," + str(self.arg) + ")"
+
+	def getChildNodes(self):
+		return [self.typ,self.arg]
 	
 class ProjectTo(Node):
 	def __init__(self,typ,arg):
@@ -51,7 +63,10 @@ class ProjectTo(Node):
 		return self.__class__.__name__ + "(" + str(self.typ) + "," + str(self.arg) + ")"
 		
 	def __str__(self):
-		return self.__class__.__name__ + "(" + str(self.typ) + "," + str(self.arg) + ")"		
+		return self.__class__.__name__ + "(" + str(self.typ) + "," + str(self.arg) + ")"
+
+	def getChildNodes(self):
+		return [self.typ,self.arg]		
 		
 	
 class Let(Node):
@@ -65,6 +80,9 @@ class Let(Node):
 		
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.expr) + "," + str(self.body) + ")"
+
+	def getChildNodes(self):
+		return [self.var,self.expr,self.body]
 		
 class AssignCallFunc(Node):
 	def __init__(self,var,name,args):
@@ -78,6 +96,9 @@ class AssignCallFunc(Node):
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.var) + "," + str(self.name) + str(self.args) + ")"
 
+	def getChildNodes(self):
+		return [self.var,self.name,self.args]
+
 class CreateClosure(Node):
 	def __init__(self,name,fvs):
 		self.name = name
@@ -88,6 +109,9 @@ class CreateClosure(Node):
 		
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.name) + "," + str(self.fvs) + ")"
+
+	def getChildNodes(self):
+		return [self.name,self.fvs]
 
 class GetClosure(Node):
 	def __init__(self,name,args):
@@ -100,6 +124,9 @@ class GetClosure(Node):
 	def __str__(self):
 		return self.__class__.__name__ + "(" + str(self.name) +  "," + str(self.args) + ")"
 
+	def getChildNodes(self):
+		return [self.name,self.args]
+
 class IndirectFuncCall(Node):
 	def __init__(self,name,args,fvs):
 		self.name = name
@@ -110,7 +137,10 @@ class IndirectFuncCall(Node):
 		return self.__class__.__name__ + "(" + str(self.name) + "," + str(self.args) + "," + str(self.fvs) +  ")"
 		
 	def __str__(self):
-		return self.__class__.__name__ + "(" + str(self.name) +  "," + str(self.args) +  "," + str(self.fvs) +  ")"		
+		return self.__class__.__name__ + "(" + str(self.name) +  "," + str(self.args) +  "," + str(self.fvs) +  ")"	
+
+	def getChildNodes(self):
+		return [self.name,self.args,self.fvs]	
 	
 def isPythonASTLeaf(ast):
 	return isinstance(ast,Const) or isinstance(ast,Boolean) or isinstance(ast,Name) or isinstance(ast,AssName)
