@@ -68,44 +68,69 @@ deforestList0 += [(None,Simplify.nameToBoolMap)]
 deforestList0 += [(None,Optimizer.constantFoldingMap)]
 deforestList0 += [(Orphan(),Orphan.findParentMap)]
 
+
 namespace = Namespace(Namespace.environmentKeywords + Namespace.reservedKeywords)
 deforestList0 += [(namespace,Namespace.removeDependenciesMap)]
-# deforestList0 += [(namespace,Namespace.uniquifyMap)]
+pythonAST = TraverseIR.map(pythonAST,Composite.compositeMap,Composite(deforestList0))
 
-deforest0 = Deforestation(deforestList0)
-pythonAST = deforest0.map(pythonAST)
+# 
+# 
+# 
+
+# deforest0 = Deforestation(deforestList0)
+# pythonAST = deforest0.map(pythonAST)
 # pythonAST = TraverseIR.map(pythonAST,Simplify.removeDiscardMap)
 # pythonAST = TraverseIR.map(pythonAST,Simplify.nameToBoolMap)
 # pythonAST = TraverseIR.map(pythonAST,Optimizer.constantFoldingMap)
 # pythonAST = TraverseIR.map(pythonAST,Orphan.findParentMap,Orphan())
 # namespace = Namespace(Namespace.environmentKeywords + Namespace.reservedKeywords)
 # pythonAST = TraverseIR.map(pythonAST,Namespace.removeDependenciesMap,namespace)
-pythonAST = TraverseIR.map(pythonAST,Namespace.uniquifyMap,namespace)
 
-deforestList1 = [(Explicate(),Explicate.explicateMap)]
-deforestList1 += [(Explicate(),Explicate.shortCircuitMap)]
-deforestList1 += [(None,Explicate.removeIsTagMap)]
-deforestList1 += [(None,Explicate.removeNot)]
+
 # deforestList1 += [(None,Explicate.explicateCompareMap)]
 # deforestList1 += [(None,Optimizer.explicateFoldingMap)]
 
-deforest1 = Deforestation(deforestList1)
-pythonAST = deforest1.map(pythonAST)
+# deforest1 = Deforestation(deforestList1)
+# pythonAST = deforest1.map(pythonAST)
 
-# pythonAST = TraverseIR.map(pythonAST,Explicate.explicateMap,Explicate())
+
+
+
+pythonAST = TraverseIR.map(pythonAST,Explicate.explicateMap,Explicate())
+
+deforestList1 = [(Explicate(),Explicate.shortCircuitMap)]
+deforestList1 += [(None,Explicate.removeIsTagMap)]
+deforestList1 += [(None,Explicate.removeNot)]
+deforestList1 += [(None,Explicate.explicateCompareMap)]
+deforestList1 += [(None,Optimizer.explicateFoldingMap)]
+deforestList1 += [(None,Flatten.removeNestedStmtMap)]
+deforestList1 += [(None,Flatten.removeUnnecessaryStmt)]
+deforestList1 += [(None,FlattenFunctions.flattenFunctions)]
+deforestList1 += [(Flatten(),Flatten.flattenMap)]
+pythonAST = TraverseIR.map(pythonAST,Composite.compositeMap,Composite(deforestList1))
+
+
+deforestList2 = [(None,Functionize.replaceBigPyobjMap)]
+deforestList2 += [(Functionize({"input":"input_int"}),Functionize.replaceWithRuntimeEquivalentMap)]
+pythonAST = TraverseIR.map(pythonAST,Composite.compositeMap,Composite(deforestList2))
 # pythonAST = TraverseIR.map(pythonAST,Explicate.shortCircuitMap,Explicate())
 # pythonAST = TraverseIR.map(pythonAST,Explicate.removeIsTagMap)
 # pythonAST = TraverseIR.map(pythonAST,Explicate.removeNot)
-pythonAST = TraverseIR.map(pythonAST,Explicate.explicateCompareMap)
-pythonAST = TraverseIR.map(pythonAST,Optimizer.explicateFoldingMap)
-pythonAST = TraverseIR.map(pythonAST,Flatten.removeNestedStmtMap)
-pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
-pythonAST = TraverseIR.map(pythonAST,FlattenFunctions.flattenFunctions)
-pythonAST = TraverseIR.map(pythonAST,Flatten.flattenMap,Flatten())
-pythonAST = TraverseIR.map(pythonAST,Functionize.replaceBigPyobjMap)
-pythonAST = TraverseIR.map(pythonAST,Functionize.replaceWithRuntimeEquivalentMap,Functionize({"input":"input_int"}))
-pythonAST = TraverseIR.map(pythonAST,Flatten.removeNestedStmtMap)
-pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
+# pythonAST = TraverseIR.map(pythonAST,Explicate.explicateCompareMap)
+# pythonAST = TraverseIR.map(pythonAST,Optimizer.explicateFoldingMap)
+# pythonAST = TraverseIR.map(pythonAST,Flatten.removeNestedStmtMap)
+# pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
+# pythonAST = TraverseIR.map(pythonAST,FlattenFunctions.flattenFunctions)
+# pythonAST = TraverseIR.map(pythonAST,Flatten.flattenMap,Flatten())
+# pythonAST = TraverseIR.map(pythonAST,Functionize.replaceBigPyobjMap)
+# pythonAST = TraverseIR.map(pythonAST,Functionize.replaceWithRuntimeEquivalentMap,Functionize({"input":"input_int"}))
+
+deforestList3 = [(None,Flatten.removeNestedStmtMap)]
+deforestList3 += [(None,Flatten.removeUnnecessaryStmt)]
+pythonAST = TraverseIR.map(pythonAST,Composite.compositeMap,Composite(deforestList3))
+
+# pythonAST = TraverseIR.map(pythonAST,Flatten.removeNestedStmtMap)
+# pythonAST = TraverseIR.map(pythonAST,Flatten.removeUnnecessaryStmt)
 liveness = TraverseIR.foldPostOrderRight(pythonAST,LivenessAnalysis2.livenessFolding,set([]),LivenessAnalysis2(["input_int","print_any","set_subscript","is_true","get_subscript","add","equal","not_equal","create_list","create_dict"]))
 graph = TraverseIR.foldPostOrderRight(pythonAST,GraphColoring.createGraphFolding,{},GraphColoring(["input_int","print_any","set_subscript","is_true","get_subscript","add"]))
 coloredgraph = GraphColoring.colorGraph(graph)

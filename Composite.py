@@ -19,8 +19,8 @@ class Composite:
 
 	def compositeMap(self,ast):
 		newAST = ast
-		for t in envFuncPairList:
+		for t in self.envFuncPairList:
 			nAST = newAST
-			newAST = t[1](t[0],nAST)
+			newAST = t[1](t[0],nAST) if t[0] else t[1](nAST)
 			Composite.transferAttributes(nAST,newAST)
 		return newAST
