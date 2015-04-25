@@ -21,7 +21,7 @@ from FunctionLabelMapping import *
 from FlattenFunctions import *
 from FunctionRevert import *
 from SeparateFunctions import *
-from Deforestation import *
+#from Deforestation import *
 from Composite import *
 
 # pythonFilename = sys.argv[1]
