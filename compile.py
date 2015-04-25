@@ -21,7 +21,6 @@ from FunctionLabelMapping import *
 from FlattenFunctions import *
 from FunctionRevert import *
 from SeparateFunctions import *
-#from Deforestation import *
 from Composite import *
 
 # pythonFilename = sys.argv[1]
@@ -73,10 +72,6 @@ namespace = Namespace(Namespace.environmentKeywords + Namespace.reservedKeywords
 deforestList0 += [(namespace,Namespace.removeDependenciesMap)]
 pythonAST = TraverseIR.map(pythonAST,Composite.compositeMap,Composite(deforestList0))
 
-# 
-# 
-# 
-
 # deforest0 = Deforestation(deforestList0)
 # pythonAST = deforest0.map(pythonAST)
 # pythonAST = TraverseIR.map(pythonAST,Simplify.removeDiscardMap)
@@ -86,15 +81,11 @@ pythonAST = TraverseIR.map(pythonAST,Composite.compositeMap,Composite(deforestLi
 # namespace = Namespace(Namespace.environmentKeywords + Namespace.reservedKeywords)
 # pythonAST = TraverseIR.map(pythonAST,Namespace.removeDependenciesMap,namespace)
 
-
 # deforestList1 += [(None,Explicate.explicateCompareMap)]
 # deforestList1 += [(None,Optimizer.explicateFoldingMap)]
 
 # deforest1 = Deforestation(deforestList1)
 # pythonAST = deforest1.map(pythonAST)
-
-
-
 
 pythonAST = TraverseIR.map(pythonAST,Explicate.explicateMap,Explicate())
 
